@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased text-gray-900 bg-brand-lightGray font-sans;
+  }
+}
+
+/* Custom visual highlights and enterprise focus highlights */
+input:focus {
+  outline: none !important;
+  border-color: #A91D22 !important;
+  box-shadow: 0 0 0 4px rgba(169, 29, 34, 0.12) !important;
+}
+
+button:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 4px rgba(169, 29, 34, 0.2) !important;
+}
+
+/* Scrollbars for navigation panels */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
