@@ -13,6 +13,8 @@ import PlaceholderPage from '../pages/PlaceholderPage';
 import PendingOrders from '../pages/PendingOrders';
 import Products from '../pages/Products';
 import Doctors from '../pages/Doctors';
+import Areas from '../pages/Areas';
+import TeamMembers from '../pages/TeamMembers';
 
 export const routes = [
   {
@@ -75,7 +77,7 @@ export const routes = [
     path: '/areas',
     element: (
       <AuthGuard>
-        <PlaceholderPage title="Areas" />
+        <Areas />
       </AuthGuard>
     ),
   },
@@ -83,7 +85,7 @@ export const routes = [
     path: '/team',
     element: (
       <AuthGuard>
-        <PlaceholderPage title="Team Members" />
+        <TeamMembers />
       </AuthGuard>
     ),
   },
