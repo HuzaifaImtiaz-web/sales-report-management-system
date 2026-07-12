@@ -10,6 +10,9 @@ import ForgotPassword from '../pages/ForgotPassword';
 import ResetSuccess from '../pages/ResetSuccess';
 import DashboardPlaceholder from '../pages/DashboardPlaceholder';
 import PlaceholderPage from '../pages/PlaceholderPage';
+import PendingOrders from '../pages/PendingOrders';
+import Products from '../pages/Products';
+import Doctors from '../pages/Doctors';
 
 export const routes = [
   {
@@ -56,7 +59,7 @@ export const routes = [
     path: '/products',
     element: (
       <AuthGuard>
-        <PlaceholderPage title="Products" />
+        <Products />
       </AuthGuard>
     ),
   },
@@ -64,7 +67,7 @@ export const routes = [
     path: '/doctors',
     element: (
       <AuthGuard>
-        <PlaceholderPage title="Doctors" />
+        <Doctors />
       </AuthGuard>
     ),
   },
@@ -97,6 +100,14 @@ export const routes = [
     element: (
       <AuthGuard>
         <PlaceholderPage title="Sales" />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/pending-orders',
+    element: (
+      <AuthGuard>
+        <PendingOrders />
       </AuthGuard>
     ),
   },

@@ -36,7 +36,7 @@ const ACTIONS = [
 const QuickActions = () => {
   return (
     <div>
-      <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wide mb-3">Quick Actions</h3>
+      <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-3">Quick Actions</h3>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {ACTIONS.map((action) => (
           <QuickActionCard key={action.label} {...action} />
