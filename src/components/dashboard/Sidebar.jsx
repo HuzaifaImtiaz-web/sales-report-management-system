@@ -4,23 +4,24 @@ import {
   FiGrid, FiPackage, FiUsers, FiMapPin, FiUserCheck,
   FiLayers, FiTrendingUp, FiTarget, FiBarChart2,
   FiUploadCloud, FiSettings, FiLogOut, FiChevronLeft,
-  FiChevronRight, FiUser,
+  FiChevronRight, FiUser, FiClipboard,
 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import CompanyLogo from '../common/CompanyLogo';
 
 const NAV_ITEMS = [
-  { label: 'Dashboard',        icon: FiGrid,         path: '/dashboard'        },
-  { label: 'Products',         icon: FiPackage,      path: '/products'         },
-  { label: 'Doctors',          icon: FiUsers,        path: '/doctors'          },
-  { label: 'Areas',            icon: FiMapPin,       path: '/areas'            },
-  { label: 'Team Members',     icon: FiUserCheck,    path: '/team'             },
-  { label: 'Groups',           icon: FiLayers,       path: '/groups'           },
-  { label: 'Sales',            icon: FiTrendingUp,   path: '/sales'            },
-  { label: 'Product Targets',  icon: FiTarget,       path: '/targets'          },
-  { label: 'Reports',          icon: FiBarChart2,    path: '/reports'          },
-  { label: 'Import Data',      icon: FiUploadCloud,  path: '/import'           },
-  { label: 'Settings',         icon: FiSettings,     path: '/settings'         },
+  { label: 'Dashboard',              icon: FiGrid,        path: '/dashboard'        },
+  { label: 'Products',               icon: FiPackage,     path: '/products'         },
+  { label: 'Doctors',                icon: FiUsers,       path: '/doctors'          },
+  { label: 'Areas',                  icon: FiMapPin,      path: '/areas'            },
+  { label: 'Team Members',           icon: FiUserCheck,   path: '/team'             },
+  { label: 'Groups',                 icon: FiLayers,      path: '/groups'           },
+  { label: 'Sales',                  icon: FiTrendingUp,  path: '/sales'            },
+  { label: 'Pending Orders',         icon: FiClipboard,   path: '/pending-orders',  badge: '18' },
+  { label: 'Product Targets',        icon: FiTarget,      path: '/targets'          },
+  { label: 'Reports',                icon: FiBarChart2,   path: '/reports'          },
+  { label: 'Import Data',            icon: FiUploadCloud, path: '/import'           },
+  { label: 'Settings',               icon: FiSettings,    path: '/settings'         },
 ];
 
 const Sidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
@@ -53,22 +54,33 @@ const Sidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
 
       {/* Nav Menu */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5" aria-label="Sidebar navigation">
-        {NAV_ITEMS.map(({ label, icon: Icon, path }) => (
+        {NAV_ITEMS.map(({ label, icon: Icon, path, badge }) => (
           <NavLink
             key={label}
             to={path}
             onClick={onMobileClose}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-hidden
               ${isActive
-                ? 'bg-brand-primary text-white shadow-sm font-semibold'
-                : 'text-white/60 hover:bg-white/10 hover:text-white'
+                ? 'bg-brand-primary text-white shadow-md font-semibold'
+                : 'text-white/60 hover:bg-white/10 hover:text-white hover:translate-x-0.5'
               }
               ${collapsed ? 'justify-center px-3' : ''}`
             }
           >
-            <Icon className="w-4.5 h-4.5 flex-shrink-0" />
-            {!collapsed && <span className="truncate">{label}</span>}
+            {({ isActive }) => (
+              <>
+                <Icon className={`w-4.5 h-4.5 flex-shrink-0 transition-transform duration-200 ${!isActive ? 'group-hover:scale-110' : ''}`} />
+                {!collapsed && <span className="truncate flex-1">{label}</span>}
+                {!collapsed && badge && (
+                  <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full flex-shrink-0
+                    ${isActive ? 'bg-white/20 text-white' : 'bg-orange-500/80 text-white group-hover:bg-orange-400'}
+                    transition-colors duration-200`}>
+                    {badge}
+                  </span>
+                )}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

@@ -7,7 +7,7 @@ const DashboardLayout = ({ pageTitle = 'Dashboard', children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-brand-lightGray font-sans">
+    <div className="flex h-screen overflow-hidden bg-brand-lightGray dark:bg-brand-navy font-sans transition-colors duration-200">
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}

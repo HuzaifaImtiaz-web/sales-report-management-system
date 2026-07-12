@@ -31,8 +31,8 @@ const DONUT_COLORS = ['#A91D22', '#E5E7EB'];
 const BarTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-100 rounded-enterprise shadow-premium px-3 py-2 text-xs">
-      <p className="font-bold text-gray-800 mb-1">{label}</p>
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-enterprise shadow-premium px-3 py-2 text-xs">
+      <p className="font-bold text-gray-800 dark:text-gray-100 mb-1">{label}</p>
       <p className="text-brand-primary font-bold">{payload[0].value}K Sales</p>
     </div>
   );
@@ -41,8 +41,8 @@ const BarTooltip = ({ active, payload, label }) => {
 const DonutTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-100 rounded-enterprise shadow-premium px-3 py-2 text-xs">
-      <p className="font-bold text-gray-850">{payload[0].name}</p>
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-enterprise shadow-premium px-3 py-2 text-xs">
+      <p className="font-bold text-gray-850 dark:text-gray-100">{payload[0].name}</p>
       <p className="font-bold" style={{ color: payload[0].payload.fill }}>{payload[0].value}%</p>
     </div>
   );
@@ -104,19 +104,19 @@ const ChartSection = () => {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-xl font-bold text-gray-900 leading-none">74%</span>
-                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mt-1">Achieved</span>
+                <span className="text-xl font-bold text-gray-900 dark:text-white leading-none">74%</span>
+                <span className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider mt-1">Achieved</span>
               </div>
             </div>
           </div>
-          <div className="space-y-1.5 border-t border-gray-50 pt-3 text-[11px] font-semibold">
+          <div className="space-y-1.5 border-t border-gray-50 dark:border-gray-800 pt-3 text-[11px] font-semibold">
             {TARGET_DATA.map((entry, index) => (
               <div key={entry.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ backgroundColor: DONUT_COLORS[index] }} />
-                  <span className="text-gray-500">{entry.name}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{entry.name}</span>
                 </div>
-                <span className="text-gray-800 font-bold">{entry.value}%</span>
+                <span className="text-gray-800 dark:text-gray-200 font-bold">{entry.value}%</span>
               </div>
             ))}
           </div>
