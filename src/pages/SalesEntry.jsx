@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '../layouts/DashboardLayout';
 import Toast from '../components/Toast';
 import {
@@ -1018,12 +1019,20 @@ const SalesEntry = () => {
             <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Sales Entry</h1>
             <p className="text-xs text-gray-400 dark:text-gray-550 font-medium mt-1">Create and manage Purchase Orders.</p>
           </div>
-          <button
-            onClick={openAdd}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow-md transition-all duration-150 self-start sm:self-auto"
-          >
-            <FiPlus className="w-3.5 h-3.5" /> New Purchase Order
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Link
+              to={`/export?search=${encodeURIComponent(search)}&status=${encodeURIComponent(statusFilter === 'All' ? '' : statusFilter)}&area=${encodeURIComponent(areaFilter)}&startDate=${encodeURIComponent(dateFilter)}`}
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors shadow-sm"
+            >
+              Export Center
+            </Link>
+            <button
+              onClick={openAdd}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow-md transition-all duration-150"
+            >
+              <FiPlus className="w-3.5 h-3.5" /> New Purchase Order
+            </button>
+          </div>
         </div>
 
         {/* ── Search & Filter Controls ── */}

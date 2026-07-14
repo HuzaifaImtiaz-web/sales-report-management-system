@@ -20,6 +20,7 @@ import ProductTargets from '../pages/ProductTargets';
 import SalesEntry from '../pages/SalesEntry';
 import Reports from '../pages/Reports';
 import ImportExcel from '../pages/ImportExcel';
+import ExportCenter from '../pages/ExportCenter';
 
 
 
@@ -141,6 +142,14 @@ export const routes = [
     element: (
       <AuthGuard>
         <ImportExcel />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: '/export',
+    element: (
+      <AuthGuard>
+        <ExportCenter />
       </AuthGuard>
     ),
   },
