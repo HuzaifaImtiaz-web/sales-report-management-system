@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   FiGrid, FiPackage, FiUsers, FiMapPin, FiUserCheck,
   FiLayers, FiTrendingUp, FiTarget, FiBarChart2,
-  FiUploadCloud, FiSettings, FiLogOut, FiChevronLeft,
+  FiUploadCloud, FiDownloadCloud, FiSettings, FiLogOut, FiChevronLeft,
   FiChevronRight, FiUser, FiClipboard,
 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
@@ -19,9 +19,10 @@ const NAV_ITEMS = [
   { label: 'Sales',                  icon: FiTrendingUp,  path: '/sales'            },
   { label: 'Pending Orders',         icon: FiClipboard,   path: '/pending-orders',  badge: '18' },
   { label: 'Product Targets',        icon: FiTarget,      path: '/targets'          },
-  { label: 'Reports',                icon: FiBarChart2,   path: '/reports'          },
-  { label: 'Import Data',            icon: FiUploadCloud, path: '/import'           },
-  { label: 'Settings',               icon: FiSettings,    path: '/settings'         },
+  { label: 'Reports',                icon: FiBarChart2,       path: '/reports'          },
+  { label: 'Import Data',            icon: FiUploadCloud,     path: '/import'           },
+  { label: 'Export Center',          icon: FiDownloadCloud,   path: '/export'           },
+  { label: 'Settings',               icon: FiSettings,        path: '/settings'         },
 ];
 
 const Sidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {

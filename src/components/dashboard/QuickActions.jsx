@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiPlusCircle, FiPackage, FiUserPlus, FiFileText } from 'react-icons/fi';
+import { FiPlusCircle, FiPackage, FiUserPlus, FiFileText, FiDownload } from 'react-icons/fi';
 import QuickActionCard from './QuickActionCard';
 
 const ACTIONS = [
@@ -31,13 +31,21 @@ const ACTIONS = [
     label: 'Generate Report',
     desc: 'Export sales & target reports',
   },
+  {
+    icon: FiDownload,
+    iconBg: 'bg-amber-50 group-hover:bg-amber-100',
+    iconColor: 'text-amber-500',
+    label: 'Export Data',
+    desc: 'Filter and export sales records',
+    path: '/export'
+  }
 ];
 
 const QuickActions = () => {
   return (
     <div>
       <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-3">Quick Actions</h3>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {ACTIONS.map((action) => (
           <QuickActionCard key={action.label} {...action} />
         ))}

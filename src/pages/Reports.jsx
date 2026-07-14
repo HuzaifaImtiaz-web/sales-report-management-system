@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '../layouts/DashboardLayout';
 import Toast from '../components/Toast';
 import {
@@ -811,6 +812,13 @@ const Reports = () => {
           
           {/* Export Options */}
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              to={`/export?search=${encodeURIComponent(activeFilters.search)}&startDate=${encodeURIComponent(activeFilters.startDate)}&endDate=${encodeURIComponent(activeFilters.endDate)}&doctor=${encodeURIComponent(activeFilters.doctorId)}&area=${encodeURIComponent(activeFilters.area)}&teamMember=${encodeURIComponent(activeFilters.teamMemberId)}&product=${encodeURIComponent(activeFilters.productId)}&status=${encodeURIComponent(activeFilters.status)}`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-white bg-brand-primary hover:bg-brand-primaryDark rounded-lg transition-colors shadow-sm"
+            >
+              <FiDownload className="w-3.5 h-3.5" />
+              Export Center
+            </Link>
             <button
               disabled={exporting !== null}
               onClick={() => handleExport('excel')}
