@@ -15,6 +15,13 @@ import Products from '../pages/Products';
 import Doctors from '../pages/Doctors';
 import Areas from '../pages/Areas';
 import TeamMembers from '../pages/TeamMembers';
+import Groups from '../pages/Groups';
+import ProductTargets from '../pages/ProductTargets';
+import SalesEntry from '../pages/SalesEntry';
+import Reports from '../pages/Reports';
+import ImportExcel from '../pages/ImportExcel';
+
+
 
 export const routes = [
   {
@@ -93,7 +100,7 @@ export const routes = [
     path: '/groups',
     element: (
       <AuthGuard>
-        <PlaceholderPage title="Groups" />
+        <Groups />
       </AuthGuard>
     ),
   },
@@ -101,7 +108,7 @@ export const routes = [
     path: '/sales',
     element: (
       <AuthGuard>
-        <PlaceholderPage title="Sales" />
+        <SalesEntry />
       </AuthGuard>
     ),
   },
@@ -117,7 +124,7 @@ export const routes = [
     path: '/targets',
     element: (
       <AuthGuard>
-        <PlaceholderPage title="Product Targets" />
+        <ProductTargets />
       </AuthGuard>
     ),
   },
@@ -125,7 +132,7 @@ export const routes = [
     path: '/reports',
     element: (
       <AuthGuard>
-        <PlaceholderPage title="Reports" />
+        <Reports />
       </AuthGuard>
     ),
   },
@@ -133,7 +140,7 @@ export const routes = [
     path: '/import',
     element: (
       <AuthGuard>
-        <PlaceholderPage title="Import Data" />
+        <ImportExcel />
       </AuthGuard>
     ),
   },
