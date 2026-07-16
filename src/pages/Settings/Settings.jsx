@@ -4,7 +4,7 @@ import DashboardLayout from '../../layouts/DashboardLayout';
 import Toast from '../../components/common/Toast';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
-import { CreateBusinessYearModal } from '../ProductTargets/ProductTargets';
+import { CreateBusinessYearModal } from '../Targets/Targets';
 import {
   FiBriefcase, FiImage, FiMail, FiPhone, FiMapPin,
   FiCalendar, FiSun, FiMoon, FiMonitor, FiSettings,
@@ -28,7 +28,7 @@ const Settings = () => {
 
   // Form States
   const [companyInfo, setCompanyInfo] = useState({
-    name: 'Himmel Pharmaceuticals',
+    name: 'Himmel Pharmaceutical',
     logo: 'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=150&auto=format&fit=crop&q=60',
     email: 'info@himmelpharma.com',
     phone: '+92 (21) 111-HIMMEL',
@@ -96,7 +96,7 @@ const Settings = () => {
   const handleCreateBusinessYear = (newYearVal, copyPrevious) => {
     const startYear = newYearVal.split('-')[0];
     const endYear = newYearVal.split('-')[1];
-    
+
     const newYear = {
       value: newYearVal,
       startDate: `${startYear}-07-01`,
@@ -164,7 +164,7 @@ const Settings = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             {/* 1. Company Information */}
             <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
               <form onSubmit={handleCompanySave} className="space-y-4">
@@ -308,11 +308,10 @@ const Settings = () => {
                 {/* Light Mode */}
                 <button
                   onClick={() => setThemeMode('light')}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                    mode === 'light'
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${mode === 'light'
                       ? 'border-brand-primary bg-sky-50/15 dark:bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
                       : 'border-gray-150 dark:border-gray-750 text-gray-500 hover:bg-gray-55/50 dark:hover:bg-gray-800/40'
-                  }`}
+                    }`}
                 >
                   <FiSun className="w-5 h-5 text-amber-500" />
                   <span className="text-[10px] uppercase tracking-wider font-bold">Light</span>
@@ -321,11 +320,10 @@ const Settings = () => {
                 {/* Dark Mode */}
                 <button
                   onClick={() => setThemeMode('dark')}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                    mode === 'dark'
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${mode === 'dark'
                       ? 'border-brand-primary bg-sky-50/15 dark:bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
                       : 'border-gray-150 dark:border-gray-750 text-gray-500 hover:bg-gray-55/50 dark:hover:bg-gray-800/40'
-                  }`}
+                    }`}
                 >
                   <FiMoon className="w-5 h-5 text-indigo-500" />
                   <span className="text-[10px] uppercase tracking-wider font-bold">Dark</span>
@@ -334,11 +332,10 @@ const Settings = () => {
                 {/* System Mode */}
                 <button
                   onClick={() => setThemeMode('system')}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                    mode === 'system'
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${mode === 'system'
                       ? 'border-brand-primary bg-sky-50/15 dark:bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
                       : 'border-gray-150 dark:border-gray-750 text-gray-500 hover:bg-gray-55/50 dark:hover:bg-gray-800/40'
-                  }`}
+                    }`}
                 >
                   <FiMonitor className="w-5 h-5 text-teal-500" />
                   <span className="text-[10px] uppercase tracking-wider font-bold">System</span>

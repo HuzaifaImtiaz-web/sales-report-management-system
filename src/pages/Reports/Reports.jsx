@@ -1,6 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import { productService } from '../../services/productService';
+import { doctorService } from '../../services/doctorService';
+import { areaService } from '../../services/areaService';
+import { teamMemberService } from '../../services/teamMemberService';
+import { orderService } from '../../services/orderService';
 import Pagination from '../../components/common/Pagination';
 import Toast from '../../components/common/Toast';
 import {
@@ -266,32 +271,33 @@ const INITIAL_REPORTS_DATA = [
 ];
 
 // Helper to get detailed summary for a PO
-const getPOSummary = (po) => {
-  const doc = DOCTORS.find((d) => d.id === Number(po.doctorId)) || {};
-  const tm = TEAM_MEMBERS.find((e) => e.id === Number(po.teamMemberId)) || {};
+const getPOSummary = (po, doctorsList = [], teamMembersList = [], productsList = []) => {
+  const doc = doctorsList.find((d) => d.id === Number(po.doctorId)) || doctorsList.find((d) => d.name === po.doctor) || {};
+  const tm = teamMembersList.find((e) => e.id === Number(po.teamMemberId)) || teamMembersList.find((e) => e.name === po.teamMember) || {};
 
   let totalQty = 0;
   let totalVal = 0;
-  const itemsDetailed = (po.items || []).map((item) => {
-    const prod = PRODUCTS.find((p) => p.id === Number(item.productId)) || {};
-    const qty = Number(item.quantity) || 0;
-    const rate = Number(item.rate || prod.rate) || 0;
+  const itemsDetailed = (po.items || po.products || []).map((item) => {
+    const prod = productsList.find((p) => p.id === Number(item.productId)) || productsList.find((p) => p.name === item.name) || {};
+    const qty = Number(item.quantity || item.qty) || 0;
+    const rate = Number(item.rate || prod.rate || prod.packPrice) || 0;
     const itemTotal = qty * rate;
     totalQty += qty;
     totalVal += itemTotal;
     return {
       ...item,
-      productName: prod.name || 'Unknown Product',
-      unit: prod.unit || 'Vials',
+      productName: prod.name || item.name || 'Unknown Product',
+      unit: prod.unit || prod.packSizeUnit || 'Vials',
+      quantity: qty,
       rate,
       total: itemTotal
     };
   });
 
   return {
-    doctorName: doc.name || 'Unknown Doctor',
-    teamMemberName: tm.name || 'Unknown Member',
-    totalProductsCount: (po.items || []).length,
+    doctorName: doc.name || po.doctor || 'Unknown Doctor',
+    teamMemberName: tm.name || po.teamMember || 'Unknown Member',
+    totalProductsCount: (po.items || po.products || []).length,
     totalQuantity: totalQty,
     totalValue: totalVal,
     itemsDetailed
@@ -310,15 +316,14 @@ const StatusBadge = ({ status }) => {
   }
   return (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-600 border border-amber-100 dark:border-amber-800/50">
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-505 inline-block" />
       Pending
     </span>
   );
 };
 
 /* ─── Reports Details Modal Component ───────────────────────────── */
-const ReportDetailsModal = ({ po, onClose }) => {
-  const summary = useMemo(() => getPOSummary(po), [po]);
+const ReportDetailsModal = ({ po, summary, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
@@ -458,8 +463,29 @@ const SkeletonRows = () => {
 
 /* ─── Main Reports Component ────────────────────────────────────── */
 const Reports = () => {
-  // Master reports data
-  const [reportsData] = useState(INITIAL_REPORTS_DATA);
+  const [products, setProducts] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [reportsData, setReportsData] = useState([]);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      productService.getAllProducts(),
+      doctorService.getAllDoctors(),
+      areaService.getAllAreas(),
+      teamMemberService.getAllTeamMembers(),
+      orderService.getAllOrders()
+    ]).then(([productsData, doctorsData, areasData, teamData, ordersData]) => {
+      setProducts(productsData);
+      setDoctors(doctorsData);
+      setAreas(areasData);
+      setTeamMembers(teamData);
+      setReportsData(ordersData);
+      setInitialLoading(false);
+    });
+  }, []);
 
   // Autocomplete & Search State
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -483,32 +509,32 @@ const Reports = () => {
     if (value.trim().length > 0) {
       const q = value.toLowerCase();
       
-      const matchDocs = DOCTORS.filter(d => d.name.toLowerCase().includes(q)).map(d => ({
+      const matchDocs = doctors.filter(d => d.name.toLowerCase().includes(q)).map(d => ({
         label: d.name,
         type: 'Doctor',
         field: 'doctorId',
         value: d.id
       }));
 
-      const matchTMs = TEAM_MEMBERS.filter(tm => tm.name.toLowerCase().includes(q)).map(tm => ({
+      const matchTMs = teamMembers.filter(tm => tm.name.toLowerCase().includes(q)).map(tm => ({
         label: tm.name,
         type: 'Team Member',
         field: 'teamMemberId',
         value: tm.id
       }));
 
-      const matchProds = PRODUCTS.filter(p => p.name.toLowerCase().includes(q)).map(p => ({
+      const matchProds = products.filter(p => p.name.toLowerCase().includes(q)).map(p => ({
         label: p.name,
         type: 'Product',
         field: 'productId',
         value: p.id
       }));
 
-      const matchAreas = AREAS.filter(a => a.toLowerCase().includes(q)).map(a => ({
-        label: a,
+      const matchAreas = areas.filter(a => (a.name || a).toLowerCase().includes(q)).map(a => ({
+        label: a.name || a,
         type: 'Area',
         field: 'area',
-        value: a
+        value: a.name || a
       }));
 
       const all = [...matchDocs, ...matchTMs, ...matchProds, ...matchAreas];
@@ -604,7 +630,7 @@ const Reports = () => {
     return reportsData
       .map((po) => ({
         ...po,
-        summary: getPOSummary(po)
+        summary: getPOSummary(po, doctors, teamMembers, products)
       }))
       .filter((po) => {
         const matchSearch =
@@ -758,6 +784,16 @@ const Reports = () => {
     }, 1200);
   };
 
+  if (initialLoading) {
+    return (
+      <DashboardLayout pageTitle="Reports">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout pageTitle="Reports">
       <div className="space-y-6 animate-fade-in pb-10">
@@ -890,7 +926,7 @@ const Reports = () => {
                   className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 >
                   <option value="">All Doctors</option>
-                  {DOCTORS.map((d) => (
+                  {doctors.map((d) => (
                     <option key={d.id} value={d.id}>{d.name}</option>
                   ))}
                 </select>
@@ -905,11 +941,11 @@ const Reports = () => {
                 <select
                   value={tempFilters.area}
                   onChange={(e) => setTempFilters({ ...tempFilters, area: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 >
                   <option value="">All Areas</option>
-                  {AREAS.map((a) => (
-                    <option key={a} value={a}>{a}</option>
+                  {areas.map((a) => (
+                    <option key={a.id || a.name || a} value={a.name || a}>{a.name || a}</option>
                   ))}
                 </select>
               </div>
@@ -923,10 +959,10 @@ const Reports = () => {
                 <select
                   value={tempFilters.teamMemberId}
                   onChange={(e) => setTempFilters({ ...tempFilters, teamMemberId: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 >
                   <option value="">All Team Members</option>
-                  {TEAM_MEMBERS.map((t) => (
+                  {teamMembers.map((t) => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
@@ -941,10 +977,10 @@ const Reports = () => {
                 <select
                   value={tempFilters.productId}
                   onChange={(e) => setTempFilters({ ...tempFilters, productId: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 >
                   <option value="">All Products</option>
-                  {PRODUCTS.map((p) => (
+                  {products.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
@@ -1250,6 +1286,7 @@ const Reports = () => {
       {selectedPO && (
         <ReportDetailsModal
           po={selectedPO}
+          summary={getPOSummary(selectedPO, doctors, teamMembers, products)}
           onClose={() => setSelectedPO(null)}
         />
       )}

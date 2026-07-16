@@ -2,6 +2,13 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import Toast from '../../components/common/Toast';
+import { productService } from '../../services/productService';
+import { doctorService } from '../../services/doctorService';
+import { areaService } from '../../services/areaService';
+import { teamMemberService } from '../../services/teamMemberService';
+import { orderService } from '../../services/orderService';
+import { groupService } from '../../services/groupService';
+import { institutionService } from '../../services/institutionService';
 import Pagination from '../../components/common/Pagination';
 import {
   FiSearch, FiDownload, FiFileText, FiCheckCircle,
@@ -84,24 +91,39 @@ const INITIAL_EXPORT_HISTORY = [
 ];
 
 /* ─── Calculations & Helper Functions ────────────────────────────── */
-const getOrderTotals = (order) => {
-  const doc = DOCTORS.find((d) => d.id === Number(order.doctorId)) || {};
-  const tm = TEAM_MEMBERS.find((e) => e.id === Number(order.teamMemberId)) || {};
+const getOrderTotals = (order, doctorsList = [], teamMembersList = [], productsList = []) => {
+  // If it's a real order format
+  if (order.products) {
+    const totalVials = order.totalQty || order.products.reduce((sum, item) => sum + (item.qty || item.quantity || 0), 0);
+    const totalVal = order.totalAmount || order.products.reduce((sum, item) => sum + ((item.qty || item.quantity || 0) * (item.rate || 0)), 0);
+    return {
+      doctorName: order.doctor || 'Unknown Doctor',
+      institutionName: order.institution || 'Unknown Hospital',
+      teamMemberName: order.teamMember || 'Unknown Member',
+      productCount: order.products.length,
+      totalVials,
+      totalAmount: totalVal
+    };
+  }
+
+  // If it's mock order format
+  const doc = doctorsList.find((d) => d.id === Number(order.doctorId)) || {};
+  const tm = teamMembersList.find((e) => e.id === Number(order.teamMemberId)) || {};
 
   let totalVials = 0;
   let totalVal = 0;
   (order.items || []).forEach((item) => {
-    const prod = PRODUCTS.find((p) => p.id === Number(item.productId)) || {};
-    const qty = Number(item.qty) || 0;
-    const rate = Number(prod.rate) || 0;
+    const prod = productsList.find((p) => p.id === Number(item.productId)) || {};
+    const qty = Number(item.qty || item.quantity) || 0;
+    const rate = Number(prod.rate || prod.packPrice || 0);
     totalVials += qty;
     totalVal += qty * rate;
   });
 
   return {
-    doctorName: doc.name || 'Unknown Doctor',
-    institutionName: doc.hospital || 'Unknown Hospital',
-    teamMemberName: tm.name || 'Unknown Member',
+    doctorName: doc.name || order.doctor || 'Unknown Doctor',
+    institutionName: doc.hospital || order.institution || 'Unknown Hospital',
+    teamMemberName: tm.name || order.teamMember || 'Unknown Member',
     productCount: (order.items || []).length,
     totalVials,
     totalAmount: totalVal
@@ -129,6 +151,15 @@ const StatusBadge = ({ status }) => {
 const ExportCenter = () => {
   const [searchParams] = useSearchParams();
 
+  const [products, setProducts] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [ordersList, setOrdersList] = useState([]);
+  const [institutions, setInstitutions] = useState([]);
+  const [initialLoading, setInitialLoading] = useState(true);
+
   // Read pre-populated filters from URL (passed by SalesEntry / Reports)
   const initFilters = () => ({
     year:       searchParams.get('year')       || '',
@@ -151,12 +182,31 @@ const ExportCenter = () => {
   const [tempFilters, setTempFilters] = useState(initFilters);
   const [activeFilters, setActiveFilters] = useState(initFilters);
 
-  // Auto-apply any URL-passed filters on mount
+  // Auto-apply any URL-passed filters on mount and load data
   useEffect(() => {
     const hasParams = [...searchParams.keys()].length > 0;
     if (hasParams) {
       setToast({ message: 'Filters pre-populated from your previous module.', type: 'success' });
     }
+
+    Promise.all([
+      productService.getAllProducts(),
+      doctorService.getAllDoctors(),
+      areaService.getAllAreas(),
+      teamMemberService.getAllTeamMembers(),
+      groupService.getAllGroups(),
+      orderService.getAllOrders(),
+      institutionService.getAllInstitutions()
+    ]).then(([productsData, doctorsData, areasData, teamData, groupsData, ordersData, instData]) => {
+      setProducts(productsData);
+      setDoctors(doctorsData);
+      setAreas(areasData);
+      setTeamMembers(teamData);
+      setGroups(groupsData);
+      setOrdersList(ordersData);
+      setInstitutions(instData);
+      setInitialLoading(false);
+    });
   }, []); // eslint-disable-line
 
   // Settings & Options States
@@ -224,8 +274,8 @@ const ExportCenter = () => {
   // Live filter mapping
   const filteredOrders = useMemo(() => {
     const q = globalSearch.toLowerCase().trim();
-    return MOCK_ORDERS.filter((order) => {
-      const info = getOrderTotals(order);
+    return ordersList.filter((order) => {
+      const info = getOrderTotals(order, doctors, teamMembers, products);
       
       // Search Box Filter
       if (q) {
@@ -238,7 +288,8 @@ const ExportCenter = () => {
       }
 
       // Year Filter
-      if (activeFilters.year && order.year !== activeFilters.year) return false;
+      const ordYear = order.year || (order.poDate && order.poDate.substring(0, 4)) || '';
+      if (activeFilters.year && ordYear !== activeFilters.year) return false;
 
       // PO Number Filter
       if (activeFilters.poNumber && !order.poNumber.toLowerCase().includes(activeFilters.poNumber.toLowerCase())) return false;
@@ -250,34 +301,52 @@ const ExportCenter = () => {
       if (activeFilters.area && order.area !== activeFilters.area) return false;
 
       // Doctor Filter
-      if (activeFilters.doctor && order.doctorId !== Number(activeFilters.doctor)) return false;
+      if (activeFilters.doctor) {
+        const docId = order.doctorId || doctors.find(d => d.name === order.doctor)?.id;
+        if (Number(docId) !== Number(activeFilters.doctor)) return false;
+      }
 
       // Institution Filter
-      if (activeFilters.institution && info.institutionName !== activeFilters.institution) return false;
+      if (activeFilters.institution && (info.institutionName || order.institution) !== activeFilters.institution) return false;
 
       // Team Member Filter
-      if (activeFilters.teamMember && order.teamMemberId !== Number(activeFilters.teamMember)) return false;
+      if (activeFilters.teamMember) {
+        const tmId = order.teamMemberId || teamMembers.find(t => t.name === order.teamMember)?.id;
+        if (Number(tmId) !== Number(activeFilters.teamMember)) return false;
+      }
 
       // Group Filter
-      if (activeFilters.group && order.group !== activeFilters.group) return false;
+      if (activeFilters.group) {
+        if (order.group && order.group !== activeFilters.group) return false;
+        if (order.products) {
+          const hasInGroup = order.products.some((it) => {
+            const prod = products.find((p) => p.name === it.name);
+            return prod && prod.category === activeFilters.group;
+          });
+          if (!hasInGroup && !order.group) return false;
+        }
+      }
 
       // Product Filter
       if (activeFilters.product) {
-        const hasProduct = order.items.some(it => it.productId === Number(activeFilters.product));
+        const prodObj = products.find(p => p.id === Number(activeFilters.product));
+        const hasProduct = (order.items || []).some(it => it.productId === Number(activeFilters.product)) ||
+                           (order.products || []).some(it => it.name === prodObj?.name);
         if (!hasProduct) return false;
       }
 
       // Date Range Filter
-      if (activeFilters.startDate && order.date < activeFilters.startDate) return false;
-      if (activeFilters.endDate && order.date > activeFilters.endDate) return false;
+      const orderDate = order.date || order.poDate;
+      if (activeFilters.startDate && orderDate < activeFilters.startDate) return false;
+      if (activeFilters.endDate && orderDate > activeFilters.endDate) return false;
 
       return true;
     });
-  }, [globalSearch, activeFilters]);
+  }, [globalSearch, activeFilters, ordersList, doctors, teamMembers, products]);
 
   // Summaries based on filtered or all orders
   const summary = useMemo(() => {
-    const targetList = settings.exportAll ? MOCK_ORDERS : filteredOrders;
+    const targetList = settings.exportAll ? ordersList : filteredOrders;
     
     let totalVials = 0;
     let totalSales = 0;
@@ -285,7 +354,7 @@ const ExportCenter = () => {
     let completedCount = 0;
 
     targetList.forEach((order) => {
-      const totals = getOrderTotals(order);
+      const totals = getOrderTotals(order, doctors, teamMembers, products);
       totalVials += totals.totalVials;
       totalSales += totals.totalAmount;
       if (order.status === 'Completed') completedCount++;
@@ -299,7 +368,7 @@ const ExportCenter = () => {
       pendingOrders: pendingCount,
       completedOrders: completedCount
     };
-  }, [filteredOrders, settings.exportAll]);
+  }, [filteredOrders, settings.exportAll, ordersList, doctors, teamMembers, products]);
 
   // Pagination Calculations
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -363,6 +432,16 @@ const ExportCenter = () => {
       });
     }, 250);
   };
+
+  if (initialLoading) {
+    return (
+      <DashboardLayout pageTitle="Export Center">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout pageTitle="Export Center">
@@ -463,7 +542,7 @@ const ExportCenter = () => {
                 className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
               >
                 <option value="">All Products</option>
-                {PRODUCTS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
 
@@ -476,7 +555,7 @@ const ExportCenter = () => {
                 className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
               >
                 <option value="">All Doctors</option>
-                {DOCTORS.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                {doctors.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
             </div>
 
@@ -489,8 +568,8 @@ const ExportCenter = () => {
                 className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
               >
                 <option value="">All Institutions</option>
-                {Array.from(new Set(DOCTORS.map(d => d.hospital))).map(h => (
-                  <option key={h} value={h}>{h}</option>
+                {institutions.map(inst => (
+                  <option key={inst.id || inst.name} value={inst.name}>{inst.name}</option>
                 ))}
               </select>
             </div>
@@ -504,7 +583,7 @@ const ExportCenter = () => {
                 className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
               >
                 <option value="">All Areas</option>
-                {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                {areas.map(a => <option key={a.id || a.name || a} value={a.name || a}>{a.name || a}</option>)}
               </select>
             </div>
 
@@ -517,7 +596,7 @@ const ExportCenter = () => {
                 className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
               >
                 <option value="">All Team Members</option>
-                {TEAM_MEMBERS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                {teamMembers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
 
@@ -530,7 +609,7 @@ const ExportCenter = () => {
                 className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
               >
                 <option value="">All Groups</option>
-                {GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+                {groups.map(g => <option key={g.id || g.name || g} value={g.name || g}>{g.name || g}</option>)}
               </select>
             </div>
 
@@ -680,11 +759,11 @@ const ExportCenter = () => {
                   </tr>
                 ) : (
                   paginatedOrders.map((order) => {
-                    const info = getOrderTotals(order);
+                    const info = getOrderTotals(order, doctors, teamMembers, products);
                     return (
                       <tr key={order.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/10 transition-colors">
                         <td className="px-5 py-3.5 font-bold font-mono text-gray-850 dark:text-white">{order.poNumber}</td>
-                        <td className="px-5 py-3.5 font-semibold text-gray-700 dark:text-gray-300">{order.date}</td>
+                        <td className="px-5 py-3.5 font-semibold text-gray-700 dark:text-gray-300">{order.date || order.poDate}</td>
                         <td className="px-5 py-3.5 font-bold text-gray-800 dark:text-gray-200">{info.doctorName}</td>
                         <td className="px-5 py-3.5 font-bold text-gray-800 dark:text-gray-200">{info.institutionName}</td>
                         <td className="px-5 py-3.5 font-semibold text-gray-700 dark:text-gray-300">{order.area}</td>

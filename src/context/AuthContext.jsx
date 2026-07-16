@@ -3,41 +3,19 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState({
+    name: 'Huzaifa',
+    email: 'huzaifa@himmel.com',
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Check local or session storage for mock logged-in session
-    const saved = localStorage.getItem('himmel_portal_user') || sessionStorage.getItem('himmel_portal_user');
-    if (saved) {
-      try {
-        setUser(JSON.parse(saved));
-      } catch (e) {
-        localStorage.removeItem('himmel_portal_user');
-        sessionStorage.removeItem('himmel_portal_user');
-      }
-    }
-    setIsLoading(false);
-  }, []);
-
-  const login = (email) => {
-    const mockUser = {
-      email,
-      name: email.split('@')[0],
-    };
-    setUser(mockUser);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('himmel_portal_user');
-    sessionStorage.removeItem('himmel_portal_user');
-    setUser(null);
-  };
+  const login = () => {};
+  const logout = () => {};
 
   const value = {
     user,
-    isAuthenticated: !!user,
-    isLoading,
+    isAuthenticated: true,
+    isLoading: false,
     login,
     logout,
   };
@@ -52,3 +30,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

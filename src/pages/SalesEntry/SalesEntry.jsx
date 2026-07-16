@@ -1,91 +1,84 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import Toast from '../../components/common/Toast';
-import { FiPlus, FiTrash2, FiSave, FiX, FiShoppingBag, FiInfo } from 'react-icons/fi';
-
-const PRODUCTS = [
-  { id: 1, name: 'Amoxicillin 500mg', unit: 'Vials', rate: 450 },
-  { id: 2, name: 'Paracetamol 650mg', unit: 'Vials', rate: 120 },
-  { id: 3, name: 'Metformin 850mg', unit: 'Vials', rate: 380 },
-  { id: 4, name: 'Lipitor 10mg', unit: 'Vials', rate: 950 },
-  { id: 5, name: 'Ibuprofen 400mg', unit: 'Vials', rate: 90 },
-  { id: 6, name: 'Omeprazole 20mg', unit: 'Vials', rate: 520 },
-  { id: 7, name: 'Augmentin 625mg', unit: 'Vials', rate: 1100 },
-  { id: 8, name: 'Azithromycin 250mg', unit: 'Vials', rate: 670 },
-  { id: 9, name: 'Ventolin Inhaler', unit: 'Vials', rate: 850 },
-  { id: 10, name: 'Crestor 10mg', unit: 'Vials', rate: 1350 }
-];
-
-const DOCTORS = [
-  { id: 1, name: 'Dr. Ayesha Khan', hospital: 'Mayo Hospital' },
-  { id: 2, name: 'Dr. Hamid Raza', hospital: 'Jinnah Hospital' },
-  { id: 3, name: 'Dr. Nadia Siddiqui', hospital: 'Shifa International' },
-  { id: 4, name: 'Dr. Farhan Latif', hospital: 'Holy Family Hospital' },
-  { id: 5, name: 'Dr. Saima Riaz', hospital: 'FIC Faisalabad' },
-  { id: 6, name: 'Dr. Tariq Mehmood', hospital: 'Nishtar Hospital' },
-  { id: 7, name: 'Dr. Bilal Aslam', hospital: 'Lady Reading Hospital' }
-];
-
-const INSTITUTIONS = [
-  { id: 1, name: 'Mayo Hospital' },
-  { id: 2, name: 'Jinnah Hospital' },
-  { id: 3, name: 'Shifa International' },
-  { id: 4, name: 'Holy Family Hospital' },
-  { id: 5, name: 'FIC Faisalabad' },
-  { id: 6, name: 'Nishtar Hospital' }
-];
-
-const AREAS = [
-  'Lahore Central',
-  'Karachi South',
-  'Islamabad F-10',
-  'Rawalpindi Cantt',
-  'Faisalabad City',
-  'Multan Cantonment',
-  'Peshawar University'
-];
-
-const TEAM_MEMBERS = [
-  { id: 1, name: 'Ahmed Shah' },
-  { id: 2, name: 'Zainab Fatima' },
-  { id: 3, name: 'Usman Ali' },
-  { id: 4, name: 'Mariam Khan' },
-  { id: 5, name: 'Bilal Siddiqui' }
-];
+import { FiPlus, FiTrash2, FiSave, FiShoppingBag } from 'react-icons/fi';
+import { productService } from '../../services/productService';
+import { doctorService } from '../../services/doctorService';
+import { institutionService } from '../../services/institutionService';
+import { areaService } from '../../services/areaService';
+import { teamMemberService } from '../../services/teamMemberService';
+import { orderService } from '../../services/orderService';
 
 const SalesEntry = () => {
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Lists state
+  const [products, setProducts] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [institutions, setInstitutions] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
 
   // Form State
   const [poNumber, setPoNumber] = useState('');
   const [poDate, setPoDate] = useState(new Date().toISOString().split('T')[0]);
-  const [institution, setInstitution] = useState('Mayo Hospital');
-  const [doctor, setDoctor] = useState('Dr. Ayesha Khan');
-  const [area, setArea] = useState('Lahore Central');
-  const [teamMember, setTeamMember] = useState('Ahmed Shah');
+  const [institution, setInstitution] = useState('');
+  const [doctor, setDoctor] = useState('');
+  const [area, setArea] = useState('');
+  const [teamMember, setTeamMember] = useState('');
   const [remarks, setRemarks] = useState('');
+  const [items, setItems] = useState([]);
 
-  const [items, setItems] = useState([
-    { productId: 1, quantity: 10, rate: 450 }
-  ]);
-
-  // Generate random PO Number on mount
+  // Generate random PO Number on mount and load data
   useEffect(() => {
     const rand = Math.floor(1000 + Math.random() * 9000);
     setPoNumber(`PO-2026-${rand}`);
+
+    Promise.all([
+      productService.getAllProducts(),
+      doctorService.getAllDoctors(),
+      institutionService.getAllInstitutions(),
+      areaService.getAllAreas(),
+      teamMemberService.getAllTeamMembers()
+    ]).then(([productsData, doctorsData, institutionsData, areasData, teamData]) => {
+      const activeProds = productsData.filter(p => p.status === 'Active');
+      const activeDocs = doctorsData.filter(d => d.status === 'Active');
+      const activeInsts = institutionsData.filter(i => i.status === 'Active');
+      const activeAreas = areasData.filter(a => a.status === 'Active');
+      const activeTeam = teamData.filter(t => t.status === 'Active');
+
+      setProducts(activeProds);
+      setDoctors(activeDocs);
+      setInstitutions(activeInsts);
+      setAreas(activeAreas);
+      setTeamMembers(activeTeam);
+
+      // Set default form values
+      if (activeInsts.length > 0) setInstitution(activeInsts[0].name);
+      if (activeDocs.length > 0) setDoctor(activeDocs[0].name);
+      if (activeAreas.length > 0) setArea(activeAreas[0].name);
+      if (activeTeam.length > 0) setTeamMember(activeTeam[0].name);
+
+      if (activeProds.length > 0) {
+        setItems([{ productId: activeProds[0].id, quantity: 10, rate: activeProds[0].packPrice || activeProds[0].rate || 500 }]);
+      }
+
+      setLoading(false);
+    });
   }, []);
 
   const handleProductChange = (index, prodId) => {
-    const selectedProd = PRODUCTS.find((p) => p.id === Number(prodId));
+    const selectedProd = products.find((p) => p.id === Number(prodId));
     if (!selectedProd) return;
 
     const newItems = [...items];
     newItems[index] = {
       ...newItems[index],
       productId: selectedProd.id,
-      rate: selectedProd.rate
+      rate: selectedProd.packPrice || selectedProd.rate || 500
     };
     setItems(newItems);
   };
@@ -103,7 +96,9 @@ const SalesEntry = () => {
   };
 
   const addProductRow = () => {
-    setItems([...items, { productId: 1, quantity: 1, rate: 450 }]);
+    if (products.length > 0) {
+      setItems([...items, { productId: products[0].id, quantity: 1, rate: products[0].packPrice || products[0].rate || 500 }]);
+    }
   };
 
   const removeProductRow = (index) => {
@@ -111,8 +106,13 @@ const SalesEntry = () => {
     setItems(items.filter((_, idx) => idx !== index));
   };
 
-  const grandTotal = items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-  const totalVials = items.reduce((sum, item) => sum + item.quantity, 0);
+  const grandTotal = useMemo(() => {
+    return items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+  }, [items]);
+
+  const totalVials = useMemo(() => {
+    return items.reduce((sum, item) => sum + item.quantity, 0);
+  }, [items]);
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -122,7 +122,6 @@ const SalesEntry = () => {
     }
 
     const orderData = {
-      id: Date.now(),
       poNumber,
       poDate,
       institution,
@@ -131,7 +130,7 @@ const SalesEntry = () => {
       teamMember,
       remarks,
       products: items.map((item) => {
-        const prod = PRODUCTS.find((p) => p.id === item.productId);
+        const prod = products.find((p) => p.id === item.productId);
         return {
           name: prod ? prod.name : 'Unknown Product',
           qty: item.quantity,
@@ -143,16 +142,23 @@ const SalesEntry = () => {
       status: 'Pending'
     };
 
-    // Save to localStorage so Orders module can read it
-    const existingOrders = JSON.parse(localStorage.getItem('himmel_orders') || '[]');
-    localStorage.setItem('himmel_orders', JSON.stringify([orderData, ...existingOrders]));
-
-    setToast({ message: 'Purchase Order saved successfully!', type: 'success' });
-
-    setTimeout(() => {
-      navigate('/orders');
-    }, 1000);
+    orderService.addOrder(orderData).then(() => {
+      setToast({ message: 'Purchase Order saved successfully!', type: 'success' });
+      setTimeout(() => {
+        navigate('/orders');
+      }, 1000);
+    });
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout pageTitle="Sales Entry">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout pageTitle="Sales Entry">
@@ -161,7 +167,7 @@ const SalesEntry = () => {
       <div className="max-w-5xl mx-auto space-y-6 pb-12">
         {/* Page Header */}
         <div>
-          <h1 className="text-xl font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+          <h1 className="text-xl font-extrabold text-gray-905 dark:text-white uppercase tracking-wider">
             Create Purchase Order
           </h1>
           <p className="text-xs text-gray-450 dark:text-gray-550 font-medium mt-1">
@@ -207,7 +213,7 @@ const SalesEntry = () => {
                   onChange={(e) => setInstitution(e.target.value)}
                   className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
                 >
-                  {INSTITUTIONS.map((inst) => (
+                  {institutions.map((inst) => (
                     <option key={inst.id} value={inst.name}>{inst.name}</option>
                   ))}
                 </select>
@@ -220,7 +226,7 @@ const SalesEntry = () => {
                   onChange={(e) => setDoctor(e.target.value)}
                   className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
                 >
-                  {DOCTORS.map((d) => (
+                  {doctors.map((d) => (
                     <option key={d.id} value={d.name}>{d.name}</option>
                   ))}
                 </select>
@@ -233,8 +239,8 @@ const SalesEntry = () => {
                   onChange={(e) => setArea(e.target.value)}
                   className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
                 >
-                  {AREAS.map((a) => (
-                    <option key={a} value={a}>{a}</option>
+                  {areas.map((a) => (
+                    <option key={a.id || a.name} value={a.name}>{a.name}</option>
                   ))}
                 </select>
               </div>
@@ -246,7 +252,7 @@ const SalesEntry = () => {
                   onChange={(e) => setTeamMember(e.target.value)}
                   className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
                 >
-                  {TEAM_MEMBERS.map((t) => (
+                  {teamMembers.map((t) => (
                     <option key={t.id} value={t.name}>{t.name}</option>
                   ))}
                 </select>
@@ -273,7 +279,6 @@ const SalesEntry = () => {
 
             <div className="space-y-3">
               {items.map((item, index) => {
-                const prod = PRODUCTS.find((p) => p.id === item.productId);
                 return (
                   <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end bg-gray-50 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
                     <div className="md:col-span-5">
@@ -283,14 +288,14 @@ const SalesEntry = () => {
                         onChange={(e) => handleProductChange(index, e.target.value)}
                         className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-750 border border-gray-200 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
                       >
-                        {PRODUCTS.map((p) => (
+                        {products.map((p) => (
                           <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
                       </select>
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Quantity (Vials)</label>
+                      <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Quantity</label>
                       <input
                         type="number"
                         min="1"
@@ -338,7 +343,7 @@ const SalesEntry = () => {
               <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Grand Total</span>
               <div className="flex gap-6">
                 <div className="text-right">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase">Total Vials</p>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase">Total Quantity</p>
                   <p className="text-sm font-extrabold text-gray-800 dark:text-white mt-0.5">{totalVials.toLocaleString()}</p>
                 </div>
                 <div className="text-right">
@@ -366,7 +371,7 @@ const SalesEntry = () => {
             <button
               type="button"
               onClick={() => navigate('/orders')}
-              className="px-4 py-2 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold text-gray-650 dark:text-gray-300 rounded-lg transition-colors"
+              className="px-4 py-2 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold text-gray-655 dark:text-gray-300 rounded-lg transition-colors"
             >
               Cancel
             </button>
