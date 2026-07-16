@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
-import { FiBell, FiMenu, FiChevronDown, FiUser, FiSettings, FiLogOut, FiCalendar, FiMoon, FiSun } from 'react-icons/fi';
+import { FiBell, FiMenu, FiChevronDown, FiUser, FiSettings, FiCalendar, FiMoon, FiSun } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -38,18 +38,9 @@ const useDropdown = () => {
 
 const Navbar = ({ onMenuClick }) => {
   const { title } = useTitle();
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { open, setOpen, ref } = useDropdown();
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    logout();
-    navigate('/login');
-  };
 
   const username = user?.name || user?.email?.split('@')[0] || 'Huzaifa';
 
@@ -140,22 +131,9 @@ const Navbar = ({ onMenuClick }) => {
                   <FiUser className="w-4 h-4 text-gray-400" />
                   My Profile
                 </button>
-                <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-not-allowed opacity-50 font-semibold">
+                <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-55 dark:hover:bg-gray-800/50 transition-colors cursor-not-allowed opacity-50 font-semibold">
                   <FiSettings className="w-4 h-4 text-gray-400" />
                   Settings
-                </button>
-                <hr className="my-1 border-gray-100 dark:border-gray-800" />
-                <button
-                  onClick={handleLogout}
-                  disabled={loggingOut}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-feedback-error hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors disabled:opacity-50"
-                >
-                  {loggingOut ? (
-                    <div className="w-4 h-4 border-2 border-red-200 border-t-feedback-error rounded-full animate-spin" />
-                  ) : (
-                    <FiLogOut className="w-4 h-4" />
-                  )}
-                  {loggingOut ? 'Signing out…' : 'Sign Out'}
                 </button>
               </div>
             </div>
