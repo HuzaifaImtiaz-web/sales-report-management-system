@@ -8,9 +8,8 @@ import Pagination from '../../components/common/Pagination';
 import Toast from '../../components/common/Toast';
 import {
   FiSearch, FiPlus, FiEye, FiEdit2, FiTrash2,
-  FiX, FiAlertTriangle, FiTarget, FiCopy, FiFileText
+  FiX, FiAlertTriangle, FiTarget, FiCopy, FiFileText, FiFilter
 } from 'react-icons/fi';
-
 
 const getNextLogicalBusinessYear = (existingYears) => {
   if (!existingYears || !existingYears.length) return '2026-2027';
@@ -250,6 +249,9 @@ export default function Targets() {
   // Filter states
   const [search, setSearch] = useState('');
   const [yearFilter, setYearFilter] = useState('All');
+  const [divisionFilter, setDivisionFilter] = useState('All');
+  const [groupFilter, setGroupFilter] = useState('All');
+  const [productFilter, setProductFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
 
   // Pagination states
@@ -261,17 +263,39 @@ export default function Targets() {
   const [createYearModalOpen, setCreateYearModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // Unique Divisions & Groups derived from Product Master
+  const uniqueDivisions = useMemo(() => {
+    const set = new Set();
+    products.forEach(p => {
+      const div = p.divisionName || p.category || p.division;
+      if (div) set.add(div);
+    });
+    return Array.from(set).sort();
+  }, [products]);
+
+  const uniqueGroups = useMemo(() => {
+    const set = new Set();
+    products.forEach(p => {
+      const grp = p.groupName || p.group;
+      if (grp) set.add(grp);
+    });
+    return Array.from(set).sort();
+  }, [products]);
+
   // Calculate stats for each target entry based on actual orders
   const targetsWithStats = useMemo(() => {
     return targets.map((t) => {
       const prod = products.find((p) => p.id === Number(t.productId)) || {};
       const targetQty = Number(t.annualTarget) || 0;
+      const brandName = prod.brandName || prod.name || t.productName || 'Unknown Product';
+      const code = prod.productCode || prod.code || t.productCode || '';
+      const division = prod.divisionName || prod.category || prod.division || t.division || '';
+      const groupName = prod.groupName || prod.group || t.groupName || '';
 
       // Sum quantities from completed orders for this product in this business year
       const achievedQty = orders
         .filter((o) => {
           if (o.status !== 'Completed') return false;
-          // Verify if order falls in this business year
           if (!o.poDate) return false;
           const dt = new Date(o.poDate);
           const y = dt.getFullYear();
@@ -280,7 +304,7 @@ export default function Targets() {
           return orderBY === t.businessYear;
         })
         .reduce((sum, o) => {
-          const item = o.products?.find((pr) => pr.name === prod.name);
+          const item = o.products?.find((pr) => pr.productId === prod.id || pr.name === brandName);
           return sum + (item ? Number(item.qty) || 0 : 0);
         }, 0);
 
@@ -296,9 +320,12 @@ export default function Targets() {
 
       return {
         ...t,
-        productName: prod.name || 'Unknown Product',
-        packSize: prod.packSize || '10 Vials',
-        unit: prod.packSizeUnit || 'Vials',
+        productCode: code,
+        productName: brandName,
+        division,
+        groupName,
+        packSize: prod.packSize ? `${prod.packSize} ${prod.unitTypeName || prod.packSizeUnit || 'Units'}` : '10 Vials',
+        unit: prod.unitTypeName || prod.packSizeUnit || 'Vials',
         achievedQuantity: achievedQty,
         remainingQuantity: remainingQty,
         progressPercent,
@@ -313,15 +340,20 @@ export default function Targets() {
     return targetsWithStats.filter((t) => {
       const matchSearch = !q ||
         t.productName.toLowerCase().includes(q) ||
-        t.packSize.toLowerCase().includes(q) ||
+        t.productCode.toLowerCase().includes(q) ||
+        t.division.toLowerCase().includes(q) ||
+        t.groupName.toLowerCase().includes(q) ||
         t.businessYear.toLowerCase().includes(q);
 
       const matchYear = yearFilter === 'All' || t.businessYear === yearFilter;
+      const matchDivision = divisionFilter === 'All' || t.division === divisionFilter;
+      const matchGroup = groupFilter === 'All' || t.groupName === groupFilter;
+      const matchProduct = productFilter === 'All' || Number(t.productId) === Number(productFilter);
       const matchStatus = statusFilter === 'All' || t.status === statusFilter;
 
-      return matchSearch && matchYear && matchStatus;
+      return matchSearch && matchYear && matchDivision && matchGroup && matchProduct && matchStatus;
     });
-  }, [targetsWithStats, search, yearFilter, statusFilter]);
+  }, [targetsWithStats, search, yearFilter, divisionFilter, groupFilter, productFilter, statusFilter]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -331,7 +363,7 @@ export default function Targets() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, yearFilter, statusFilter]);
+  }, [search, yearFilter, divisionFilter, groupFilter, productFilter, statusFilter]);
 
   const handleDelete = () => {
     if (!toDelete) return;
@@ -352,7 +384,7 @@ export default function Targets() {
 
   const getProductName = (productId) => {
     const p = products.find(prod => prod.id === Number(productId));
-    return p ? p.name : 'Unknown Product';
+    return p ? (p.brandName || p.name) : 'Unknown Product';
   };
 
   return (
@@ -364,7 +396,9 @@ export default function Targets() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">Targets</h1>
-            <p className="text-xs text-gray-405 dark:text-gray-500 font-medium mt-1">Configure and manage annual targets distributed down to Areas and Team Members.</p>
+            <p className="text-xs text-gray-405 dark:text-gray-500 font-medium mt-1">
+              Product Master integrated target allocation with Division, Group, and Product filtering.
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -383,7 +417,7 @@ export default function Targets() {
           </div>
         </div>
 
-        {/* Filters Panel */}
+        {/* Multi-tier Filters Panel */}
         <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 space-y-4">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
@@ -392,7 +426,7 @@ export default function Targets() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by Product Name, Code, Business Year..."
+                placeholder="Search by Product Name, Code, Division, Group, Business Year..."
                 className="w-full pl-10 pr-4 py-2 text-xs font-semibold text-gray-705 dark:text-gray-205 bg-gray-55 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
               />
             </div>
@@ -414,13 +448,13 @@ export default function Targets() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="w-48">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <div>
               <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Business Year</label>
               <select
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
-                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-55 dark:bg-gray-800 text-xs rounded cursor-pointer"
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-55 dark:bg-gray-800 text-xs font-semibold rounded cursor-pointer"
               >
                 <option value="All">All Years</option>
                 {businessYears.map((y) => (
@@ -429,19 +463,68 @@ export default function Targets() {
               </select>
             </div>
 
-            {(search || yearFilter !== 'All' || statusFilter !== 'All') && (
+            <div>
+              <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Division Filter</label>
+              <select
+                value={divisionFilter}
+                onChange={(e) => setDivisionFilter(e.target.value)}
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-55 dark:bg-gray-800 text-xs font-semibold rounded cursor-pointer"
+              >
+                <option value="All">All Divisions</option>
+                {uniqueDivisions.map((div) => (
+                  <option key={div} value={div}>{div}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Group Filter</label>
+              <select
+                value={groupFilter}
+                onChange={(e) => setGroupFilter(e.target.value)}
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-55 dark:bg-gray-800 text-xs font-semibold rounded cursor-pointer"
+              >
+                <option value="All">All Groups</option>
+                {uniqueGroups.map((grp) => (
+                  <option key={grp} value={grp}>{grp}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Product Filter</label>
+              <select
+                value={productFilter}
+                onChange={(e) => setProductFilter(e.target.value)}
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-55 dark:bg-gray-800 text-xs font-semibold rounded cursor-pointer"
+              >
+                <option value="All">All Products</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    [{p.productCode || p.code}] {p.brandName || p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {(search || yearFilter !== 'All' || divisionFilter !== 'All' || groupFilter !== 'All' || productFilter !== 'All' || statusFilter !== 'All') && (
+            <div className="flex justify-end pt-1">
               <button
                 onClick={() => {
                   setSearch('');
                   setYearFilter('All');
+                  setDivisionFilter('All');
+                  setGroupFilter('All');
+                  setProductFilter('All');
                   setStatusFilter('All');
                 }}
-                className="mt-4 px-3 py-1.5 text-[10px] font-bold border border-gray-200 dark:border-gray-700 rounded text-gray-550 hover:bg-gray-50 flex items-center gap-1"
+                className="px-3 py-1.5 text-[10px] font-bold border border-gray-200 dark:border-gray-700 rounded text-gray-550 hover:bg-gray-50 flex items-center gap-1"
               >
-                <FiX className="w-3 h-3" /> Clear Filters
+                <FiX className="w-3 h-3" /> Clear All Filters
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Table */}
@@ -450,7 +533,7 @@ export default function Targets() {
             <table className="w-full text-xs" aria-label="Targets list table">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-155 dark:border-gray-800 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                  {['Pack Size', 'Product Name', 'Business Year', 'Annual Target', 'Achieved', 'Remaining', 'Progress', 'Status', 'Actions'].map((h) => (
+                  {['Code', 'Product Master', 'Division / Group', 'Business Year', 'Annual Target', 'Achieved', 'Remaining', 'Progress', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left px-5 py-3.5 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -458,24 +541,33 @@ export default function Targets() {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {paginated.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-5 py-12 text-center text-gray-455 font-bold">
+                    <td colSpan={10} className="px-5 py-12 text-center text-gray-455 font-bold">
                       No targets found for the selected filters.
                     </td>
                   </tr>
                 ) : (
                   paginated.map((t) => (
                     <tr key={t.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                      <td className="px-5 py-4 font-mono font-bold text-gray-800 dark:text-gray-200">{t.packSize}</td>
-                      <td className="px-5 py-4 font-bold text-gray-850 dark:text-white">{t.productName}</td>
+                      <td className="px-5 py-4 font-mono font-bold text-gray-500 dark:text-gray-400">{t.productCode || '—'}</td>
+                      <td className="px-5 py-4 font-bold text-gray-850 dark:text-white">
+                        {t.productName}
+                        <span className="block text-[9px] text-gray-400 font-normal">{t.packSize}</span>
+                      </td>
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <span className="inline-block font-semibold text-gray-700 dark:text-gray-300">
+                          {t.division || 'Himmel'}
+                        </span>
+                        <span className="block text-[9px] text-gray-400 font-normal">{t.groupName || 'General'}</span>
+                      </td>
                       <td className="px-5 py-4 whitespace-nowrap font-semibold">{t.businessYear}</td>
-                      <td className="px-5 py-4 text-right font-extrabold text-brand-primary">
-                        {t.annualTarget.toLocaleString()} <span className="text-[9px] text-gray-405 font-normal">{t.unit}</span>
+                      <td className="px-5 py-4 text-right font-extrabold text-brand-primary dark:text-red-400">
+                        {t.annualTarget.toLocaleString()} <span className="text-[9px] text-gray-500 dark:text-gray-300 font-medium">{t.unit}</span>
                       </td>
-                      <td className="px-5 py-4 text-right font-bold text-gray-800 dark:text-gray-205">
-                        {t.achievedQuantity.toLocaleString()} <span className="text-[9px] text-gray-405 font-normal">{t.unit}</span>
+                      <td className="px-5 py-4 text-right font-bold text-gray-800 dark:text-white">
+                        {t.achievedQuantity.toLocaleString()} <span className="text-[9px] text-gray-500 dark:text-gray-300 font-medium">{t.unit}</span>
                       </td>
-                      <td className="px-5 py-4 text-right font-bold text-gray-805 dark:text-gray-300">
-                        {t.remainingQuantity.toLocaleString()} <span className="text-[9px] text-gray-405 font-normal">{t.unit}</span>
+                      <td className="px-5 py-4 text-right font-bold text-gray-800 dark:text-gray-200">
+                        {t.remainingQuantity.toLocaleString()} <span className="text-[9px] text-gray-500 dark:text-gray-300 font-medium">{t.unit}</span>
                       </td>
                       <td className="px-5 py-4 min-w-[120px]">
                         <div className="flex items-center justify-between gap-2 mb-1">
@@ -552,3 +644,4 @@ export default function Targets() {
     </DashboardLayout>
   );
 }
+

@@ -60,7 +60,21 @@ const INITIAL_GROUPS = [
 const generateCode = (id) => `GRP-${String(id).padStart(4, '0')}`;
 
 export const groupService = {
+  getAllDivisions: async () => {
+    if (window.api && window.api.divisions) {
+      const res = await window.api.divisions.getAll();
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch divisions');
+    }
+    return [{ id: 1, name: 'Himmel' }, { id: 2, name: 'PMS' }, { id: 3, name: 'MSA' }];
+  },
+
   getAllGroups: async () => {
+    if (window.api && window.api.categories) {
+      const res = await window.api.categories.getAll();
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch categories');
+    }
     const saved = localStorage.getItem('groups');
     if (saved) {
       try {
@@ -73,16 +87,29 @@ export const groupService = {
   },
 
   getGroupById: async (id) => {
+    if (window.api && window.api.categories) {
+      const res = await window.api.categories.getById(id);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch category');
+    }
     const list = await groupService.getAllGroups();
     return list.find(g => g.id === Number(id)) || null;
   },
 
   saveGroupsList: async (groups) => {
+    if (window.api && window.api.categories) {
+      throw new Error('Bulk list save not supported over IPC');
+    }
     localStorage.setItem('groups', JSON.stringify(groups));
     return groups;
   },
 
   saveGroup: async (group) => {
+    if (window.api && window.api.categories) {
+      const res = await window.api.categories.save(group);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to save category');
+    }
     const list = await groupService.getAllGroups();
     let newList;
     if (group.id) {
@@ -103,6 +130,13 @@ export const groupService = {
   },
 
   deleteGroup: async (id) => {
+    if (window.api && window.api.categories) {
+      const res = await window.api.categories.delete(id);
+      if (res.success) {
+        return groupService.getAllGroups();
+      }
+      throw new Error(res.error || 'Failed to delete category');
+    }
     const list = await groupService.getAllGroups();
     const newList = list.filter(g => g.id !== Number(id));
     localStorage.setItem('groups', JSON.stringify(newList));

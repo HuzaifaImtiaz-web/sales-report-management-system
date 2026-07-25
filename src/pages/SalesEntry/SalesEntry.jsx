@@ -1,392 +1,554 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import Toast from '../../components/common/Toast';
-import { FiPlus, FiTrash2, FiSave, FiShoppingBag } from 'react-icons/fi';
+import Pagination from '../../components/common/Pagination';
+import StatusBadge from '../Orders/StatusBadge';
+import CancelOrderModal from '../Orders/CancelOrderModal';
+import ConfirmDialog from '../../components/common/dialogs/ConfirmDialog';
+import {
+  FiSearch, FiX, FiPlus, FiTrash2, FiEdit3, FiEye, FiCheckCircle,
+  FiXCircle, FiPrinter, FiFilter, FiRefreshCw, FiDollarSign, FiShoppingBag
+} from 'react-icons/fi';
 import { productService } from '../../services/productService';
 import { doctorService } from '../../services/doctorService';
 import { institutionService } from '../../services/institutionService';
 import { areaService } from '../../services/areaService';
 import { teamMemberService } from '../../services/teamMemberService';
 import { orderService } from '../../services/orderService';
+import { exportToCSV } from '../../utils/exportUtils';
 
-const SalesEntry = () => {
+export default function SalesEntry() {
   const navigate = useNavigate();
-  const [toast, setToast] = useState(null);
+  const location = useLocation();
+
+  const [toast, setToast] = useState(location.state?.toast || null);
   const [loading, setLoading] = useState(true);
 
-  // Lists state
+  // Data lists
+  const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [institutions, setInstitutions] = useState([]);
   const [areas, setAreas] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
 
-  // Form State
-  const [poNumber, setPoNumber] = useState('');
-  const [poDate, setPoDate] = useState(new Date().toISOString().split('T')[0]);
-  const [institution, setInstitution] = useState('');
-  const [doctor, setDoctor] = useState('');
-  const [area, setArea] = useState('');
-  const [teamMember, setTeamMember] = useState('');
-  const [remarks, setRemarks] = useState('');
-  const [items, setItems] = useState([]);
+  // Enterprise Filters state
+  const [statusFilter, setStatusFilter] = useState('All'); // All, Pending, Completed, Cancelled
+  const [doctorFilter, setDoctorFilter] = useState('');
+  const [institutionFilter, setInstitutionFilter] = useState('');
+  const [areaFilter, setAreaFilter] = useState('');
+  const [teamMemberFilter, setTeamMemberFilter] = useState('');
+  const [productFilter, setProductFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
-  // Generate random PO Number on mount and load data
-  useEffect(() => {
-    const rand = Math.floor(1000 + Math.random() * 9000);
-    setPoNumber(`PO-2026-${rand}`);
+  // Action Modals State
+  const [toComplete, setToComplete] = useState(null);
+  const [toCancel, setToCancel] = useState(null);
+  const [toDelete, setToDelete] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const loadData = () => {
+    setLoading(true);
     Promise.all([
+      orderService.getAllOrders(),
       productService.getAllProducts(),
       doctorService.getAllDoctors(),
       institutionService.getAllInstitutions(),
       areaService.getAllAreas(),
       teamMemberService.getAllTeamMembers()
-    ]).then(([productsData, doctorsData, institutionsData, areasData, teamData]) => {
-      const activeProds = productsData.filter(p => p.status === 'Active');
-      const activeDocs = doctorsData.filter(d => d.status === 'Active');
-      const activeInsts = institutionsData.filter(i => i.status === 'Active');
-      const activeAreas = areasData.filter(a => a.status === 'Active');
-      const activeTeam = teamData.filter(t => t.status === 'Active');
+    ])
+      .then(([ordersData, prodsData, docsData, instsData, areasData, teamData]) => {
+        setSales(ordersData || []);
+        setProducts(prodsData || []);
+        setDoctors(docsData || []);
+        setInstitutions(instsData || []);
+        setAreas(areasData || []);
+        setTeamMembers(teamData || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error loading sales processing data:', err);
+        setToast({ message: err.message || 'Failed to load sales data.', type: 'error' });
+        setLoading(false);
+      });
+  };
 
-      setProducts(activeProds);
-      setDoctors(activeDocs);
-      setInstitutions(activeInsts);
-      setAreas(activeAreas);
-      setTeamMembers(activeTeam);
-
-      // Set default form values
-      if (activeInsts.length > 0) setInstitution(activeInsts[0].name);
-      if (activeDocs.length > 0) setDoctor(activeDocs[0].name);
-      if (activeAreas.length > 0) setArea(activeAreas[0].name);
-      if (activeTeam.length > 0) setTeamMember(activeTeam[0].name);
-
-      if (activeProds.length > 0) {
-        setItems([{ productId: activeProds[0].id, quantity: 10, rate: activeProds[0].packPrice || activeProds[0].rate || 500 }]);
-      }
-
-      setLoading(false);
-    });
+  useEffect(() => {
+    loadData();
   }, []);
 
-  const handleProductChange = (index, prodId) => {
-    const selectedProd = products.find((p) => p.id === Number(prodId));
-    if (!selectedProd) return;
+  // Filtered sales matching all enterprise filters together
+  const filteredSales = useMemo(() => {
+    return sales.filter(s => {
+      // 1. Status Filter
+      if (statusFilter !== 'All' && s.status !== statusFilter) return false;
 
-    const newItems = [...items];
-    newItems[index] = {
-      ...newItems[index],
-      productId: selectedProd.id,
-      rate: selectedProd.packPrice || selectedProd.rate || 500
-    };
-    setItems(newItems);
-  };
+      // 2. Doctor Filter
+      if (doctorFilter && String(s.doctorId) !== String(doctorFilter)) return false;
 
-  const handleQtyChange = (index, qty) => {
-    const newItems = [...items];
-    newItems[index].quantity = Math.max(1, Number(qty) || 0);
-    setItems(newItems);
-  };
+      // 3. Institution Filter
+      if (institutionFilter && String(s.institutionId) !== String(institutionFilter)) return false;
 
-  const handleRateChange = (index, rate) => {
-    const newItems = [...items];
-    newItems[index].rate = Math.max(0, Number(rate) || 0);
-    setItems(newItems);
-  };
+      // 4. Area Filter
+      if (areaFilter && String(s.areaId) !== String(areaFilter)) return false;
 
-  const addProductRow = () => {
-    if (products.length > 0) {
-      setItems([...items, { productId: products[0].id, quantity: 1, rate: products[0].packPrice || products[0].rate || 500 }]);
-    }
-  };
+      // 5. Team Member Filter
+      if (teamMemberFilter && String(s.teamMemberId) !== String(teamMemberFilter)) return false;
 
-  const removeProductRow = (index) => {
-    if (items.length <= 1) return;
-    setItems(items.filter((_, idx) => idx !== index));
-  };
+      // 6. Product Filter
+      if (productFilter) {
+        const hasProduct = (s.items || s.products || []).some(it => String(it.productId) === String(productFilter));
+        if (!hasProduct) return false;
+      }
 
-  const grandTotal = useMemo(() => {
-    return items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-  }, [items]);
+      // 7. Date Range Filter
+      const poDate = s.poDate || s.orderDate;
+      if (startDate && poDate < startDate) return false;
+      if (endDate && poDate > endDate) return false;
 
-  const totalVials = useMemo(() => {
-    return items.reduce((sum, item) => sum + item.quantity, 0);
-  }, [items]);
+      // 8. Search Query (PO Number, Doctor, Institution, Area, Team Member)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const poMatch = (s.poNumber || s.orderNumber || '').toLowerCase().includes(q);
+        const docMatch = (s.doctorName || '').toLowerCase().includes(q);
+        const instMatch = (s.institutionName || '').toLowerCase().includes(q);
+        const areaMatch = (s.areaName || '').toLowerCase().includes(q);
+        const teamMatch = (s.teamMemberName || '').toLowerCase().includes(q);
+        if (!poMatch && !docMatch && !instMatch && !areaMatch && !teamMatch) return false;
+      }
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (!poNumber.trim()) {
-      setToast({ message: 'Please enter PO Number.', type: 'error' });
-      return;
-    }
-
-    const orderData = {
-      poNumber,
-      poDate,
-      institution,
-      doctor,
-      area,
-      teamMember,
-      remarks,
-      products: items.map((item) => {
-        const prod = products.find((p) => p.id === item.productId);
-        return {
-          name: prod ? prod.name : 'Unknown Product',
-          qty: item.quantity,
-          rate: item.rate
-        };
-      }),
-      totalQty: totalVials,
-      totalAmount: grandTotal,
-      status: 'Pending'
-    };
-
-    orderService.addOrder(orderData).then(() => {
-      setToast({ message: 'Purchase Order saved successfully!', type: 'success' });
-      setTimeout(() => {
-        navigate('/orders');
-      }, 1000);
+      return true;
     });
+  }, [
+    sales,
+    statusFilter,
+    doctorFilter,
+    institutionFilter,
+    areaFilter,
+    teamMemberFilter,
+    productFilter,
+    startDate,
+    endDate,
+    searchQuery
+  ]);
+
+  // Pagination calculation
+  const totalPages = Math.ceil(filteredSales.length / itemsPerPage) || 1;
+  const paginatedSales = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredSales.slice(start, start + itemsPerPage);
+  }, [filteredSales, currentPage, itemsPerPage]);
+
+  const resetFilters = () => {
+    setStatusFilter('All');
+    setDoctorFilter('');
+    setInstitutionFilter('');
+    setAreaFilter('');
+    setTeamMemberFilter('');
+    setProductFilter('');
+    setSearchQuery('');
+    setStartDate('');
+    setEndDate('');
+    setCurrentPage(1);
   };
 
-  if (loading) {
-    return (
-      <DashboardLayout pageTitle="Sales Entry">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  const handleConfirmComplete = () => {
+    if (!toComplete) return;
+    orderService.changeStatus(toComplete.id, 'Completed')
+      .then(() => {
+        setToast({ message: `Sale PO ${toComplete.poNumber} completed successfully. Revenue and Dashboard updated.`, type: 'success' });
+        setToComplete(null);
+        loadData();
+      })
+      .catch(err => {
+        setToast({ message: err.message || 'Failed to complete sale.', type: 'error' });
+      });
+  };
+
+  const handleConfirmCancel = (reason) => {
+    if (!toCancel) return;
+    orderService.changeStatus(toCancel.id, 'Cancelled', reason)
+      .then(() => {
+        setToast({ message: `Sale PO ${toCancel.poNumber} cancelled successfully.`, type: 'success' });
+        setToCancel(null);
+        loadData();
+      })
+      .catch(err => {
+        setToast({ message: err.message || 'Failed to cancel sale.', type: 'error' });
+      });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!toDelete) return;
+    orderService.deleteOrder(toDelete.id)
+      .then(() => {
+        setToast({ message: `Order PO ${toDelete.poNumber} deleted successfully.`, type: 'success' });
+        setToDelete(null);
+        loadData();
+      })
+      .catch(err => {
+        setToast({ message: err.message || 'Failed to delete order.', type: 'error' });
+      });
+  };
+
+  const handlePrint = (sale) => {
+    window.print();
+  };
 
   return (
-    <DashboardLayout pageTitle="Sales Entry">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    <DashboardLayout pageTitle="Sales Processing Center">
+      <div className="space-y-6 animate-fade-in pb-12">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div className="max-w-5xl mx-auto space-y-6 pb-12">
         {/* Page Header */}
         <div>
-          <h1 className="text-xl font-extrabold text-gray-905 dark:text-white uppercase tracking-wider">
-            Create Purchase Order
+          <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+            Sales Processing Center
           </h1>
-          <p className="text-xs text-gray-450 dark:text-gray-550 font-medium mt-1">
-            Fill in the details to record a new purchase order.
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Process customer orders, view status, complete sales, and manage orders.
           </p>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-6">
-          {/* Order Info Card */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-850">
-              <FiShoppingBag className="w-4 h-4 text-brand-primary" />
-              <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Order Information</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">PO Number *</label>
-                <input
-                  type="text"
-                  required
-                  value={poNumber}
-                  onChange={(e) => setPoNumber(e.target.value)}
-                  className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">PO Date *</label>
-                <input
-                  type="date"
-                  required
-                  value={poDate}
-                  onChange={(e) => setPoDate(e.target.value)}
-                  className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Institution *</label>
-                <select
-                  value={institution}
-                  onChange={(e) => setInstitution(e.target.value)}
-                  className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
-                >
-                  {institutions.map((inst) => (
-                    <option key={inst.id} value={inst.name}>{inst.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Doctor *</label>
-                <select
-                  value={doctor}
-                  onChange={(e) => setDoctor(e.target.value)}
-                  className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
-                >
-                  {doctors.map((d) => (
-                    <option key={d.id} value={d.name}>{d.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Area *</label>
-                <select
-                  value={area}
-                  onChange={(e) => setArea(e.target.value)}
-                  className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
-                >
-                  {areas.map((a) => (
-                    <option key={a.id || a.name} value={a.name}>{a.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Team Member *</label>
-                <select
-                  value={teamMember}
-                  onChange={(e) => setTeamMember(e.target.value)}
-                  className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-205 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
-                >
-                  {teamMembers.map((t) => (
-                    <option key={t.id} value={t.name}>{t.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Products Section */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-gray-850">
-              <div className="flex items-center gap-2">
-                <FiShoppingBag className="w-4 h-4 text-brand-primary" />
-                <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Products List</h3>
-              </div>
+        {/* Status Filter Tabs */}
+        <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3 overflow-x-auto">
+          {['All', 'Pending', 'Completed', 'Cancelled'].map(st => {
+            const count = st === 'All' ? sales.length : sales.filter(s => s.status === st).length;
+            const isActive = statusFilter === st;
+            return (
               <button
-                type="button"
-                onClick={addProductRow}
-                className="px-3 py-1.5 bg-brand-primary hover:bg-brand-primaryDark text-white text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1"
+                key={st}
+                onClick={() => {
+                  setStatusFilter(st);
+                  setCurrentPage(1);
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                  isActive
+                    ? 'bg-brand-primary text-white shadow-sm'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                }`}
               >
-                <FiPlus className="w-3.5 h-3.5" />
-                Add Product
+                <span>{st}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                }`}>
+                  {count}
+                </span>
               </button>
+            );
+          })}
+        </div>
+
+        {/* Enterprise Business Filters Panel */}
+        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-enterprise p-4 shadow-sm space-y-3">
+          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300">
+              <FiFilter className="w-4 h-4 text-brand-primary" />
+              <span>Enterprise Filters</span>
             </div>
-
-            <div className="space-y-3">
-              {items.map((item, index) => {
-                return (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end bg-gray-50 dark:bg-gray-800/30 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
-                    <div className="md:col-span-5">
-                      <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Product</label>
-                      <select
-                        value={item.productId}
-                        onChange={(e) => handleProductChange(index, e.target.value)}
-                        className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-750 border border-gray-200 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
-                      >
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Quantity</label>
-                      <input
-                        type="number"
-                        min="1"
-                        required
-                        value={item.quantity}
-                        onChange={(e) => handleQtyChange(index, e.target.value)}
-                        className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-750 border border-gray-200 dark:border-gray-700 rounded-lg outline-none"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Rate (Rs)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        required
-                        value={item.rate}
-                        onChange={(e) => handleRateChange(index, e.target.value)}
-                        className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-750 border border-gray-200 dark:border-gray-700 rounded-lg outline-none"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2 text-right pb-2">
-                      <span className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Total</span>
-                      <span className="text-xs font-extrabold text-brand-primary">Rs {(item.quantity * item.rate).toLocaleString()}</span>
-                    </div>
-
-                    <div className="md:col-span-1 flex justify-center pb-1">
-                      <button
-                        type="button"
-                        onClick={() => removeProductRow(index)}
-                        disabled={items.length <= 1}
-                        className="w-8 h-8 rounded-lg border border-red-100 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/20 text-feedback-error disabled:opacity-30 flex items-center justify-center transition-colors"
-                      >
-                        <FiTrash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Grand Total Block */}
-            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800/40 rounded-enterprise flex items-center justify-between border border-gray-150 dark:border-gray-800">
-              <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Grand Total</span>
-              <div className="flex gap-6">
-                <div className="text-right">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase">Total Quantity</p>
-                  <p className="text-sm font-extrabold text-gray-800 dark:text-white mt-0.5">{totalVials.toLocaleString()}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase">Grand Total Value</p>
-                  <p className="text-sm font-extrabold text-brand-primary mt-0.5">Rs {grandTotal.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Remarks Section */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 space-y-3">
-            <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Remarks & Special Instructions</label>
-            <textarea
-              rows={3}
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-              placeholder="e.g. Urgent delivery needed, specific timing..."
-              className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-202 dark:border-gray-700 rounded-lg outline-none resize-none focus:ring-1 focus:ring-brand-primary"
-            />
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-2">
             <button
-              type="button"
-              onClick={() => navigate('/orders')}
-              className="px-4 py-2 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold text-gray-655 dark:text-gray-300 rounded-lg transition-colors"
+              onClick={resetFilters}
+              className="text-[11px] font-bold text-brand-primary hover:underline flex items-center gap-1 cursor-pointer"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-lg transition-colors shadow-sm inline-flex items-center gap-1.5"
-            >
-              <FiSave className="w-3.5 h-3.5" />
-              Save Purchase Order
+              <FiRefreshCw className="w-3 h-3" /> Reset Filters
             </button>
           </div>
-        </form>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Search Input */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search PO#, Doctor, Inst..."
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-brand-primary font-medium"
+              />
+              <FiSearch className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400" />
+            </div>
+
+            {/* Doctor Filter */}
+            <select
+              value={doctorFilter}
+              onChange={(e) => { setDoctorFilter(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+            >
+              <option value="">All Doctors</option>
+              {doctors.map(d => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+
+            {/* Institution Filter */}
+            <select
+              value={institutionFilter}
+              onChange={(e) => { setInstitutionFilter(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+            >
+              <option value="">All Institutions</option>
+              {institutions.map(i => (
+                <option key={i.id} value={i.id}>{i.name}</option>
+              ))}
+            </select>
+
+            {/* Area Filter */}
+            <select
+              value={areaFilter}
+              onChange={(e) => { setAreaFilter(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+            >
+              <option value="">All Areas</option>
+              {areas.map(a => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+
+            {/* Team Member Filter */}
+            <select
+              value={teamMemberFilter}
+              onChange={(e) => { setTeamMemberFilter(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+            >
+              <option value="">All Team Members</option>
+              {teamMembers.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+
+            {/* Product Filter */}
+            <select
+              value={productFilter}
+              onChange={(e) => { setProductFilter(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+            >
+              <option value="">All Products</option>
+              {products.map(p => (
+                <option key={p.id} value={p.id}>{p.brandName || p.name}</option>
+              ))}
+            </select>
+
+            {/* Start Date */}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold text-gray-400 uppercase shrink-0">From:</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                className="w-full px-2 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium"
+              />
+            </div>
+
+            {/* End Date */}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold text-gray-400 uppercase shrink-0">To:</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+                className="w-full px-2 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Sales Table Container */}
+        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-enterprise shadow-sm overflow-hidden">
+          {loading ? (
+            <div className="p-12 flex justify-center items-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+            </div>
+          ) : filteredSales.length === 0 ? (
+            <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+              <FiShoppingBag className="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+              <p className="text-sm font-bold text-gray-700 dark:text-gray-300">No Sales Orders Found</p>
+              <p className="text-xs text-gray-400 mt-1">Try adjusting your search criteria or create a new order.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/80 dark:bg-gray-800/40 border-b border-gray-200 dark:border-gray-800 text-[10px] uppercase tracking-wider font-extrabold text-gray-500 dark:text-gray-400">
+                    <th className="py-3 px-4">PO Number</th>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4">Doctor / Institution</th>
+                    <th className="py-3 px-4">Area</th>
+                    <th className="py-3 px-4">Team Member</th>
+                    <th className="py-3 px-4">Products</th>
+                    <th className="py-3 px-4 text-right">Total Amount</th>
+                    <th className="py-3 px-4 text-center">Status</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs">
+                  {paginatedSales.map(sale => {
+                    const docName = doctors.find(d => String(d.id) === String(sale.doctorId))?.name || sale.doctorName || '—';
+                    const instName = institutions.find(i => String(i.id) === String(sale.institutionId))?.name || sale.institutionName || '—';
+                    const areaName = areas.find(a => String(a.id) === String(sale.areaId))?.name || sale.areaName || '—';
+                    const teamName = teamMembers.find(t => String(t.id) === String(sale.teamMemberId))?.name || sale.teamMemberName || '—';
+
+                    const itemsList = sale.items || sale.products || [];
+                    const itemsSummary = itemsList.map(it => {
+                      const pName = products.find(p => String(p.id) === String(it.productId))?.brandName || it.productName || `Prod #${it.productId}`;
+                      const qty = it.quantity || it.qty || 1;
+                      return `${pName} (${qty})`;
+                    }).join(', ');
+
+                    const isPending = sale.status === 'Pending';
+                    const isCompleted = sale.status === 'Completed';
+                    const isCancelled = sale.status === 'Cancelled';
+
+                    return (
+                      <tr key={sale.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-white">
+                          {sale.poNumber || sale.orderNumber}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300">
+                          {sale.poDate || sale.orderDate}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-gray-800 dark:text-gray-200">
+                          <div>{docName}</div>
+                          {instName !== '—' && (
+                            <div className="text-[10px] text-gray-400">{instName}</div>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300">
+                          {areaName}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300">
+                          {teamName}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300 max-w-[200px] truncate" title={itemsSummary}>
+                          {itemsSummary || '—'}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono font-extrabold text-right text-brand-primary">
+                          Rs {Number(sale.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <StatusBadge status={sale.status} />
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {/* Pending Actions */}
+                            {isPending && (
+                              <>
+                                <button
+                                  onClick={() => navigate(`/orders/${sale.id}/edit`)}
+                                  className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors"
+                                  title="Edit Order"
+                                >
+                                  <FiEdit3 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setToComplete(sale)}
+                                  className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg transition-colors"
+                                  title="Complete Sale"
+                                >
+                                  <FiCheckCircle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setToCancel(sale)}
+                                  className="p-1.5 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg transition-colors"
+                                  title="Cancel Sale"
+                                >
+                                  <FiXCircle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setToDelete(sale)}
+                                  className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                                  title="Delete Order"
+                                >
+                                  <FiTrash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+
+                            {/* Completed Actions */}
+                            {isCompleted && (
+                              <>
+                                <button
+                                  onClick={() => navigate(`/orders/${sale.id}`)}
+                                  className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                  title="View Order Details"
+                                >
+                                  <FiEye className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handlePrint(sale)}
+                                  className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors"
+                                  title="Print Order"
+                                >
+                                  <FiPrinter className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+
+                            {/* Cancelled Actions */}
+                            {isCancelled && (
+                              <button
+                                onClick={() => navigate(`/orders/${sale.id}`)}
+                                className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                title="View Order Details"
+                              >
+                                <FiEye className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {filteredSales.length > 0 && (
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Complete Sale Confirmation Dialog */}
+        <ConfirmDialog
+          open={Boolean(toComplete)}
+          title="Complete Sale"
+          message={`Are you sure you want to mark Sale PO ${toComplete?.poNumber} as Completed? This will reflect in financial dashboard revenue, reports, and target metrics.`}
+          confirmText="Complete Sale"
+          confirmVariant="success"
+          onConfirm={handleConfirmComplete}
+          onCancel={() => setToComplete(null)}
+        />
+
+        {/* Cancel Sale Modal (Mandatory Reason) */}
+        <CancelOrderModal
+          order={toCancel}
+          onConfirm={handleConfirmCancel}
+          onCancel={() => setToCancel(null)}
+        />
+
+        {/* Delete Order Confirmation Dialog */}
+        <ConfirmDialog
+          open={Boolean(toDelete)}
+          title="Delete Order"
+          message={`Are you sure you want to delete Pending Order PO ${toDelete?.poNumber}? This action cannot be undone.`}
+          confirmText="Delete Order"
+          confirmVariant="danger"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setToDelete(null)}
+        />
       </div>
     </DashboardLayout>
   );
-};
-
-export default SalesEntry;
+}

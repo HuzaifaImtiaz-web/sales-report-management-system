@@ -1,13 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { teamMemberService } from '../../services/teamMemberService';
 import Pagination from '../../components/common/Pagination';
+import FilterPresetBar from '../../components/common/FilterPresetBar';
+import StatusSelector from '../../components/common/StatusSelector';
+import { exportToCSV } from '../../utils/exportUtils';
 import {
   FiSearch, FiPlus, FiEye, FiEdit2, FiTrash2,
-  FiX, FiUsers, FiAlertTriangle
+  FiX, FiUsers, FiAlertTriangle, FiDownload
 } from 'react-icons/fi';
-
 
 const DESIGNATIONS = [
   'Medical Representative',
@@ -101,12 +103,13 @@ const DeleteDialog = ({ member, onCancel, onConfirm }) => (
 
 const TeamMembers = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [team, setTeam] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [areaFilter, setAreaFilter] = useState('');
   const [designationFilter, setDesignationFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [toDelete, setToDelete] = useState(null);
 
   // Pagination states
@@ -114,8 +117,13 @@ const TeamMembers = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
+    const q = searchParams.get('search');
+    if (q) setSearch(q);
+  }, [searchParams]);
+
+  useEffect(() => {
     teamMemberService.getAllTeamMembers().then((data) => {
-      setTeam(data);
+      setTeam(data || []);
       setLoading(false);
     });
   }, []);
@@ -137,11 +145,26 @@ const TeamMembers = () => {
 
       const matchArea = !areaFilter || t.area === areaFilter;
       const matchDesignation = !designationFilter || t.designation === designationFilter;
-      const matchStatus = !statusFilter || t.status === statusFilter;
+      const matchStatus = statusFilter === 'All' || !statusFilter || t.status === statusFilter;
 
       return matchQ && matchArea && matchDesignation && matchStatus;
     });
   }, [team, search, areaFilter, designationFilter, statusFilter]);
+
+  // Deep linking scroll into view effect
+  useEffect(() => {
+    const highlightId = searchParams.get('highlightId');
+    if (highlightId && !loading && filtered.length > 0) {
+      const el = document.getElementById(`row-${highlightId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-brand-primary', 'bg-amber-50', 'dark:bg-amber-900/30');
+        setTimeout(() => {
+          el.classList.remove('ring-2', 'ring-brand-primary', 'bg-amber-50', 'dark:bg-amber-900/30');
+        }, 3000);
+      }
+    }
+  }, [searchParams, loading, filtered]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -168,10 +191,10 @@ const TeamMembers = () => {
     setSearch('');
     setAreaFilter('');
     setDesignationFilter('');
-    setStatusFilter('');
+    setStatusFilter('All');
   };
 
-  const showClear = search || areaFilter || designationFilter || statusFilter;
+  const showClear = search || areaFilter || designationFilter || (statusFilter && statusFilter !== 'All');
   const activeCount = team.filter((t) => t.status === 'Active').length;
   const inactiveCount = team.filter((t) => t.status === 'Inactive').length;
 
@@ -185,6 +208,19 @@ const TeamMembers = () => {
             <p className="text-xs text-gray-400 dark:text-gray-550 font-medium mt-1">Manage sales force and field staff.</p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => exportToCSV('team_members_export', filtered, [
+                { key: 'code', label: 'Employee ID' },
+                { key: 'name', label: 'Employee Name' },
+                { key: 'designation', label: 'Designation' },
+                { key: 'area', label: 'Area' },
+                { key: 'status', label: 'Status' }
+              ])}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              title="Export filtered team members to CSV"
+            >
+              <FiDownload className="w-3.5 h-3.5" /> Export Filtered
+            </button>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-feedback-success text-[11px] font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-feedback-success" />
               {activeCount} Active
@@ -206,6 +242,19 @@ const TeamMembers = () => {
 
         {/* Search & Filter Controls */}
         <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 space-y-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-800 pb-3">
+            <FilterPresetBar
+              moduleName="team"
+              currentFilters={{ search, areaFilter, designationFilter, statusFilter }}
+              onApplyPreset={(f) => {
+                if (f.search !== undefined) setSearch(f.search);
+                if (f.areaFilter !== undefined) setAreaFilter(f.areaFilter);
+                if (f.designationFilter !== undefined) setDesignationFilter(f.designationFilter);
+                if (f.statusFilter !== undefined) setStatusFilter(f.statusFilter);
+              }}
+            />
+          </div>
+
           <div className="flex flex-col md:flex-row md:items-center gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -243,17 +292,11 @@ const TeamMembers = () => {
                 </select>
               </div>
 
-              <div className="relative w-full sm:w-auto">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full pl-3 pr-8 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-250 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none cursor-pointer min-w-[130px] appearance-none"
-                >
-                  <option value="">All Statuses</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
+              <StatusSelector
+                options={['All', 'Active', 'Inactive']}
+                value={statusFilter}
+                onChange={setStatusFilter}
+              />
 
               {showClear && (
                 <button
@@ -278,9 +321,9 @@ const TeamMembers = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             <table className="w-full text-xs" aria-label="Team table">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-gray-55 dark:bg-[#0f172a] shadow-xs">
                 <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                   {['Employee ID', 'Employee Name', 'Designation', 'Area', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-5 py-3.5 whitespace-nowrap">
@@ -294,7 +337,11 @@ const TeamMembers = () => {
                   <EmptyState onAdd={openAdd} />
                 ) : (
                   paginatedTeam.map((t) => (
-                    <tr key={t.id} className="hover:bg-gray-55/60 dark:hover:bg-gray-800/30 transition-colors duration-100 group">
+                    <tr
+                      id={`row-${t.id}`}
+                      key={t.id}
+                      className="hover:bg-gray-55/60 dark:hover:bg-gray-800/30 transition-colors duration-100 group"
+                    >
                       <td className="px-5 py-4 whitespace-nowrap">
                         <span className="font-mono text-[10px] font-extrabold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
                           {t.code}

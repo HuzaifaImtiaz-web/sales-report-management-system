@@ -1,79 +1,87 @@
 import React from 'react';
+import { FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
 
-const Pagination = ({
-  currentPage,
-  totalPages,
+export default function Pagination({
+  currentPage = 1,
+  totalPages = 1,
+  pageSize = 25,
+  totalRecords = 0,
   onPageChange,
-  totalRecords,
-  startIndex,
-  endIndex,
-  pageSize,
   onPageSizeChange
-}) => {
+}) {
   if (totalRecords === 0) return null;
 
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const startRecord = (currentPage - 1) * pageSize + 1;
+  const endRecord = Math.min(currentPage * pageSize, totalRecords);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-5 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-55/50 dark:bg-gray-800/10">
-      <div className="flex flex-col sm:flex-row items-center gap-4">
-        <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
-          Showing <span className="font-semibold text-gray-700 dark:text-gray-300">{startIndex + 1}–{Math.min(endIndex, totalRecords)}</span> of{' '}
-          <span className="font-semibold text-gray-700 dark:text-gray-300">{totalRecords}</span> records
-        </p>
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white dark:bg-[#0f172a] border-t border-gray-150 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-400">
+      {/* Records Summary & Page Size Select */}
+      <div className="flex items-center gap-4">
+        <span>
+          Showing <strong className="text-gray-900 dark:text-white font-bold">{startRecord}</strong> to{' '}
+          <strong className="text-gray-900 dark:text-white font-bold">{endRecord}</strong> of{' '}
+          <strong className="text-gray-900 dark:text-white font-bold">{totalRecords.toLocaleString()}</strong> records
+        </span>
+
         {onPageSizeChange && (
-          <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400 dark:text-gray-500">
-            <span>Show</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-gray-400">Per page:</span>
             <select
               value={pageSize}
-              onChange={(e) => {
-                const newSize = Number(e.target.value);
-                onPageSizeChange(newSize);
-                onPageChange(1); // Reset to first page when page size changes
-              }}
-              className="px-1.5 py-1 text-xs font-semibold text-gray-750 dark:text-gray-250 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer"
+              onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              className="px-2 py-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-800 dark:text-gray-200 outline-none cursor-pointer"
             >
-              {[10, 25, 50, 100].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
             </select>
-            <span>entries</span>
           </div>
         )}
       </div>
+
+      {/* Page Navigation Buttons */}
       <div className="flex items-center gap-1">
+        <button
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          title="First Page"
+          className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+        >
+          <FiChevronsLeft className="w-4 h-4" />
+        </button>
+
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
+          title="Previous Page"
+          className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         >
-          Previous
+          <FiChevronLeft className="w-4 h-4" />
         </button>
-        {pages.map((p) => (
-          <button
-            key={p}
-            onClick={() => onPageChange(p)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 ${
-              currentPage === p
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-850'
-            }`}
-          >
-            {p}
-          </button>
-        ))}
+
+        <span className="px-3 py-1 font-bold text-gray-800 dark:text-gray-200">
+          Page {currentPage} of {totalPages || 1}
+        </span>
+
         <button
           onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
+          disabled={currentPage >= totalPages}
+          title="Next Page"
+          className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         >
-          Next
+          <FiChevronRight className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage >= totalPages}
+          title="Last Page"
+          className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+        >
+          <FiChevronsRight className="w-4 h-4" />
         </button>
       </div>
     </div>
   );
-};
-
-export default Pagination;
+}

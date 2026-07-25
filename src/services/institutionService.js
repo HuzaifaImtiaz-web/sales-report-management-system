@@ -75,8 +75,21 @@ const INITIAL_INSTITUTIONS = [
 
 const generateCode = (id) => `INST-${String(id).padStart(4, '0')}`;
 
+const mapToFrontend = (i) => {
+  if (!i) return null;
+  return {
+    ...i,
+    area: i.areaName
+  };
+};
+
 export const institutionService = {
   getAllInstitutions: async () => {
+    if (window.api && window.api.institutions) {
+      const res = await window.api.institutions.getAll();
+      if (res.success) return res.data.map(mapToFrontend);
+      throw new Error(res.error || 'Failed to fetch institutions');
+    }
     const saved = localStorage.getItem('institutions');
     if (saved) {
       try {
@@ -89,16 +102,29 @@ export const institutionService = {
   },
 
   getInstitutionById: async (id) => {
+    if (window.api && window.api.institutions) {
+      const res = await window.api.institutions.getById(id);
+      if (res.success) return mapToFrontend(res.data);
+      throw new Error(res.error || 'Failed to fetch institution');
+    }
     const list = await institutionService.getAllInstitutions();
     return list.find(i => i.id === Number(id)) || null;
   },
 
   saveInstitutionsList: async (institutions) => {
+    if (window.api && window.api.institutions) {
+      throw new Error('Bulk list save not supported over IPC; use individual saves.');
+    }
     localStorage.setItem('institutions', JSON.stringify(institutions));
     return institutions;
   },
 
   saveInstitution: async (institution) => {
+    if (window.api && window.api.institutions) {
+      const res = await window.api.institutions.save(institution);
+      if (res.success) return mapToFrontend(res.data);
+      throw new Error(res.error || 'Failed to save institution');
+    }
     const list = await institutionService.getAllInstitutions();
     let newList;
     if (institution.id) {
@@ -118,6 +144,13 @@ export const institutionService = {
   },
 
   deleteInstitution: async (id) => {
+    if (window.api && window.api.institutions) {
+      const res = await window.api.institutions.delete(id);
+      if (res.success) {
+        return institutionService.getAllInstitutions();
+      }
+      throw new Error(res.error || 'Failed to delete institution');
+    }
     const list = await institutionService.getAllInstitutions();
     const newList = list.filter(i => i.id !== Number(id));
     localStorage.setItem('institutions', JSON.stringify(newList));

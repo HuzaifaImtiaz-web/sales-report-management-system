@@ -101,8 +101,22 @@ const INITIAL_DOCTORS = [
 
 const generateCode = (id) => `DOC-${String(id).padStart(4, '0')}`;
 
+const mapToFrontend = (d) => {
+  if (!d) return null;
+  return {
+    ...d,
+    mobile: d.phone,
+    area: d.areaName
+  };
+};
+
 export const doctorService = {
   getAllDoctors: async () => {
+    if (window.api && window.api.doctors) {
+      const res = await window.api.doctors.getAll();
+      if (res.success) return res.data.map(mapToFrontend);
+      throw new Error(res.error || 'Failed to fetch doctors');
+    }
     const saved = localStorage.getItem('doctors');
     if (saved) {
       try {
@@ -115,16 +129,33 @@ export const doctorService = {
   },
 
   getDoctorById: async (id) => {
+    if (window.api && window.api.doctors) {
+      const res = await window.api.doctors.getById(id);
+      if (res.success) return mapToFrontend(res.data);
+      throw new Error(res.error || 'Failed to fetch doctor');
+    }
     const list = await doctorService.getAllDoctors();
     return list.find(d => d.id === Number(id)) || null;
   },
 
   saveDoctorsList: async (doctors) => {
+    if (window.api && window.api.doctors) {
+      throw new Error('Bulk list save not supported over IPC; use individual saves.');
+    }
     localStorage.setItem('doctors', JSON.stringify(doctors));
     return doctors;
   },
 
   saveDoctor: async (doctor) => {
+    if (window.api && window.api.doctors) {
+      const payload = {
+        ...doctor,
+        phone: doctor.phone || doctor.mobile
+      };
+      const res = await window.api.doctors.save(payload);
+      if (res.success) return mapToFrontend(res.data);
+      throw new Error(res.error || 'Failed to save doctor');
+    }
     const list = await doctorService.getAllDoctors();
     let newList;
     if (doctor.id) {
@@ -144,6 +175,13 @@ export const doctorService = {
   },
 
   deleteDoctor: async (id) => {
+    if (window.api && window.api.doctors) {
+      const res = await window.api.doctors.delete(id);
+      if (res.success) {
+        return doctorService.getAllDoctors();
+      }
+      throw new Error(res.error || 'Failed to delete doctor');
+    }
     const list = await doctorService.getAllDoctors();
     const newList = list.filter(d => d.id !== Number(id));
     localStorage.setItem('doctors', JSON.stringify(newList));

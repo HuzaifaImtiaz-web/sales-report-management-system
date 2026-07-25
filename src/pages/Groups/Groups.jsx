@@ -8,7 +8,6 @@ import {
   FiX, FiAlertTriangle, FiLayers
 } from 'react-icons/fi';
 
-
 const StatusBadge = ({ status }) =>
   status === 'Active' ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-50 dark:bg-green-900/30 text-feedback-success border border-green-100 dark:border-green-800/50">
@@ -24,7 +23,7 @@ const StatusBadge = ({ status }) =>
 
 const EmptyState = ({ onAdd }) => (
   <tr>
-    <td colSpan={5} className="px-5 py-16 text-center">
+    <td colSpan={7} className="px-5 py-16 text-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-16 h-16 rounded-2xl bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
           <FiLayers className="w-8 h-8 text-gray-200 dark:text-gray-650" />
@@ -87,6 +86,7 @@ const Groups = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [divisionFilter, setDivisionFilter] = useState('');
   const [toDelete, setToDelete] = useState(null);
 
   // Pagination states
@@ -103,7 +103,7 @@ const Groups = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, divisionFilter]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -112,13 +112,15 @@ const Groups = () => {
         !q ||
         g.name.toLowerCase().includes(q) ||
         g.code.toLowerCase().includes(q) ||
+        (g.divisionName && g.divisionName.toLowerCase().includes(q)) ||
         g.description.toLowerCase().includes(q);
 
       const matchStatus = !statusFilter || g.status === statusFilter;
+      const matchDivision = !divisionFilter || g.divisionName === divisionFilter;
 
-      return matchQ && matchStatus;
+      return matchQ && matchStatus && matchDivision;
     });
-  }, [groups, search, statusFilter]);
+  }, [groups, search, statusFilter, divisionFilter]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -144,20 +146,21 @@ const Groups = () => {
   const handleClear = () => {
     setSearch('');
     setStatusFilter('');
+    setDivisionFilter('');
   };
 
-  const showClear = search || statusFilter;
+  const showClear = search || statusFilter || divisionFilter;
   const activeCount = groups.filter((g) => g.status === 'Active').length;
   const inactiveCount = groups.filter((g) => g.status === 'Inactive').length;
 
   return (
-    <DashboardLayout pageTitle="Groups">
+    <DashboardLayout pageTitle="Product Groups">
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-905 dark:text-white tracking-tight">Groups</h1>
-            <p className="text-xs text-gray-400 dark:text-gray-550 font-medium mt-1">Manage product classification groups.</p>
+            <h1 className="text-xl font-extrabold text-gray-905 dark:text-white tracking-tight">Product Groups</h1>
+            <p className="text-xs text-gray-400 dark:text-gray-550 font-medium mt-1 font-semibold">Manage Division-specific Product Groups classification.</p>
           </div>
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-feedback-success text-[11px] font-bold">
@@ -189,13 +192,28 @@ const Groups = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by Group Name, Code, or Description..."
-                className="w-full pl-9 pr-4 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-205 bg-gray-55 dark:bg-gray-800/50 border border-gray-105 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                placeholder="Search by Group Name, Division, Code, or Description..."
+                className="w-full pl-9 pr-4 py-2.5 text-xs font-medium text-gray-705 dark:text-gray-205 bg-gray-55 dark:bg-gray-800/50 border border-gray-105 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
 
             {/* Filter Selections */}
             <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3">
+              {/* Division Filter */}
+              <div className="relative w-full sm:w-auto">
+                <select
+                  value={divisionFilter}
+                  onChange={(e) => setDivisionFilter(e.target.value)}
+                  className="w-full pl-3 pr-8 py-2.5 text-xs font-medium text-gray-705 dark:text-gray-250 bg-gray-55 dark:bg-gray-800/50 border border-gray-105 dark:border-gray-700 rounded-lg outline-none cursor-pointer min-w-[130px] appearance-none"
+                >
+                  <option value="">All Divisions</option>
+                  <option value="Himmel">Himmel</option>
+                  <option value="PMS">PMS</option>
+                  <option value="MSA">MSA</option>
+                </select>
+              </div>
+
+              {/* Status Filter */}
               <div className="relative w-full sm:w-auto">
                 <select
                   value={statusFilter}
@@ -235,7 +253,7 @@ const Groups = () => {
             <table className="w-full text-xs" aria-label="Groups table">
               <thead>
                 <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                  {['Group Code', 'Group Name', 'Description', 'Total Products', 'Status', 'Actions'].map((h) => (
+                  {['Group Code', 'Division', 'Group Name', 'Description', 'Total Products', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-5 py-3.5 whitespace-nowrap">
                       {h}
                     </th>
@@ -253,7 +271,12 @@ const Groups = () => {
                           {g.code}
                         </span>
                       </td>
-                      <td className="px-5 py-4 font-semibold text-gray-855 dark:text-gray-200 whitespace-nowrap">{g.name}</td>
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center w-max px-2.5 py-0.5 rounded text-[9px] font-bold bg-brand-primary/10 text-brand-primary">
+                          {g.divisionName}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 font-extrabold text-gray-855 dark:text-gray-200 whitespace-nowrap">{g.name}</td>
                       <td className="px-5 py-4 text-gray-650 dark:text-gray-300 max-w-[250px] truncate">{g.description || '—'}</td>
                       <td className="px-5 py-4 font-semibold text-gray-800 dark:text-gray-205 whitespace-nowrap">{g.totalProducts}</td>
                       <td className="px-5 py-4 whitespace-nowrap">

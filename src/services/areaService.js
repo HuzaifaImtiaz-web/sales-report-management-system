@@ -68,6 +68,11 @@ const generateCode = (id) => `AREA-${String(id).padStart(4, '0')}`;
 
 export const areaService = {
   getAllAreas: async () => {
+    if (window.api && window.api.areas) {
+      const res = await window.api.areas.getAll();
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch areas');
+    }
     const saved = localStorage.getItem('areas');
     if (saved) {
       try {
@@ -80,16 +85,29 @@ export const areaService = {
   },
 
   getAreaById: async (id) => {
+    if (window.api && window.api.areas) {
+      const res = await window.api.areas.getById(id);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch area');
+    }
     const list = await areaService.getAllAreas();
     return list.find(a => a.id === Number(id)) || null;
   },
 
   saveAreasList: async (areas) => {
+    if (window.api && window.api.areas) {
+      throw new Error('Bulk list save not supported over IPC; use individual saves.');
+    }
     localStorage.setItem('areas', JSON.stringify(areas));
     return areas;
   },
 
   saveArea: async (area) => {
+    if (window.api && window.api.areas) {
+      const res = await window.api.areas.save(area);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to save area');
+    }
     const list = await areaService.getAllAreas();
     let newList;
     if (area.id) {
@@ -109,6 +127,13 @@ export const areaService = {
   },
 
   deleteArea: async (id) => {
+    if (window.api && window.api.areas) {
+      const res = await window.api.areas.delete(id);
+      if (res.success) {
+        return areaService.getAllAreas();
+      }
+      throw new Error(res.error || 'Failed to delete area');
+    }
     const list = await areaService.getAllAreas();
     const newList = list.filter(a => a.id !== Number(id));
     localStorage.setItem('areas', JSON.stringify(newList));

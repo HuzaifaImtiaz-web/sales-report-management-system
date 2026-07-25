@@ -94,8 +94,23 @@ const INITIAL_TEAM = [
 
 const generateCode = (id) => `EMP-${String(id).padStart(4, '0')}`;
 
+const mapToFrontend = (tm) => {
+  if (!tm) return null;
+  return {
+    ...tm,
+    designation: tm.role,
+    mobile: tm.phone,
+    area: tm.areaName
+  };
+};
+
 export const teamMemberService = {
   getAllTeamMembers: async () => {
+    if (window.api && window.api.teamMembers) {
+      const res = await window.api.teamMembers.getAll();
+      if (res.success) return res.data.map(mapToFrontend);
+      throw new Error(res.error || 'Failed to fetch team members');
+    }
     const saved = localStorage.getItem('team');
     if (saved) {
       try {
@@ -108,16 +123,34 @@ export const teamMemberService = {
   },
 
   getTeamMemberById: async (id) => {
+    if (window.api && window.api.teamMembers) {
+      const res = await window.api.teamMembers.getById(id);
+      if (res.success) return mapToFrontend(res.data);
+      throw new Error(res.error || 'Failed to fetch team member');
+    }
     const list = await teamMemberService.getAllTeamMembers();
     return list.find(t => t.id === Number(id)) || null;
   },
 
   saveTeamMembersList: async (team) => {
+    if (window.api && window.api.teamMembers) {
+      throw new Error('Bulk list save not supported over IPC; use individual saves.');
+    }
     localStorage.setItem('team', JSON.stringify(team));
     return team;
   },
 
   saveTeamMember: async (member) => {
+    if (window.api && window.api.teamMembers) {
+      const payload = {
+        ...member,
+        role: member.role || member.designation,
+        phone: member.phone || member.mobile
+      };
+      const res = await window.api.teamMembers.save(payload);
+      if (res.success) return mapToFrontend(res.data);
+      throw new Error(res.error || 'Failed to save team member');
+    }
     const list = await teamMemberService.getAllTeamMembers();
     let newList;
     if (member.id) {
@@ -137,6 +170,13 @@ export const teamMemberService = {
   },
 
   deleteTeamMember: async (id) => {
+    if (window.api && window.api.teamMembers) {
+      const res = await window.api.teamMembers.delete(id);
+      if (res.success) {
+        return teamMemberService.getAllTeamMembers();
+      }
+      throw new Error(res.error || 'Failed to delete team member');
+    }
     const list = await teamMemberService.getAllTeamMembers();
     const newList = list.filter(t => t.id !== Number(id));
     localStorage.setItem('team', JSON.stringify(newList));

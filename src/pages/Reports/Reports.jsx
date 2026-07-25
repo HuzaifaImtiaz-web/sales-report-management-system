@@ -851,7 +851,7 @@ const Reports = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {/* Autocomplete Search input */}
             <div className="flex flex-col relative" ref={autocompleteRef}>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Smart Search (Autocomplete)</label>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Smart Search</label>
               <div className="relative">
                 <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                 <input

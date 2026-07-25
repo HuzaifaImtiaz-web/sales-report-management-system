@@ -194,7 +194,87 @@ const INITIAL_REPORTS_DATA = [
 ];
 
 export const reportService = {
-  getReportsData: async () => {
+  getDashboardSummaryData: async (filters) => {
+    if (window.api && window.api.reports) {
+      const res = await window.api.reports.getDashboardSummaryData(filters);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch dashboard summary');
+    }
+    // Fallback: mock summary metrics
+    return {
+      totalSales: 894000,
+      totalOrders: 14,
+      averageOrderValue: 63857.14,
+      targetAchievementPercent: 78,
+      targetQty: 130000,
+      actualQty: 102000,
+      targetValue: 80000000,
+      actualValue: 62400000
+    };
+  },
+
+  getSalesTrendData: async (filters) => {
+    if (window.api && window.api.reports) {
+      const res = await window.api.reports.getSalesTrendData(filters);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch sales trend');
+    }
+    return [
+      { month: 'Jan', orders: 2, sales: 157000 },
+      { month: 'Feb', orders: 2, sales: 228000 },
+      { month: 'Mar', orders: 2, sales: 172000 },
+      { month: 'Apr', orders: 2, sales: 270000 },
+      { month: 'May', orders: 2, sales: 295000 },
+      { month: 'Jun', orders: 2, sales: 206000 },
+      { month: 'Jul', orders: 2, sales: 149500 }
+    ];
+  },
+
+  getTargetAchievementData: async (filters) => {
+    if (window.api && window.api.reports) {
+      const res = await window.api.reports.getTargetAchievementData(filters);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch target achievements');
+    }
+    return [
+      { teamMemberName: 'Ahmed Shah', productName: 'Amoxicillin 500mg', targetQty: 30000, targetValue: 13500000, actualQty: 25000, actualValue: 11250000, qtyAchievementPercent: 83, valueAchievementPercent: 83 },
+      { teamMemberName: 'Zainab Fatima', productName: 'Amoxicillin 500mg', targetQty: 20000, targetValue: 9000000, actualQty: 18000, actualValue: 8100000, qtyAchievementPercent: 90, valueAchievementPercent: 90 },
+      { teamMemberName: 'Usman Ali', productName: 'Metformin 850mg', targetQty: 80000, targetValue: 30400000, actualQty: 59000, actualValue: 22420000, qtyAchievementPercent: 74, valueAchievementPercent: 74 }
+    ];
+  },
+
+  getTeamContributionData: async (filters) => {
+    if (window.api && window.api.reports) {
+      const res = await window.api.reports.getTeamContributionData(filters);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch team contribution');
+    }
+    return [
+      { teamMemberName: 'Ahmed Shah', role: 'Medical Representative', totalOrders: 3, completedOrders: 3, totalSalesValue: 231500, averageOrderValue: 77166.67 },
+      { teamMemberName: 'Zainab Fatima', role: 'Territory Manager', totalOrders: 3, completedOrders: 3, totalSalesValue: 391000, averageOrderValue: 130333.33 },
+      { teamMemberName: 'Usman Ali', role: 'Area Sales Manager', totalOrders: 3, completedOrders: 2, totalSalesValue: 271600, averageOrderValue: 90533.33 }
+    ];
+  },
+
+  getProductPerformanceData: async (filters) => {
+    if (window.api && window.api.reports) {
+      const res = await window.api.reports.getProductPerformanceData(filters);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch product performance');
+    }
+    return [
+      { productName: 'Lipitor 10mg', totalQty: 180, totalSales: 171000 },
+      { productName: 'Augmentin 625mg', totalQty: 390, totalSales: 429000 },
+      { productName: 'Metformin 850mg', totalQty: 400, totalSales: 152000 }
+    ];
+  },
+
+  getReportsData: async (filters) => {
+    if (window.api && window.api.reports) {
+      const res = await window.api.reports.getReportsData(filters);
+      if (res.success) return res.data;
+      throw new Error(res.error || 'Failed to fetch reports data');
+    }
     const saved = localStorage.getItem('himmel_reports_data');
     if (saved) {
       try {
@@ -207,6 +287,9 @@ export const reportService = {
   },
 
   saveReportsDataList: async (reports) => {
+    if (window.api && window.api.reports) {
+      throw new Error('Save reports list not supported over IPC');
+    }
     localStorage.setItem('himmel_reports_data', JSON.stringify(reports));
     return reports;
   }

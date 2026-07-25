@@ -1,9 +1,17 @@
 # Dependencies
 node_modules/
 
-# Build output
+# Build output & Client Delivery
 dist/
-build/
+release/
+Client_Delivery/Installer/*.exe
+Client_Delivery/Installer/*.blockmap
+temp_test_init_env*
+
+# Databases and user data
+*.db
+UserData/
+Backups/
 
 # Environment files
 .env
@@ -19,3 +27,5 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+

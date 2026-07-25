@@ -1,18 +1,30 @@
 {
-  "name": "sales-management-system-frontend",
+  "name": "himmel-sales-management",
   "private": true,
   "version": "1.0.0",
+  "description": "Himmel Pharmaceutical Sales Management System",
+  "author": "Himmel Pharmaceutical Ltd",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"vite --port 5180\" \"wait-on http://localhost:5180 && electron .\"",
+    "web:dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "electron:dev": "concurrently \"vite --port 5173\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build && electron-builder"
+    "electron:dev": "concurrently \"vite --port 5180\" \"wait-on http://localhost:5180 && electron .\"",
+    "electron:build": "npm run build && electron-builder",
+    "rebuild": "electron-builder install-app-deps",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.11.1",
+    "docx": "^9.7.1",
+    "electron-updater": "^6.8.9",
+    "exceljs": "^4.4.0",
+    "pdfkit": "^0.19.1",
+    "pptxgenjs": "^4.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.51.5",
@@ -26,7 +38,7 @@
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.19",
     "concurrently": "^10.0.3",
-    "electron": "^43.1.1",
+    "electron": "^42.0.1",
     "electron-builder": "^26.15.3",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
@@ -35,24 +47,63 @@
   },
   "build": {
     "appId": "com.himmel.salesmanagement",
-    "productName": "Himmel Sales Management",
+    "productName": "Himmel Pharmaceutical Sales Management System",
+    "executableName": "HimmelSalesManagement",
+    "copyright": "Copyright © 2026 Himmel Pharmaceutical Ltd. All rights reserved.",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "HuzaifaImtiaz-web",
+        "repo": "sales-report-management-system",
+        "private": false
+      }
+    ],
     "directories": {
-      "output": "release"
+      "output": "dist"
     },
     "files": [
       "dist/**/*",
       "electron/**/*"
     ],
-    "icon": "src/assets/logos/Himmel-sale-logo.png",
     "win": {
-      "target": "nsis",
-      "icon": "src/assets/logos/Himmel-sale-logo.png"
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico",
+      "legalTrademarks": "Himmel Pharmaceutical Ltd."
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "Himmel Sales Management",
-      "uninstallDisplayName": "Himmel Sales Management"
-    }
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Himmel Pharmaceutical Sales Management System",
+      "uninstallDisplayName": "Himmel Pharmaceutical Sales Management System",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "installerHeaderIcon": "build/icon.ico",
+      "allowElevation": true,
+      "perMachine": true,
+      "artifactName": "Himmel_Pharmaceutical_Sales_Management_Setup_${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Himmel_Pharmaceutical_Sales_Management_Portable_${version}.${ext}",
+      "requestExecutionLevel": "user"
+    },
+    "fileAssociations": [
+      {
+        "ext": "himmelbackup",
+        "name": "Himmel System Backup",
+        "description": "Himmel Pharmaceutical Database Backup",
+        "role": "Editor"
+      },
+      {
+        "ext": "himmelreport",
+        "name": "Himmel System Report",
+        "description": "Himmel Pharmaceutical Exported Report",
+        "role": "Viewer"
+      }
+    ]
   }
 }

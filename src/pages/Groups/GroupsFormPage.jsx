@@ -3,13 +3,19 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import GroupsForm from './GroupsForm';
 import { groupService } from '../../services/groupService';
+import Toast from '../../components/common/Toast';
+import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 
 export default function GroupsFormPage() {
   const { id } = useParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { setIsDirty, confirmNavigation } = useUnsavedChanges();
+
   const [currentItem, setCurrentItem] = useState(null);
   const [loading, setLoading] = useState(id ? true : false);
+  const [formKey, setFormKey] = useState(0);
+  const [toast, setToast] = useState(null);
 
   const mode = useMemo(() => {
     if (pathname.includes('/new')) return 'add';
@@ -26,8 +32,39 @@ export default function GroupsFormPage() {
     }
   }, [id]);
 
+  useEffect(() => {
+    return () => {
+      setIsDirty(false);
+    };
+  }, [setIsDirty]);
+
   const handleSave = (form) => {
-    groupService.saveGroup(form).then(() => {
+    setToast(null);
+    return groupService.saveGroup(form)
+      .then(() => {
+        setIsDirty(false);
+        if (mode === 'add') {
+          setToast({ message: 'Record saved successfully.', type: 'success' });
+          setFormKey((prev) => prev + 1);
+          setTimeout(() => {
+            const firstInput = document.querySelector('input, select, textarea');
+            if (firstInput) firstInput.focus();
+          }, 50);
+        } else {
+          navigate('/groups', {
+            state: { toast: { message: 'Record updated successfully.', type: 'success' } }
+          });
+        }
+        return true;
+      })
+      .catch((err) => {
+        setToast({ message: err.message || 'Failed to save product group.', type: 'error' });
+        return false;
+      });
+  };
+
+  const handleCancel = () => {
+    confirmNavigation(() => {
       navigate('/groups');
     });
   };
@@ -52,9 +89,11 @@ export default function GroupsFormPage() {
   return (
     <DashboardLayout pageTitle={pageTitle}>
       <div className="space-y-6 animate-fade-in max-w-3xl mx-auto pb-12">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/groups')}
+            onClick={handleCancel}
             className="p-2 hover:bg-gray-155 dark:hover:bg-gray-800 rounded-lg text-gray-550 hover:text-gray-700 transition-colors"
           >
             ← Back
@@ -71,10 +110,11 @@ export default function GroupsFormPage() {
 
         <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-sm p-6 sm:p-8">
           <GroupsForm
+            key={formKey}
             mode={mode}
             item={currentItem}
             onSave={handleSave}
-            onCancel={() => navigate('/groups')}
+            onCancel={handleCancel}
           />
         </div>
       </div>

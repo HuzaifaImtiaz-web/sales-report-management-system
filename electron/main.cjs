@@ -1,4 +1,6 @@
-const { app, BrowserWindow } = require('electron');
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+
+const { app, BrowserWindow, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -23,13 +25,22 @@ ensureFolderStructure();
 const logger = require('./logger.cjs');
 const { createMainWindow } = require('./window.cjs');
 const { setCustomMenu } = require('./menu.cjs');
+const { initDatabase, closeDatabase } = require('./database/index.cjs');
+const { setupIpcHandlers } = require('./ipc.cjs');
 
 process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception occurred in Main Process', error);
+  logger.error('CRITICAL: Uncaught Exception in Main Process:', error);
+  try {
+    dialog.showErrorBox('System Error', `A critical error occurred in the background process:\n${error.message || error}`);
+  } catch (e) {}
 });
 
 process.on('unhandledRejection', (reason) => {
-  logger.error('Unhandled Promise Rejection occurred in Main Process', new Error(reason));
+  const err = reason instanceof Error ? reason : new Error(String(reason));
+  logger.error('CRITICAL: Unhandled Rejection in Main Process:', err);
+  try {
+    dialog.showErrorBox('System Error', `A critical asynchronous error occurred:\n${err.message}`);
+  } catch (e) {}
 });
 
 const gotTheLock = app.requestSingleInstanceLock();
@@ -50,16 +61,41 @@ if (!gotTheLock) {
   function initApp() {
     try {
       logger.info('Starting Himmel Sales Management application...');
+      const StartupValidator = require('./system/StartupValidator.cjs');
+      StartupValidator.validateStartup();
+
+      const db = initDatabase();
+      setupIpcHandlers(db);
+
+      // Hourly automatic backup check
+      setInterval(() => {
+        try {
+          const BackupService = require('./database/BackupService.cjs');
+          BackupService.checkAndRunAutoBackup().catch(err => {
+            logger.error('Background automatic backup check failed:', err);
+          });
+        } catch (e) {
+          logger.error('Failed to run background backup scheduler:', e);
+        }
+      }, 1000 * 60 * 60); // 1 hour
+
       const preloadPath = path.join(__dirname, 'preload.cjs');
       mainWindow = createMainWindow(preloadPath);
       
       setCustomMenu(mainWindow);
+
+      mainWindow.webContents.on('render-process-gone', (event, details) => {
+        logger.error('Renderer process gone:', details);
+        dialog.showErrorBox('Application Error', 'The UI process crashed unexpectedly. The application will close.');
+        app.quit();
+      });
 
       mainWindow.on('closed', () => {
         mainWindow = null;
       });
     } catch (error) {
       logger.error('Error occurred during application startup initialization', error);
+      dialog.showErrorBox('Fatal Startup Error', error.message);
       app.quit();
     }
   }
@@ -75,6 +111,7 @@ if (!gotTheLock) {
   });
 
   app.on('window-all-closed', () => {
+    closeDatabase();
     if (process.platform !== 'darwin') {
       logger.info('All windows closed. Quitting application.');
       app.quit();
