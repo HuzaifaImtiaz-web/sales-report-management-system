@@ -9,7 +9,9 @@
 }
 
 /* Custom visual highlights and enterprise focus highlights */
-input:focus {
+input:focus:not(.no-global-focus),
+select:focus:not(.no-global-focus),
+textarea:focus:not(.no-global-focus) {
   outline: none !important;
   border-color: #A91D22 !important;
   box-shadow: 0 0 0 4px rgba(169, 29, 34, 0.12) !important;
@@ -20,7 +22,7 @@ button:focus-visible {
   box-shadow: 0 0 0 4px rgba(169, 29, 34, 0.2) !important;
 }
 
-/* Scrollbars for navigation panels */
+/* Standardized Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -31,10 +33,60 @@ button:focus-visible {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(156, 163, 175, 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(156, 163, 175, 0.5);
 }
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Enterprise Standard Button Classes */
+.btn-primary {
+  @apply px-4 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white font-bold text-xs rounded-xl shadow-soft hover:shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 font-bold text-xs rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+}
+
+.btn-danger {
+  @apply px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-soft transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+}
+
+.btn-success {
+  @apply px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-soft transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+}
+
+.btn-warning {
+  @apply px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-soft transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+}
+
+/* Sticky Header Table Utility */
+.table-sticky-header th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: inherit;
+}
+
+/* Global Dark Mode Dropdown & Option Visibility Fix */
+.dark select {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  padding: 6px 10px;
+}
+

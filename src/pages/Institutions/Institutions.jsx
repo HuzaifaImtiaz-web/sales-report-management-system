@@ -1,11 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { institutionService } from '../../services/institutionService';
 import Pagination from '../../components/common/Pagination';
+import FilterPresetBar from '../../components/common/FilterPresetBar';
+import StatusSelector from '../../components/common/StatusSelector';
+import { exportToCSV } from '../../utils/exportUtils';
 import {
   FiSearch, FiPlus, FiEye, FiEdit2, FiTrash2,
-  FiX, FiAlertTriangle
+  FiX, FiAlertTriangle, FiDownload
 } from 'react-icons/fi';
 
 const StatusBadge = ({ status }) =>
@@ -60,9 +63,11 @@ const DeleteDialog = ({ institution, onCancel, onConfirm }) => (
 
 const Institutions = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [toDelete, setToDelete] = useState(null);
 
   // Pagination state
@@ -70,27 +75,50 @@ const Institutions = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
+    const q = searchParams.get('search');
+    if (q) setSearch(q);
+  }, [searchParams]);
+
+  useEffect(() => {
     institutionService.getAllInstitutions().then((data) => {
-      setList(data);
+      setList(data || []);
       setLoading(false);
     });
   }, []);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, statusFilter]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return list.filter((item) => {
-      return !q ||
+      const matchSearch = !q ||
         item.name.toLowerCase().includes(q) ||
         item.code.toLowerCase().includes(q) ||
         item.area.toLowerCase().includes(q) ||
         item.city.toLowerCase().includes(q) ||
         (item.contactPerson && item.contactPerson.toLowerCase().includes(q));
+
+      const matchStatus = statusFilter === 'All' || !statusFilter || item.status === statusFilter;
+      return matchSearch && matchStatus;
     });
-  }, [list, search]);
+  }, [list, search, statusFilter]);
+
+  // Deep linking scroll into view effect
+  useEffect(() => {
+    const highlightId = searchParams.get('highlightId');
+    if (highlightId && !loading && filtered.length > 0) {
+      const el = document.getElementById(`row-${highlightId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-brand-primary', 'bg-amber-50', 'dark:bg-amber-900/30');
+        setTimeout(() => {
+          el.classList.remove('ring-2', 'ring-brand-primary', 'bg-amber-50', 'dark:bg-amber-900/30');
+        }, 3000);
+      }
+    }
+  }, [searchParams, loading, filtered]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -122,6 +150,21 @@ const Institutions = () => {
             <p className="text-xs text-gray-400 dark:text-gray-500 font-medium mt-1">Manage all institutions.</p>
           </div>
           <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap">
+            <button
+              onClick={() => exportToCSV('institutions_export', filtered, [
+                { key: 'code', label: 'Institution Code' },
+                { key: 'name', label: 'Institution Name' },
+                { key: 'area', label: 'Area' },
+                { key: 'city', label: 'City' },
+                { key: 'contactPerson', label: 'Contact Person' },
+                { key: 'contactNumber', label: 'Contact Number' },
+                { key: 'status', label: 'Status' }
+              ])}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              title="Export filtered institutions to CSV"
+            >
+              <FiDownload className="w-3.5 h-3.5" /> Export Filtered
+            </button>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-feedback-success text-[11px] font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-feedback-success" />
               {activeCount} Active
@@ -142,25 +185,32 @@ const Institutions = () => {
           </div>
         </div>
 
-        {/* Search controls */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4">
-          <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-              placeholder="Search by Institution Name, Code, Area, City..."
-              className="w-full pl-10 pr-4 py-2.5 text-xs font-semibold text-gray-750 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 placeholder:text-gray-400"
+        {/* Search & Filter Controls */}
+        <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 space-y-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="relative flex-1">
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                placeholder="Search by Institution Name, Code, Area, City..."
+                className="w-full pl-10 pr-4 py-2 text-xs font-semibold text-gray-750 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 placeholder:text-gray-400"
+              />
+            </div>
+            <StatusSelector
+              options={['All', 'Active', 'Inactive']}
+              value={statusFilter}
+              onChange={setStatusFilter}
             />
           </div>
         </div>
 
         {/* Table list */}
         <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             <table className="w-full text-xs" aria-label="Institutions table">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-gray-55 dark:bg-[#0f172a] shadow-xs">
                 <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                   {['Institution Code', 'Institution Name', 'Area', 'City', 'Contact Person', 'Contact Number', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-5 py-3.5 whitespace-nowrap">
@@ -178,7 +228,11 @@ const Institutions = () => {
                   </tr>
                 ) : (
                   paginated.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-55/50 dark:hover:bg-gray-800/30 transition-colors">
+                    <tr
+                      id={`row-${item.id}`}
+                      key={item.id}
+                      className="hover:bg-gray-55/50 dark:hover:bg-gray-800/30 transition-colors"
+                    >
                       <td className="px-5 py-4 font-mono font-bold text-gray-750 dark:text-gray-300">{item.code}</td>
                       <td className="px-5 py-4 font-bold text-gray-905 dark:text-white">{item.name}</td>
                       <td className="px-5 py-4 text-gray-650 dark:text-gray-300">{item.area}</td>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FiCheck, FiEdit2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { groupService } from '../../services/groupService';
+import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 
 const Field = ({ label, required, error, children }) => (
   <div>
@@ -14,28 +16,48 @@ const Field = ({ label, required, error, children }) => (
 
 const inputCls = (err, disabled) =>
   `w-full px-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border rounded-lg outline-none
-   transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500
+   transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-555
    focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40
-   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-100 dark:border-gray-700'}
+   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-100 dark:border-gray-750'}
    ${disabled ? 'opacity-70 cursor-default bg-gray-100/50 dark:bg-gray-800/30' : ''}`;
 
 export default function GroupsForm({ mode, item, onSave, onCancel }) {
   const isView = mode === 'view';
   const isEdit = mode === 'edit';
   const navigate = useNavigate();
+  const { setIsDirty, setOnSave } = useUnsavedChanges();
 
   const [form, setForm] = useState({
     name: '',
     code: '',
+    divisionId: '',
     description: '',
     totalProducts: 0,
     status: 'Active'
   });
   const [errors, setErrors] = useState({});
+  const [divisions, setDivisions] = useState([]);
+
+  useEffect(() => {
+    groupService.getAllDivisions().then((data) => {
+      setDivisions(data || []);
+      if (data && data.length > 0 && !form.divisionId && !item) {
+        setForm((f) => ({ ...f, divisionId: data[0].id }));
+      }
+    });
+  }, [item]);
 
   useEffect(() => {
     if (item) {
-      setForm({ ...item });
+      setForm({
+        id: item.id,
+        code: item.code || '',
+        name: item.name || '',
+        divisionId: item.divisionId || '',
+        description: item.description || '',
+        totalProducts: item.totalProducts || 0,
+        status: item.status || 'Active'
+      });
     }
   }, [item]);
 
@@ -43,11 +65,13 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
     if (isView) return;
     setForm((f) => ({ ...f, [k]: v }));
     setErrors((e) => ({ ...e, [k]: '' }));
+    setIsDirty(true);
   };
 
   const validate = () => {
     const e = {};
     if (!form.name.trim()) e.name = 'Group Name is required.';
+    if (!form.divisionId) e.divisionId = 'Division is required.';
     return e;
   };
 
@@ -60,17 +84,53 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
     onSave({ ...form });
   };
 
+  useEffect(() => {
+    if (mode !== 'view') {
+      setOnSave(() => {
+        const e = validate();
+        if (Object.keys(e).length) {
+          setErrors(e);
+          return false;
+        }
+        return onSave({ ...form });
+      });
+    }
+    return () => setOnSave(null);
+  }, [form, mode, onSave]);
+
   return (
     <div className="space-y-5">
       {/* Row 1: Code + Name */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Group Code">
-          <input
-            disabled
-            value={form.code}
-            className={inputCls(false, true) + ' font-mono'}
-          />
+        {mode !== 'new' && (
+          <Field label="Group Code">
+            <input
+              disabled
+              value={form.code}
+              className={inputCls(false, true) + ' font-mono'}
+            />
+          </Field>
+        )}
+        <Field label="Division" required error={errors.divisionId}>
+          {isView ? (
+            <input
+              disabled
+              value={divisions.find(d => d.id === form.divisionId)?.name || ''}
+              className={inputCls(false, true)}
+            />
+          ) : (
+            <select
+              value={form.divisionId}
+              onChange={(e) => set('divisionId', Number(e.target.value))}
+              className={inputCls(errors.divisionId, isView) + ' appearance-none cursor-pointer'}
+            >
+              {divisions.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          )}
         </Field>
+
         <Field label="Group Name" required error={errors.name}>
           <input
             disabled={isView}
@@ -119,7 +179,7 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
             </span>
           </div>
         ) : (
-          <div className="flex gap-3">
+          <div className="flex gap-3 max-w-xs">
             {['Active', 'Inactive'].map((s) => (
               <button
                 key={s}

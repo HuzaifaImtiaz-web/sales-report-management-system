@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FiCheck, FiEdit2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
+import StatusSelector from '../../components/common/StatusSelector';
 
 const CITIES = [
   'Lahore',
@@ -41,6 +43,7 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
   const isView = mode === 'view';
   const isEdit = mode === 'edit';
   const navigate = useNavigate();
+  const { setIsDirty, setOnSave } = useUnsavedChanges();
 
   const [form, setForm] = useState({
     name: '',
@@ -62,6 +65,7 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
     if (isView) return;
     setForm((f) => ({ ...f, [k]: v }));
     setErrors((e) => ({ ...e, [k]: '' }));
+    setIsDirty(true);
   };
 
   const validate = () => {
@@ -81,6 +85,20 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
     onSave({ ...form });
   };
 
+  useEffect(() => {
+    if (mode !== 'view') {
+      setOnSave(() => {
+        const e = validate();
+        if (Object.keys(e).length) {
+          setErrors(e);
+          return false;
+        }
+        return onSave({ ...form });
+      });
+    }
+    return () => setOnSave(null);
+  }, [form, mode, onSave]);
+
   return (
     <div className="space-y-5">
       {/* Row 1: Name & Code */}
@@ -96,9 +114,11 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
         </Field>
         <Field label="Area Code">
           <input
-            disabled
-            value={form.code}
-            className={inputCls(false, true) + ' font-mono'}
+            disabled={isView}
+            value={form.code || ''}
+            onChange={(e) => set('code', e.target.value)}
+            placeholder="e.g. LHR-CENTRAL"
+            className={inputCls(false, isView) + ' font-mono'}
           />
         </Field>
       </div>
@@ -173,24 +193,11 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
             </span>
           </div>
         ) : (
-          <div className="flex gap-3">
-            {['Active', 'Inactive'].map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => set('status', s)}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold border transition-all duration-150
-                  ${form.status === s
-                    ? s === 'Active'
-                      ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-feedback-success'
-                      : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-feedback-error'
-                    : 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700 text-gray-400 hover:border-gray-200 dark:hover:border-gray-600'
-                  }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+          <StatusSelector
+            options={['Active', 'Inactive']}
+            value={form.status}
+            onChange={(s) => set('status', s)}
+          />
         )}
       </Field>
 

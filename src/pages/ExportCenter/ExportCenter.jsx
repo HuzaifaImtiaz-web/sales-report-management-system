@@ -1,978 +1,680 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import Toast from '../../components/common/Toast';
-import { productService } from '../../services/productService';
-import { doctorService } from '../../services/doctorService';
-import { areaService } from '../../services/areaService';
-import { teamMemberService } from '../../services/teamMemberService';
-import { orderService } from '../../services/orderService';
-import { groupService } from '../../services/groupService';
-import { institutionService } from '../../services/institutionService';
 import Pagination from '../../components/common/Pagination';
 import {
   FiSearch, FiDownload, FiFileText, FiCheckCircle,
-  FiAlertCircle, FiSettings, FiRefreshCw, FiChevronLeft,
-  FiChevronRight, FiCheck, FiX, FiFilter, FiCalendar,
+  FiAlertCircle, FiSettings, FiRefreshCw, FiFilter, FiCalendar,
   FiUser, FiMapPin, FiBriefcase, FiLayers, FiActivity,
-  FiTrendingUp, FiShoppingBag, FiLayers as FiGroupIcon
+  FiTrendingUp, FiShoppingBag, FiFolder, FiExternalLink, FiEye
 } from 'react-icons/fi';
 
-/* ─── Static Mock Data ───────────────────────────────────────────── */
-const PRODUCTS = [
-  { id: 1, name: 'Amoxicillin 500mg', rate: 450, group: 'Antibiotics' },
-  { id: 2, name: 'Paracetamol 650mg', rate: 120, group: 'Analgesics' },
-  { id: 3, name: 'Metformin 850mg', rate: 380, group: 'Anti-Diabetic' },
-  { id: 4, name: 'Lipitor 10mg', rate: 950, group: 'Cardiovascular' },
-  { id: 5, name: 'Ibuprofen 400mg', rate: 90, group: 'Analgesics' },
-  { id: 6, name: 'Omeprazole 20mg', rate: 520, group: 'Gastroenterology' },
-  { id: 7, name: 'Augmentin 625mg', rate: 1100, group: 'Antibiotics' },
-  { id: 8, name: 'Azithromycin 250mg', rate: 670, group: 'Antibiotics' },
-  { id: 9, name: 'Ventolin Inhaler', rate: 850, group: 'Respiratory' },
-  { id: 10, name: 'Crestor 10mg', rate: 1350, group: 'Cardiovascular' }
+const REPORT_TYPES = [
+  { id: 'Master Export', label: 'Master Export (All Modules)', icon: FiBriefcase },
+  { id: 'Dashboard', label: 'Dashboard Summary', icon: FiTrendingUp },
+  { id: 'Products', label: 'Products Master', icon: FiShoppingBag },
+  { id: 'Doctors', label: 'Doctors Directory', icon: FiUser },
+  { id: 'Institutions', label: 'Institutions Master', icon: FiBriefcase },
+  { id: 'Areas', label: 'Territories & Areas', icon: FiMapPin },
+  { id: 'Team Members', label: 'Team Members', icon: FiUser },
+  { id: 'Groups', label: 'Product Groups', icon: FiLayers },
+  { id: 'Orders', label: 'Customer Orders', icon: FiFileText },
+  { id: 'Sales', label: 'Sales & Invoicing', icon: FiActivity },
+  { id: 'Targets', label: 'Annual Targets', icon: FiTrendingUp },
+  { id: 'Audit Trail', label: 'System Audit Log', icon: FiFileText },
+  { id: 'Reports', label: 'Analytics Reports', icon: FiActivity }
 ];
 
-const DOCTORS = [
-  { id: 1, name: 'Dr. Ayesha Khan', hospital: 'Mayo Hospital' },
-  { id: 2, name: 'Dr. Hamid Raza', hospital: 'Jinnah Hospital' },
-  { id: 3, name: 'Dr. Nadia Siddiqui', hospital: 'Shifa International' },
-  { id: 4, name: 'Dr. Farhan Latif', hospital: 'Holy Family Hospital' },
-  { id: 5, name: 'Dr. Saima Riaz', hospital: 'FIC Faisalabad' },
-  { id: 6, name: 'Dr. Tariq Mehmood', hospital: 'Nishtar Hospital' },
-  { id: 7, name: 'Dr. Bilal Aslam', hospital: 'Lady Reading Hospital' }
+const EXPORT_FORMATS = [
+  { id: 'excel', label: 'Excel (.xlsx)', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
+  { id: 'pdf', label: 'PDF (.pdf)', color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/30' },
+  { id: 'pptx', label: 'PowerPoint (.pptx)', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30' }
 ];
-
-const AREAS = [
-  'Lahore Central',
-  'Karachi South',
-  'Islamabad F-10',
-  'Rawalpindi',
-  'Faisalabad',
-  'Multan',
-  'Peshawar'
-];
-
-const TEAM_MEMBERS = [
-  { id: 1, name: 'Ahmed Shah', designation: 'Medical Representative' },
-  { id: 2, name: 'Zainab Fatima', designation: 'Territory Manager' },
-  { id: 3, name: 'Usman Ali', designation: 'Area Sales Manager' },
-  { id: 4, name: 'Mariam Khan', designation: 'Medical Representative' },
-  { id: 5, name: 'Bilal Siddiqui', designation: 'Medical Representative' },
-  { id: 6, name: 'Ayesha Malik', designation: 'Medical Representative' },
-  { id: 7, name: 'Haris Rehman', designation: 'Territory Manager' }
-];
-
-const GROUPS = [
-  'Cardiovascular',
-  'Antibiotics',
-  'Analgesics',
-  'Anti-Diabetic',
-  'Gastroenterology',
-  'Respiratory'
-];
-
-const MOCK_ORDERS = [
-  { id: 1, poNumber: 'PO-2026-001', date: '2026-01-10', doctorId: 1, area: 'Lahore Central', teamMemberId: 1, group: 'Antibiotics', items: [{ productId: 1, qty: 150 }, { productId: 7, qty: 50 }], status: 'Completed', year: '2026' },
-  { id: 2, poNumber: 'PO-2026-002', date: '2026-02-14', doctorId: 2, area: 'Karachi South', teamMemberId: 2, group: 'Cardiovascular', items: [{ productId: 4, qty: 300 }, { productId: 10, qty: 100 }], status: 'Completed', year: '2026' },
-  { id: 3, poNumber: 'PO-2026-003', date: '2026-03-22', doctorId: 3, area: 'Islamabad F-10', teamMemberId: 3, group: 'Analgesics', items: [{ productId: 2, qty: 500 }, { productId: 5, qty: 250 }], status: 'Pending', year: '2026' },
-  { id: 4, poNumber: 'PO-2026-004', date: '2026-04-05', doctorId: 4, area: 'Rawalpindi', teamMemberId: 4, group: 'Anti-Diabetic', items: [{ productId: 3, qty: 400 }], status: 'Completed', year: '2026' },
-  { id: 5, poNumber: 'PO-2026-005', date: '2026-05-18', doctorId: 5, area: 'Faisalabad', teamMemberId: 5, group: 'Gastroenterology', items: [{ productId: 6, qty: 180 }], status: 'Pending', year: '2026' },
-  { id: 6, poNumber: 'PO-2026-006', date: '2026-06-29', doctorId: 6, area: 'Multan', teamMemberId: 6, group: 'Respiratory', items: [{ productId: 9, qty: 220 }], status: 'Completed', year: '2026' },
-  { id: 7, poNumber: 'PO-2025-050', date: '2025-08-12', doctorId: 7, area: 'Peshawar', teamMemberId: 7, group: 'Antibiotics', items: [{ productId: 8, qty: 150 }], status: 'Completed', year: '2025' },
-  { id: 8, poNumber: 'PO-2025-051', date: '2025-11-20', doctorId: 1, area: 'Lahore Central', teamMemberId: 1, group: 'Analgesics', items: [{ productId: 2, qty: 300 }], status: 'Completed', year: '2025' },
-  { id: 9, poNumber: 'PO-2026-007', date: '2026-07-02', doctorId: 3, area: 'Islamabad F-10', teamMemberId: 3, group: 'Antibiotics', items: [{ productId: 1, qty: 100 }, { productId: 8, qty: 80 }], status: 'Pending', year: '2026' },
-  { id: 10, poNumber: 'PO-2026-008', date: '2026-07-05', doctorId: 5, area: 'Faisalabad', teamMemberId: 7, group: 'Cardiovascular', items: [{ productId: 4, qty: 150 }], status: 'Completed', year: '2026' }
-];
-
-const INITIAL_EXPORT_HISTORY = [
-  { id: 1, date: '2026-07-14 11:20 AM', fileName: 'Sales_Report_Q2_2026.xlsx', format: 'Excel (.xlsx)' },
-  { id: 2, date: '2026-07-13 04:45 PM', fileName: 'Himmel_Audit_Summary_Jul2026.pdf', format: 'PDF' },
-  { id: 3, date: '2026-07-12 09:15 AM', fileName: 'Sales_Presentation_Board_v3.pptx', format: 'PowerPoint (.pptx)' }
-];
-
-/* ─── Calculations & Helper Functions ────────────────────────────── */
-const getOrderTotals = (order, doctorsList = [], teamMembersList = [], productsList = []) => {
-  // If it's a real order format
-  if (order.products) {
-    const totalVials = order.totalQty || order.products.reduce((sum, item) => sum + (item.qty || item.quantity || 0), 0);
-    const totalVal = order.totalAmount || order.products.reduce((sum, item) => sum + ((item.qty || item.quantity || 0) * (item.rate || 0)), 0);
-    return {
-      doctorName: order.doctor || 'Unknown Doctor',
-      institutionName: order.institution || 'Unknown Hospital',
-      teamMemberName: order.teamMember || 'Unknown Member',
-      productCount: order.products.length,
-      totalVials,
-      totalAmount: totalVal
-    };
-  }
-
-  // If it's mock order format
-  const doc = doctorsList.find((d) => d.id === Number(order.doctorId)) || {};
-  const tm = teamMembersList.find((e) => e.id === Number(order.teamMemberId)) || {};
-
-  let totalVials = 0;
-  let totalVal = 0;
-  (order.items || []).forEach((item) => {
-    const prod = productsList.find((p) => p.id === Number(item.productId)) || {};
-    const qty = Number(item.qty || item.quantity) || 0;
-    const rate = Number(prod.rate || prod.packPrice || 0);
-    totalVials += qty;
-    totalVal += qty * rate;
-  });
-
-  return {
-    doctorName: doc.name || order.doctor || 'Unknown Doctor',
-    institutionName: doc.hospital || order.institution || 'Unknown Hospital',
-    teamMemberName: tm.name || order.teamMember || 'Unknown Member',
-    productCount: (order.items || []).length,
-    totalVials,
-    totalAmount: totalVal
-  };
-};
-
-/* ─── Status Badge ───────────────────────────────────────────────── */
-const StatusBadge = ({ status }) => {
-  if (status === 'Completed') {
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-50 dark:bg-green-900/30 text-feedback-success border border-green-100 dark:border-green-800/50">
-        <span className="w-1.5 h-1.5 rounded-full bg-feedback-success inline-block" />
-        Completed
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-600 border border-amber-100 dark:border-amber-800/50">
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
-      Pending
-    </span>
-  );
-};
 
 const ExportCenter = () => {
   const [searchParams] = useSearchParams();
-
-  const [products, setProducts] = useState([]);
-  const [doctors, setDoctors] = useState([]);
-  const [areas, setAreas] = useState([]);
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [groups, setGroups] = useState([]);
-  const [ordersList, setOrdersList] = useState([]);
-  const [institutions, setInstitutions] = useState([]);
-  const [initialLoading, setInitialLoading] = useState(true);
-
-  // Read pre-populated filters from URL (passed by SalesEntry / Reports)
-  const initFilters = () => ({
-    year:       searchParams.get('year')       || '',
-    startDate:  searchParams.get('startDate')  || '',
-    endDate:    searchParams.get('endDate')    || '',
-    product:    searchParams.get('product')    || '',
-    doctor:     searchParams.get('doctor')     || '',
-    institution:searchParams.get('institution')|| '',
-    area:       searchParams.get('area')       || '',
-    teamMember: searchParams.get('teamMember') || '',
-    group:      searchParams.get('group')      || '',
-    status:     searchParams.get('status')     || '',
-    poNumber:   searchParams.get('poNumber')   || '',
-  });
-
   const [toast, setToast] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [globalSearch, setGlobalSearch] = useState(searchParams.get('search') || '');
 
-  const [tempFilters, setTempFilters] = useState(initFilters);
-  const [activeFilters, setActiveFilters] = useState(initFilters);
-
-  // Auto-apply any URL-passed filters on mount and load data
-  useEffect(() => {
-    const hasParams = [...searchParams.keys()].length > 0;
-    if (hasParams) {
-      setToast({ message: 'Filters pre-populated from your previous module.', type: 'success' });
-    }
-
-    Promise.all([
-      productService.getAllProducts(),
-      doctorService.getAllDoctors(),
-      areaService.getAllAreas(),
-      teamMemberService.getAllTeamMembers(),
-      groupService.getAllGroups(),
-      orderService.getAllOrders(),
-      institutionService.getAllInstitutions()
-    ]).then(([productsData, doctorsData, areasData, teamData, groupsData, ordersData, instData]) => {
-      setProducts(productsData);
-      setDoctors(doctorsData);
-      setAreas(areasData);
-      setTeamMembers(teamData);
-      setGroups(groupsData);
-      setOrdersList(ordersData);
-      setInstitutions(instData);
-      setInitialLoading(false);
-    });
-  }, []); // eslint-disable-line
-
-  // Settings & Options States
+  // Core Export Controls State
+  const [reportType, setReportType] = useState(searchParams.get('reportType') || 'Products');
   const [exportFormat, setExportFormat] = useState('excel');
-  const [settings, setSettings] = useState({
-    exportAll: false,
-    exportOnlyFiltered: true,
-    includeLogo: true,
-    includeSummary: true,
-    includeCharts: true
+
+  // Filter States
+  const [filters, setFilters] = useState({
+    startDate: searchParams.get('startDate') || '',
+    endDate: searchParams.get('endDate') || '',
+    doctor: searchParams.get('doctor') || '',
+    institution: searchParams.get('institution') || '',
+    area: searchParams.get('area') || '',
+    teamMember: searchParams.get('teamMember') || '',
+    group: searchParams.get('group') || '',
+    product: searchParams.get('product') || '',
+    status: searchParams.get('status') || '',
+    search: searchParams.get('search') || ''
   });
 
-  // UI state
-  const [loading, setLoading] = useState(false);
+  // Data dropdown lists
+  const [doctorsList, setDoctorsList] = useState([]);
+  const [institutionsList, setInstitutionsList] = useState([]);
+  const [areasList, setAreasList] = useState([]);
+  const [teamMembersList, setTeamMembersList] = useState([]);
+  const [groupsList, setGroupsList] = useState([]);
+  const [productsList, setProductsList] = useState([]);
+
+  // Live Preview Data State
+  const [previewData, setPreviewData] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  // Export History State
+  const [exportHistory, setExportHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [exportProgress, setExportProgress] = useState(0);
-  const [history, setHistory] = useState(INITIAL_EXPORT_HISTORY);
 
-  // Pagination
+  // Pagination for Preview Table
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pageSize, setPageSize] = useState(10);
 
-  // Export History Pagination
+  // Pagination for History Table
   const [historyPage, setHistoryPage] = useState(1);
-  const [historyItemsPerPage, setHistoryItemsPerPage] = useState(10);
+  const [historyPageSize, setHistoryPageSize] = useState(10);
 
-  // Filter application
-  const handleApplyFilters = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setActiveFilters({ ...tempFilters });
-      setGlobalSearch(searchQuery);
+  // Helper to safely extract arrays from IPC responses
+  const extractArray = (res) => {
+    if (Array.isArray(res)) return res;
+    if (res && Array.isArray(res.data)) return res.data;
+    if (res && Array.isArray(res.logs)) return res.logs;
+    return [];
+  };
+
+  // Load dropdown lists from IPC or services
+  useEffect(() => {
+    const loadDropdownData = async () => {
+      try {
+        if (window.api) {
+          const [dRes, iRes, aRes, tRes, gRes, pRes] = await Promise.all([
+            window.api.doctors ? window.api.doctors.getAll() : [],
+            window.api.institutions ? window.api.institutions.getAll() : [],
+            window.api.areas ? window.api.areas.getAll() : [],
+            window.api.teamMembers ? window.api.teamMembers.getAll() : [],
+            window.api.categories ? window.api.categories.getAll() : [],
+            window.api.products ? window.api.products.getAll() : []
+          ]);
+          setDoctorsList(extractArray(dRes));
+          setInstitutionsList(extractArray(iRes));
+          setAreasList(extractArray(aRes));
+          setTeamMembersList(extractArray(tRes));
+          setGroupsList(extractArray(gRes));
+          setProductsList(extractArray(pRes));
+        }
+      } catch (err) {
+        console.error('Failed to load filter options:', err);
+      }
+    };
+
+    loadDropdownData();
+    loadExportHistory();
+  }, []);
+
+  // Fetch preview data whenever reportType or active filters change
+  const fetchPreview = async () => {
+    setPreviewLoading(true);
+    try {
+      if (window.api && window.api.export) {
+        const res = await window.api.export.getPreviewData({ reportType, filters });
+        const data = res?.data || res;
+        setPreviewData(data);
+      } else {
+        // Fallback mock preview
+        setPreviewData({
+          title: `${reportType} Master Report`,
+          columns: [
+            { header: 'ID', key: 'id', width: 10, type: 'number' },
+            { header: 'Name', key: 'name', width: 30, type: 'text' },
+            { header: 'Status', key: 'status', width: 15, type: 'text' }
+          ],
+          rows: [
+            { id: 1, name: 'Sample Item A', status: 'Active' },
+            { id: 2, name: 'Sample Item B', status: 'Active' }
+          ],
+          summary: { totalRecords: 2, totalAmount: 0 }
+        });
+      }
+    } catch (err) {
+      setToast({ message: err.message || 'Failed to load preview data.', type: 'error' });
+    } finally {
+      setPreviewLoading(false);
       setCurrentPage(1);
-      setLoading(false);
-      setToast({ message: 'Filters applied successfully.', type: 'success' });
-    }, 450);
+    }
+  };
+
+  const loadExportHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      if (window.api && window.api.export) {
+        const res = await window.api.export.getHistory();
+        const historyArray = extractArray(res);
+        setExportHistory(historyArray);
+      }
+    } catch (err) {
+      console.error('Failed to load export history:', err);
+      setExportHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPreview();
+  }, [reportType]); // eslint-disable-line
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleApplyFilters = () => {
+    fetchPreview();
+    setToast({ message: 'Filters applied to preview.', type: 'success' });
   };
 
   const handleResetFilters = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const reset = {
-        year: '',
-        startDate: '',
-        endDate: '',
-        product: '',
-        doctor: '',
-        institution: '',
-        area: '',
-        teamMember: '',
-        group: '',
-        status: '',
-        poNumber: ''
-      };
-      setTempFilters(reset);
-      setActiveFilters(reset);
-      setSearchQuery('');
-      setGlobalSearch('');
-      setCurrentPage(1);
-      setLoading(false);
-      setToast({ message: 'Filters reset to default.', type: 'success' });
-    }, 400);
+    const emptyFilters = {
+      startDate: '',
+      endDate: '',
+      doctor: '',
+      institution: '',
+      area: '',
+      teamMember: '',
+      group: '',
+      product: '',
+      status: '',
+      search: ''
+    };
+    setFilters(emptyFilters);
+    fetchPreview();
+    setToast({ message: 'Filters reset to default.', type: 'success' });
   };
 
-  // Live filter mapping
-  const filteredOrders = useMemo(() => {
-    const q = globalSearch.toLowerCase().trim();
-    return ordersList.filter((order) => {
-      const info = getOrderTotals(order, doctors, teamMembers, products);
-      
-      // Search Box Filter
-      if (q) {
-        const matchesSearch =
-          order.poNumber.toLowerCase().includes(q) ||
-          info.doctorName.toLowerCase().includes(q) ||
-          order.area.toLowerCase().includes(q) ||
-          info.teamMemberName.toLowerCase().includes(q);
-        if (!matchesSearch) return false;
-      }
+  // Perform File Export (Excel / PDF / PowerPoint)
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      if (window.api && window.api.export) {
+        const res = await window.api.export.generate({
+          reportType,
+          format: exportFormat,
+          filters
+        });
 
-      // Year Filter
-      const ordYear = order.year || (order.poDate && order.poDate.substring(0, 4)) || '';
-      if (activeFilters.year && ordYear !== activeFilters.year) return false;
+        const exportResult = res?.data || res;
 
-      // PO Number Filter
-      if (activeFilters.poNumber && !order.poNumber.toLowerCase().includes(activeFilters.poNumber.toLowerCase())) return false;
-
-      // Status Filter
-      if (activeFilters.status && order.status !== activeFilters.status) return false;
-
-      // Area Filter
-      if (activeFilters.area && order.area !== activeFilters.area) return false;
-
-      // Doctor Filter
-      if (activeFilters.doctor) {
-        const docId = order.doctorId || doctors.find(d => d.name === order.doctor)?.id;
-        if (Number(docId) !== Number(activeFilters.doctor)) return false;
-      }
-
-      // Institution Filter
-      if (activeFilters.institution && (info.institutionName || order.institution) !== activeFilters.institution) return false;
-
-      // Team Member Filter
-      if (activeFilters.teamMember) {
-        const tmId = order.teamMemberId || teamMembers.find(t => t.name === order.teamMember)?.id;
-        if (Number(tmId) !== Number(activeFilters.teamMember)) return false;
-      }
-
-      // Group Filter
-      if (activeFilters.group) {
-        if (order.group && order.group !== activeFilters.group) return false;
-        if (order.products) {
-          const hasInGroup = order.products.some((it) => {
-            const prod = products.find((p) => p.name === it.name);
-            return prod && prod.category === activeFilters.group;
+        if (exportResult && exportResult.success) {
+          setToast({
+            message: `Report exported successfully as ${exportResult.fileName}!`,
+            type: 'success'
           });
-          if (!hasInGroup && !order.group) return false;
+          loadExportHistory();
+        } else if (exportResult && exportResult.canceled) {
+          setToast({ message: 'Export canceled by user.', type: 'info' });
+        } else {
+          setToast({ message: exportResult?.error || 'Export failed.', type: 'error' });
         }
+      } else {
+        setToast({ message: 'Desktop Export API unavailable in browser mode.', type: 'error' });
       }
+    } catch (err) {
+      setToast({ message: err.message || 'Export error occurred.', type: 'error' });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
-      // Product Filter
-      if (activeFilters.product) {
-        const prodObj = products.find(p => p.id === Number(activeFilters.product));
-        const hasProduct = (order.items || []).some(it => it.productId === Number(activeFilters.product)) ||
-                           (order.products || []).some(it => it.name === prodObj?.name);
-        if (!hasProduct) return false;
+  const handleOpenFile = async (filePath) => {
+    try {
+      if (window.api && window.api.export) {
+        await window.api.export.openFile(filePath);
       }
+    } catch (err) {
+      setToast({ message: err.message || 'Unable to open file.', type: 'error' });
+    }
+  };
 
-      // Date Range Filter
-      const orderDate = order.date || order.poDate;
-      if (activeFilters.startDate && orderDate < activeFilters.startDate) return false;
-      if (activeFilters.endDate && orderDate > activeFilters.endDate) return false;
+  // Safe Arrays for Pagination & Rendering
+  const safeHistory = useMemo(() => (Array.isArray(exportHistory) ? exportHistory : []), [exportHistory]);
+  const rowsList = useMemo(() => (Array.isArray(previewData?.rows) ? previewData.rows : []), [previewData]);
 
-      return true;
-    });
-  }, [globalSearch, activeFilters, ordersList, doctors, teamMembers, products]);
-
-  // Summaries based on filtered or all orders
-  const summary = useMemo(() => {
-    const targetList = settings.exportAll ? ordersList : filteredOrders;
-    
-    let totalVials = 0;
-    let totalSales = 0;
-    let pendingCount = 0;
-    let completedCount = 0;
-
-    targetList.forEach((order) => {
-      const totals = getOrderTotals(order, doctors, teamMembers, products);
-      totalVials += totals.totalVials;
-      totalSales += totals.totalAmount;
-      if (order.status === 'Completed') completedCount++;
-      else pendingCount++;
-    });
-
-    return {
-      totalOrders: targetList.length,
-      totalVials,
-      totalSales,
-      pendingOrders: pendingCount,
-      completedOrders: completedCount
-    };
-  }, [filteredOrders, settings.exportAll, ordersList, doctors, teamMembers, products]);
-
-  // Pagination Calculations
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedOrders = useMemo(() => {
-    return filteredOrders.slice(startIndex, endIndex);
-  }, [filteredOrders, startIndex, endIndex, itemsPerPage]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [globalSearch, activeFilters]);
+  // Preview Pagination Calculations
+  const totalPreviewPages = Math.ceil(rowsList.length / pageSize) || 1;
+  const startIdx = (currentPage - 1) * pageSize;
+  const endIdx = startIdx + pageSize;
+  const paginatedRows = useMemo(() => rowsList.slice(startIdx, endIdx), [rowsList, startIdx, endIdx]);
 
   // History Pagination Calculations
-  const historyTotalPages = Math.ceil(history.length / historyItemsPerPage);
-  const historyStartIndex = (historyPage - 1) * historyItemsPerPage;
-  const historyEndIndex = historyStartIndex + historyItemsPerPage;
-  const paginatedHistory = useMemo(() => {
-    return history.slice(historyStartIndex, historyEndIndex);
-  }, [history, historyStartIndex, historyEndIndex, historyItemsPerPage]);
-
-  // Trigger export flow
-  const handleExportData = () => {
-    if (filteredOrders.length === 0 && !settings.exportAll) {
-      setToast({ message: 'No records available to export.', type: 'error' });
-      return;
-    }
-
-    setIsExporting(true);
-    setExportProgress(0);
-
-    const interval = setInterval(() => {
-      setExportProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            const ext = exportFormat === 'excel' ? 'xlsx' : exportFormat === 'pdf' ? 'pdf' : 'pptx';
-            const formatName = exportFormat === 'excel' ? 'Excel (.xlsx)' : exportFormat === 'pdf' ? 'PDF' : 'PowerPoint (.pptx)';
-            const newFile = `Himmel_Export_${new Date().toISOString().split('T')[0]}_${Math.floor(1000 + Math.random() * 9000)}.${ext}`;
-            
-            // Add to Export History list
-            setHistory((prevHistory) => [
-              {
-                id: Date.now(),
-                date: new Date().toLocaleString(),
-                fileName: newFile,
-                format: formatName
-              },
-              ...prevHistory
-            ]);
-
-            setIsExporting(false);
-            setToast({
-              message: `Data exported successfully as ${newFile}!`,
-              type: 'success'
-            });
-          }, 400);
-          return 100;
-        }
-        return prev + 25;
-      });
-    }, 250);
-  };
-
-  if (initialLoading) {
-    return (
-      <DashboardLayout pageTitle="Export Center">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  const totalHistoryPages = Math.ceil(safeHistory.length / historyPageSize) || 1;
+  const histStartIdx = (historyPage - 1) * historyPageSize;
+  const histEndIdx = histStartIdx + historyPageSize;
+  const paginatedHistory = useMemo(() => safeHistory.slice(histStartIdx, histEndIdx), [safeHistory, histStartIdx, histEndIdx]);
 
   return (
-    <DashboardLayout pageTitle="Export Center">
+    <DashboardLayout pageTitle="Enterprise Export Center">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <div className="max-w-7xl mx-auto space-y-6 pb-10">
-        
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="max-w-7xl mx-auto space-y-6 pb-12">
+        {/* Page Title & Overview */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-xl font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
-              Export Center
+              Enterprise Export Center
             </h1>
-            <p className="text-xs text-gray-450 dark:text-gray-550 font-medium mt-1">
-              Filter and export sales data.
+            <p className="text-xs text-gray-500 dark:text-slate-400 font-medium mt-1">
+              Central reporting hub for exporting business data into formatted Excel spreadsheets, printed PDF documents, and PowerPoint presentations.
             </p>
           </div>
+          <button
+            onClick={handleExport}
+            disabled={isExporting || previewLoading}
+            className="px-5 py-2.5 bg-brand-primary hover:bg-[#8F161A] text-white text-xs font-bold rounded-xl transition-all shadow-md inline-flex items-center gap-2 cursor-pointer uppercase tracking-wider disabled:opacity-50"
+          >
+            <FiDownload className={`w-4 h-4 ${isExporting ? 'animate-bounce' : ''}`} />
+            {isExporting ? 'Generating Report...' : `Export to ${exportFormat.toUpperCase()}`}
+          </button>
+        </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Search PO, Doctor, Area..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleApplyFilters()}
-                className="w-full pl-9 pr-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
-              />
+        {/* 1. REPORT TYPE & FORMAT SELECTION BAR */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Report Type Selector */}
+          <div className="lg:col-span-2 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-3">
+              <FiLayers className="w-4 h-4 text-brand-primary" />
+              <h2 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+                Select Business Module / Report
+              </h2>
             </div>
-            <button
-              onClick={handleExportData}
-              disabled={isExporting}
-              className="inline-flex items-center gap-1.5 px-4.5 py-2 text-xs font-bold text-white bg-brand-primary hover:bg-brand-primaryDark rounded-lg transition-all shadow-soft"
-            >
-              <FiDownload className="w-3.5 h-3.5" />
-              <span>{isExporting ? 'Exporting...' : 'Export'}</span>
-            </button>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+              {REPORT_TYPES.map((rt) => {
+                const Icon = rt.icon;
+                const isSelected = reportType === rt.id;
+                return (
+                  <button
+                    key={rt.id}
+                    onClick={() => setReportType(rt.id)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-brand-primary bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
+                        : 'border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-slate-900/50 text-gray-600 dark:text-slate-300 hover:border-gray-300 dark:hover:border-gray-700'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5 mb-1.5" />
+                    <span className="text-[11px] leading-tight">{rt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Format Selector */}
+          <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-3 mb-4">
+                <FiSettings className="w-4 h-4 text-brand-primary" />
+                <h2 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+                  Export Document Format
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {EXPORT_FORMATS.map((fmt) => {
+                  const isSelected = exportFormat === fmt.id;
+                  return (
+                    <button
+                      key={fmt.id}
+                      onClick={() => setExportFormat(fmt.id)}
+                      className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-brand-primary bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
+                          : 'border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-slate-900/50 text-gray-600 dark:text-slate-300 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${fmt.bg}`}>
+                          <FiFileText className={`w-5 h-5 ${fmt.color}`} />
+                        </div>
+                        <span className="text-xs font-bold">{fmt.label}</span>
+                      </div>
+                      {isSelected && <FiCheckCircle className="w-4 h-4 text-brand-primary" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400 text-center font-medium">
+              Format includes headers, logo branding, summary totals, and formatting.
+            </div>
           </div>
         </div>
 
-        {/* FILTERS PANEL */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800">
-            <FiFilter className="w-4 h-4 text-brand-primary" />
-            <span className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-widest">Filter Configurations</span>
+        {/* 2. ENTERPRISE FILTERS BAR */}
+        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+            <div className="flex items-center gap-2">
+              <FiFilter className="w-4 h-4 text-brand-primary" />
+              <h2 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+                Applied Export Filters
+              </h2>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleResetFilters}
+                className="px-3 py-1.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Reset
+              </button>
+              <button
+                onClick={handleApplyFilters}
+                className="px-4 py-1.5 bg-brand-primary hover:bg-[#8F161A] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer uppercase tracking-wider"
+              >
+                Apply Filters
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {/* Business Year */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Business Year</label>
-              <select
-                value={tempFilters.year}
-                onChange={(e) => setTempFilters({ ...tempFilters, year: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
-              >
-                <option value="">All Years</option>
-                <option value="2026">2026</option>
-                <option value="2025">2025</option>
-              </select>
-            </div>
-
-            {/* Date Range - Start */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Start Date</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-xs font-semibold">
+            {/* Search */}
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Search Text</label>
               <div className="relative">
-                <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 pointer-events-none" />
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
                 <input
-                  type="date"
-                  value={tempFilters.startDate}
-                  onChange={(e) => setTempFilters({ ...tempFilters, startDate: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
+                  type="text"
+                  placeholder="Keyword..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
                 />
               </div>
             </div>
 
-            {/* Date Range - End */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">End Date</label>
-              <div className="relative">
-                <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5 pointer-events-none" />
-                <input
-                  type="date"
-                  value={tempFilters.endDate}
-                  onChange={(e) => setTempFilters({ ...tempFilters, endDate: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
-                />
-              </div>
+            {/* Start Date */}
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Start Date</label>
+              <input
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+              />
             </div>
 
-            {/* Product */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Product</label>
-              <select
-                value={tempFilters.product}
-                onChange={(e) => setTempFilters({ ...tempFilters, product: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
-              >
-                <option value="">All Products</option>
-                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
+            {/* End Date */}
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">End Date</label>
+              <input
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+              />
             </div>
 
             {/* Doctor */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Doctor</label>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Doctor</label>
               <select
-                value={tempFilters.doctor}
-                onChange={(e) => setTempFilters({ ...tempFilters, doctor: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
+                value={filters.doctor}
+                onChange={(e) => handleFilterChange('doctor', e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
               >
                 <option value="">All Doctors</option>
-                {doctors.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                {doctorsList.map((d) => (
+                  <option key={d.id} value={d.id}>{d.doctor_name || d.name}</option>
+                ))}
               </select>
             </div>
 
             {/* Institution */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Institution</label>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Institution</label>
               <select
-                value={tempFilters.institution}
-                onChange={(e) => setTempFilters({ ...tempFilters, institution: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
+                value={filters.institution}
+                onChange={(e) => handleFilterChange('institution', e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
               >
                 <option value="">All Institutions</option>
-                {institutions.map(inst => (
-                  <option key={inst.id || inst.name} value={inst.name}>{inst.name}</option>
+                {institutionsList.map((i) => (
+                  <option key={i.id} value={i.id}>{i.name}</option>
                 ))}
               </select>
             </div>
 
             {/* Area */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Area</label>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Area</label>
               <select
-                value={tempFilters.area}
-                onChange={(e) => setTempFilters({ ...tempFilters, area: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
+                value={filters.area}
+                onChange={(e) => handleFilterChange('area', e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
               >
                 <option value="">All Areas</option>
-                {areas.map(a => <option key={a.id || a.name || a} value={a.name || a}>{a.name || a}</option>)}
+                {areasList.map((a) => (
+                  <option key={a.id} value={a.id}>{a.area_name || a.name}</option>
+                ))}
               </select>
             </div>
 
             {/* Team Member */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Team Member</label>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Team Member</label>
               <select
-                value={tempFilters.teamMember}
-                onChange={(e) => setTempFilters({ ...tempFilters, teamMember: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
+                value={filters.teamMember}
+                onChange={(e) => handleFilterChange('teamMember', e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
               >
                 <option value="">All Team Members</option>
-                {teamMembers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                {teamMembersList.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
               </select>
             </div>
 
-            {/* Group */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Group</label>
+            {/* Product */}
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Product</label>
               <select
-                value={tempFilters.group}
-                onChange={(e) => setTempFilters({ ...tempFilters, group: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
+                value={filters.product}
+                onChange={(e) => handleFilterChange('product', e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
               >
-                <option value="">All Groups</option>
-                {groups.map(g => <option key={g.id || g.name || g} value={g.name || g}>{g.name || g}</option>)}
+                <option value="">All Products</option>
+                {productsList.map((p) => (
+                  <option key={p.id} value={p.id}>{p.product_name || p.name}</option>
+                ))}
               </select>
             </div>
 
-            {/* PO Status */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">PO Status</label>
+            {/* Status */}
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Status</label>
               <select
-                value={tempFilters.status}
-                onChange={(e) => setTempFilters({ ...tempFilters, status: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20"
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
               >
-                <option value="">All Statuses</option>
+                <option value="All">All Statuses</option>
+                <option value="Active">Active</option>
                 <option value="Completed">Completed</option>
                 <option value="Pending">Pending</option>
               </select>
             </div>
-
-            {/* PO Number */}
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">PO Number</label>
-              <input
-                type="text"
-                placeholder="Search PO Number..."
-                value={tempFilters.poNumber}
-                onChange={(e) => setTempFilters({ ...tempFilters, poNumber: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-150 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              onClick={handleResetFilters}
-              className="px-4 py-2 border border-gray-200 dark:border-gray-750 hover:bg-gray-150/40 dark:hover:bg-gray-800/40 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-450 transition-colors"
-            >
-              Reset Filters
-            </button>
-            <button
-              onClick={handleApplyFilters}
-              className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
-            >
-              Apply Filters
-            </button>
           </div>
         </div>
 
-        {/* SUMMARY CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {/* Total Orders */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-5 shadow-soft flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/30 flex items-center justify-center shrink-0">
-              <FiShoppingBag className="w-4.5 h-4.5 text-brand-primary" />
-            </div>
+        {/* 3. LIVE DATA PREVIEW TABLE */}
+        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-slate-900/50 flex justify-between items-center">
             <div>
-              <p className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Total Orders</p>
-              <p className="text-base font-extrabold text-gray-900 dark:text-white mt-0.5">{summary.totalOrders}</p>
+              <h3 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+                Live Data Preview ({previewData?.summary?.totalRecords || rowsList.length} Records)
+              </h3>
+              <p className="text-[10px] text-gray-400 font-medium">
+                Exact filtered dataset that will be compiled into the exported report file.
+              </p>
             </div>
+            <button
+              onClick={fetchPreview}
+              className="p-1.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-600 dark:text-slate-300 transition-colors cursor-pointer"
+              title="Refresh Preview"
+            >
+              <FiRefreshCw className={`w-3.5 h-3.5 ${previewLoading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
 
-          {/* Total Vials */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-5 shadow-soft flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/30 flex items-center justify-center shrink-0">
-              <FiActivity className="w-4.5 h-4.5 text-purple-500" />
-            </div>
-            <div>
-              <p className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Total Vials</p>
-              <p className="text-base font-extrabold text-gray-900 dark:text-white mt-0.5">{summary.totalVials.toLocaleString()}</p>
-            </div>
-          </div>
-
-          {/* Total Sales */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-5 shadow-soft flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-950/30 flex items-center justify-center shrink-0">
-              <FiTrendingUp className="w-4.5 h-4.5 text-feedback-success" />
-            </div>
-            <div>
-              <p className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Total Sales</p>
-              <p className="text-base font-extrabold text-feedback-success mt-0.5">Rs {summary.totalSales.toLocaleString()}</p>
-            </div>
-          </div>
-
-          {/* Pending Orders */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise p-5 shadow-soft flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center shrink-0">
-              <FiRefreshCw className="w-4.5 h-4.5 text-amber-500" />
-            </div>
-            <div>
-              <p className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Pending Orders</p>
-              <p className="text-base font-extrabold text-amber-500 mt-0.5">{summary.pendingOrders}</p>
-            </div>
-          </div>
-
-          {/* Completed Orders */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-5 shadow-soft flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center shrink-0">
-              <FiCheckCircle className="w-4.5 h-4.5 text-emerald-500" />
-            </div>
-            <div>
-              <p className="text-[9px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-wider">Completed Orders</p>
-              <p className="text-base font-extrabold text-emerald-500 mt-0.5">{summary.completedOrders}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* LIVE PREVIEW TABLE */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20">
-            <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-widest">Live Export Data Preview</h3>
-            <p className="text-[10px] text-gray-400 dark:text-gray-550 font-semibold mt-0.5">Showing records configured under filtered criteria</p>
-          </div>
-
-          <div className="overflow-x-auto relative">
-            <table className="w-full text-xs text-left min-w-[900px] table-auto">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-150 dark:border-gray-800 text-left">
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">PO Number</th>
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Doctor</th>
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Institution</th>
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Area</th>
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Team Member</th>
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider text-right">Product Count</th>
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider text-right">Total Vials</th>
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider text-right">Total Amount</th>
-                  <th className="px-5 py-3.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Status</th>
+                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-slate-900 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                  {previewData?.columns?.map((col) => (
+                    <th key={col.key} className="px-5 py-4">
+                      {col.header}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50">
-                {loading ? (
-                  /* Loading Skeleton Rows */
-                  [1, 2, 3].map((n) => (
-                    <tr key={n}>
-                      <td colSpan={10} className="px-5 py-4">
-                        <div className="h-4 bg-gray-100 dark:bg-gray-800 rounded animate-pulse w-full" />
-                      </td>
-                    </tr>
-                  ))
-                ) : filteredOrders.length === 0 ? (
-                  /* Empty State */
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium">
+                {previewLoading ? (
                   <tr>
-                    <td colSpan={10} className="px-5 py-12 text-center text-gray-400 dark:text-gray-550 font-bold uppercase tracking-wider">
-                      <div className="flex flex-col items-center gap-2">
-                        <FiAlertCircle className="w-8 h-8 text-gray-300 dark:text-gray-700" />
-                        <span>No records match the applied filters.</span>
-                      </div>
+                    <td colSpan={previewData?.columns?.length || 5} className="text-center py-10 text-gray-400 font-semibold uppercase tracking-wider">
+                      Compiling live preview dataset...
+                    </td>
+                  </tr>
+                ) : paginatedRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={previewData?.columns?.length || 5} className="text-center py-10 text-gray-400 font-semibold uppercase tracking-wider">
+                      No records match current export filters.
                     </td>
                   </tr>
                 ) : (
-                  paginatedOrders.map((order) => {
-                    const info = getOrderTotals(order, doctors, teamMembers, products);
-                    return (
-                      <tr key={order.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/10 transition-colors">
-                        <td className="px-5 py-3.5 font-bold font-mono text-gray-850 dark:text-white">{order.poNumber}</td>
-                        <td className="px-5 py-3.5 font-semibold text-gray-700 dark:text-gray-300">{order.date || order.poDate}</td>
-                        <td className="px-5 py-3.5 font-bold text-gray-800 dark:text-gray-200">{info.doctorName}</td>
-                        <td className="px-5 py-3.5 font-bold text-gray-800 dark:text-gray-200">{info.institutionName}</td>
-                        <td className="px-5 py-3.5 font-semibold text-gray-700 dark:text-gray-300">{order.area}</td>
-                        <td className="px-5 py-3.5 font-semibold text-gray-700 dark:text-gray-300">{info.teamMemberName}</td>
-                        <td className="px-5 py-3.5 font-extrabold text-right text-gray-800 dark:text-gray-200">{info.productCount}</td>
-                        <td className="px-5 py-3.5 font-extrabold text-right text-gray-850 dark:text-white">{info.totalVials.toLocaleString()}</td>
-                        <td className="px-5 py-3.5 font-extrabold text-right text-brand-primary">Rs {info.totalAmount.toLocaleString()}</td>
-                        <td className="px-5 py-3.5"><StatusBadge status={order.status} /></td>
-                      </tr>
-                    );
-                  })
+                  paginatedRows.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                      {previewData?.columns?.map((col) => {
+                        let val = row[col.key];
+                        if (col.type === 'currency') {
+                          val = val !== null && val !== undefined ? `Rs ${Number(val).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'Rs 0.00';
+                        } else if (val === null || val === undefined) {
+                          val = '—';
+                        } else {
+                          val = String(val);
+                        }
+                        return (
+                          <td key={col.key} className="px-5 py-3.5 text-gray-800 dark:text-slate-200 font-semibold">
+                            {val}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
           </div>
 
-          {!loading && filteredOrders.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              totalRecords={filteredOrders.length}
-              startIndex={startIndex}
-              endIndex={endIndex}
-              pageSize={itemsPerPage}
-              onPageSizeChange={setItemsPerPage}
-            />
+          {previewData && rowsList.length > 0 && (
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPreviewPages}
+                onPageChange={setCurrentPage}
+                totalRecords={rowsList.length}
+                startIndex={startIdx}
+                endIndex={endIdx}
+                pageSize={pageSize}
+                onPageSizeChange={setPageSize}
+              />
+            </div>
           )}
         </div>
 
-        {/* BOTTOM OPTIONS & HISTORY */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* EXPORT OPTIONS & SETTINGS */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 space-y-5">
-            <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800">
-              <FiSettings className="w-4 h-4 text-brand-primary" />
-              <span className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-widest">Export Settings & Formats</span>
+        {/* 4. EXPORT HISTORY LOG TABLE */}
+        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+            <div className="flex items-center gap-2">
+              <FiFolder className="w-4 h-4 text-brand-primary" />
+              <h2 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+                Recent Generated Export Files
+              </h2>
             </div>
-
-            {/* FORMAT CHOOSER */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">File Output Format</label>
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  onClick={() => setExportFormat('excel')}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                    exportFormat === 'excel'
-                      ? 'border-brand-primary bg-sky-50/15 dark:bg-brand-primary/10 text-brand-primary shadow-sm font-bold'
-                      : 'border-gray-150 dark:border-gray-750 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                  }`}
-                >
-                  <FiFileText className="w-6 h-6 text-green-500" />
-                  <span className="text-[10px] uppercase tracking-wider">Excel (.xlsx)</span>
-                </button>
-
-                <button
-                  onClick={() => setExportFormat('pdf')}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                    exportFormat === 'pdf'
-                      ? 'border-brand-primary bg-sky-50/15 dark:bg-brand-primary/10 text-brand-primary shadow-sm font-bold'
-                      : 'border-gray-150 dark:border-gray-750 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                  }`}
-                >
-                  <FiFileText className="w-6 h-6 text-red-500" />
-                  <span className="text-[10px] uppercase tracking-wider">PDF File</span>
-                </button>
-
-                <button
-                  onClick={() => setExportFormat('ppt')}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                    exportFormat === 'ppt'
-                      ? 'border-brand-primary bg-sky-50/15 dark:bg-brand-primary/10 text-brand-primary shadow-sm font-bold'
-                      : 'border-gray-150 dark:border-gray-750 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                  }`}
-                >
-                  <FiTrendingUp className="w-6 h-6 text-amber-500" />
-                  <span className="text-[10px] uppercase tracking-wider">PowerPoint (.pptx)</span>
-                </button>
-              </div>
-            </div>
-
-            {/* SETTINGS CHECKBOXES */}
-            <div className="space-y-3 pt-2">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Export Settings</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={settings.exportAll}
-                    onChange={(e) => setSettings({ ...settings, exportAll: e.target.checked, exportOnlyFiltered: !e.target.checked })}
-                    className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary/20 w-3.5 h-3.5"
-                  />
-                  Export All Records
-                </label>
-                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={settings.exportOnlyFiltered}
-                    onChange={(e) => setSettings({ ...settings, exportOnlyFiltered: e.target.checked, exportAll: !e.target.checked })}
-                    className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary/20 w-3.5 h-3.5"
-                  />
-                  Export Only Filtered Records
-                </label>
-                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={settings.includeLogo}
-                    onChange={(e) => setSettings({ ...settings, includeLogo: e.target.checked })}
-                    className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary/20 w-3.5 h-3.5"
-                  />
-                  Include Company Logo
-                </label>
-                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={settings.includeSummary}
-                    onChange={(e) => setSettings({ ...settings, includeSummary: e.target.checked })}
-                    className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary/20 w-3.5 h-3.5"
-                  />
-                  Include Summary
-                </label>
-                <label className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={settings.includeCharts}
-                    onChange={(e) => setSettings({ ...settings, includeCharts: e.target.checked })}
-                    className="rounded border-gray-300 text-brand-primary focus:ring-brand-primary/20 w-3.5 h-3.5"
-                  />
-                  Include Charts
-                </label>
-              </div>
-            </div>
-
-            {/* ACTION TRIGGER BUTTON */}
-            <div className="pt-2">
-              <button
-                onClick={handleExportData}
-                disabled={isExporting}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-brand-primary hover:bg-brand-primaryDark text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-all shadow-soft"
-              >
-                <FiDownload className="w-4 h-4 animate-bounce" />
-                <span>{isExporting ? `Generating Export (${exportProgress}%)` : 'Generate Export'}</span>
-              </button>
-            </div>
+            <button
+              onClick={loadExportHistory}
+              className="text-xs font-bold text-brand-primary hover:underline uppercase tracking-wider"
+            >
+              Refresh History
+            </button>
           </div>
 
-          {/* EXPORT HISTORY */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800 mb-4">
-                <FiRefreshCw className="w-4 h-4 text-brand-primary" />
-                <span className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-widest">Recent Export History Log</span>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left table-auto">
-                  <thead>
-                    <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/10">
-                      <th className="px-4 py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Date</th>
-                      <th className="px-4 py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">File Name</th>
-                      <th className="px-4 py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">Format</th>
-                      <th className="px-4 py-2.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider text-center">Action</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-slate-900 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3">File Name</th>
+                  <th className="px-4 py-3">Format</th>
+                  <th className="px-4 py-3">File Size</th>
+                  <th className="px-4 py-3">Created Date</th>
+                  <th className="px-4 py-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium">
+                {historyLoading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-6 text-gray-400 uppercase tracking-wider">
+                      Loading export directory log...
+                    </td>
+                  </tr>
+                ) : paginatedHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-6 text-gray-400 uppercase tracking-wider">
+                      No exported files found in directory.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedHistory.map((h) => (
+                    <tr key={h.id || h.fileName} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-3 font-bold text-gray-800 dark:text-white">{h.fileName}</td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
+                          {h.format}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 font-semibold">{h.formattedSize}</td>
+                      <td className="px-4 py-3 text-gray-500 font-semibold">{new Date(h.createdDate).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleOpenFile(h.filePath)}
+                          className="px-3 py-1.5 bg-brand-primary hover:bg-[#8F161A] text-white text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                        >
+                          <FiExternalLink className="w-3 h-3" />
+                          Open File
+                        </button>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800/40">
-                    {paginatedHistory.map((h) => (
-                      <tr key={h.id} className="hover:bg-gray-55/40 dark:hover:bg-gray-800/10 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-gray-400 dark:text-gray-555 whitespace-nowrap">{h.date}</td>
-                        <td className="px-4 py-3 font-bold text-gray-800 dark:text-gray-200 truncate max-w-[200px]" title={h.fileName}>{h.fileName}</td>
-                        <td className="px-4 py-3 font-semibold text-gray-650 dark:text-gray-400 whitespace-nowrap">{h.format}</td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            onClick={() => {
-                              setToast({
-                                message: `Re-downloading ${h.fileName} from file cache...`,
-                                type: 'success'
-                              });
-                            }}
-                            className="inline-flex items-center justify-center p-1.5 rounded-lg border border-gray-150 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-brand-primary transition-colors"
-                            title="Download again"
-                          >
-                            <FiDownload className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-3">
-                <Pagination
-                  currentPage={historyPage}
-                  totalPages={historyTotalPages}
-                  onPageChange={setHistoryPage}
-                  totalRecords={history.length}
-                  startIndex={historyStartIndex}
-                  endIndex={historyEndIndex}
-                  pageSize={historyItemsPerPage}
-                  onPageSizeChange={setHistoryItemsPerPage}
-                />
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-gray-100 dark:border-gray-800 text-center">
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Export cache persists on current session</span>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        </div>
 
+          {safeHistory.length > 0 && (
+            <div className="pt-2">
+              <Pagination
+                currentPage={historyPage}
+                totalPages={totalHistoryPages}
+                onPageChange={setHistoryPage}
+                totalRecords={safeHistory.length}
+                startIndex={histStartIdx}
+                endIndex={histEndIdx}
+                pageSize={historyPageSize}
+                onPageSizeChange={setHistoryPageSize}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );

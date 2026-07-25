@@ -1,13 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { areaService } from '../../services/areaService';
 import Pagination from '../../components/common/Pagination';
+import FilterPresetBar from '../../components/common/FilterPresetBar';
+import StatusSelector from '../../components/common/StatusSelector';
+import Toast from '../../components/common/Toast';
+import { exportToCSV } from '../../utils/exportUtils';
 import {
   FiSearch, FiPlus, FiEye, FiEdit2, FiTrash2,
-  FiX, FiMapPin, FiAlertTriangle
+  FiX, FiMapPin, FiAlertTriangle, FiDownload
 } from 'react-icons/fi';
-
 
 const CITIES = [
   'Lahore',
@@ -102,12 +105,15 @@ const DeleteDialog = ({ area, onCancel, onConfirm }) => (
 
 const Areas = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(location.state?.toast || null);
   const [search, setSearch] = useState('');
   const [cityFilter, setCityFilter] = useState('');
   const [regionFilter, setRegionFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   const [toDelete, setToDelete] = useState(null);
 
   // Pagination states
@@ -115,11 +121,30 @@ const Areas = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
+    const q = searchParams.get('search');
+    if (q) setSearch(q);
+  }, [searchParams]);
+
+  const fetchAreas = () => {
     areaService.getAllAreas().then((data) => {
-      setAreas(data);
+      setAreas(data || []);
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    fetchAreas();
+    const handleDbChange = () => fetchAreas();
+    window.addEventListener('himmel-db-change', handleDbChange);
+    return () => window.removeEventListener('himmel-db-change', handleDbChange);
   }, []);
+
+  useEffect(() => {
+    if (location.state?.toast) {
+      setToast(location.state.toast);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Reset page when filters change
   useEffect(() => {
@@ -138,11 +163,26 @@ const Areas = () => {
 
       const matchCity = !cityFilter || a.city === cityFilter;
       const matchRegion = !regionFilter || a.region === regionFilter;
-      const matchStatus = !statusFilter || a.status === statusFilter;
+      const matchStatus = statusFilter === 'All' || !statusFilter || a.status === statusFilter;
 
       return matchQ && matchCity && matchRegion && matchStatus;
     });
   }, [areas, search, cityFilter, regionFilter, statusFilter]);
+
+  // Deep linking scroll into view effect
+  useEffect(() => {
+    const highlightId = searchParams.get('highlightId');
+    if (highlightId && !loading && filtered.length > 0) {
+      const el = document.getElementById(`row-${highlightId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('ring-2', 'ring-brand-primary', 'bg-amber-50', 'dark:bg-amber-900/30');
+        setTimeout(() => {
+          el.classList.remove('ring-2', 'ring-brand-primary', 'bg-amber-50', 'dark:bg-amber-900/30');
+        }, 3000);
+      }
+    }
+  }, [searchParams, loading, filtered]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -169,15 +209,16 @@ const Areas = () => {
     setSearch('');
     setCityFilter('');
     setRegionFilter('');
-    setStatusFilter('');
+    setStatusFilter('All');
   };
 
-  const showClear = search || cityFilter || regionFilter || statusFilter;
+  const showClear = search || cityFilter || regionFilter || (statusFilter && statusFilter !== 'All');
   const activeCount = areas.filter((a) => a.status === 'Active').length;
   const inactiveCount = areas.filter((a) => a.status === 'Inactive').length;
 
   return (
     <DashboardLayout pageTitle="Areas">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -186,6 +227,19 @@ const Areas = () => {
             <p className="text-xs text-gray-400 dark:text-gray-550 font-medium mt-1">Manage operational distribution areas.</p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => exportToCSV('areas_export', filtered, [
+                { key: 'code', label: 'Area Code' },
+                { key: 'name', label: 'Area Name' },
+                { key: 'city', label: 'City' },
+                { key: 'region', label: 'Region' },
+                { key: 'status', label: 'Status' }
+              ])}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              title="Export filtered areas to CSV"
+            >
+              <FiDownload className="w-3.5 h-3.5" /> Export Filtered
+            </button>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-feedback-success text-[11px] font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-feedback-success" />
               {activeCount} Active
@@ -207,6 +261,19 @@ const Areas = () => {
 
         {/* Search & Filter Controls */}
         <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 space-y-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-800 pb-3">
+            <FilterPresetBar
+              moduleName="areas"
+              currentFilters={{ search, cityFilter, regionFilter, statusFilter }}
+              onApplyPreset={(f) => {
+                if (f.search !== undefined) setSearch(f.search);
+                if (f.cityFilter !== undefined) setCityFilter(f.cityFilter);
+                if (f.regionFilter !== undefined) setRegionFilter(f.regionFilter);
+                if (f.statusFilter !== undefined) setStatusFilter(f.statusFilter);
+              }}
+            />
+          </div>
+
           <div className="flex flex-col md:flex-row md:items-center gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -244,17 +311,11 @@ const Areas = () => {
                 </select>
               </div>
 
-              <div className="relative w-full sm:w-auto">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full pl-3 pr-8 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-250 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none cursor-pointer min-w-[130px] appearance-none"
-                >
-                  <option value="">All Statuses</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
+              <StatusSelector
+                options={['All', 'Active', 'Inactive']}
+                value={statusFilter}
+                onChange={setStatusFilter}
+              />
 
               {showClear && (
                 <button
@@ -279,9 +340,9 @@ const Areas = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             <table className="w-full text-xs" aria-label="Areas table">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-gray-55 dark:bg-[#0f172a] shadow-xs">
                 <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                   {['Area Code', 'Area Name', 'City', 'Region', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-5 py-3.5 whitespace-nowrap">
@@ -295,7 +356,11 @@ const Areas = () => {
                   <EmptyState onAdd={openAdd} />
                 ) : (
                   paginatedAreas.map((a) => (
-                    <tr key={a.id} className="hover:bg-gray-55/60 dark:hover:bg-gray-800/30 transition-colors duration-100 group">
+                    <tr
+                      id={`row-${a.id}`}
+                      key={a.id}
+                      className="hover:bg-gray-55/60 dark:hover:bg-gray-800/30 transition-colors duration-100 group"
+                    >
                       <td className="px-5 py-4 whitespace-nowrap">
                         <span className="font-mono text-[10px] font-extrabold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
                           {a.code}
@@ -325,7 +390,7 @@ const Areas = () => {
                             onClick={() => setToDelete(a)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold text-feedback-error bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 hover:bg-red-105 transition-all duration-150"
                           >
-                            <FiTrash2 className="w-3 h-3" /> Delete
+                            <FiTrash2 className="w-3.5 h-3.5" /> Delete
                           </button>
                         </div>
                       </td>

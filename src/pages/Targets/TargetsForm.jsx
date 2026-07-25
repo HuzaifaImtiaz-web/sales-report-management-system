@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiCheck, FiEdit2, FiPlus, FiTrash2, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
+import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 
 const INITIAL_PRODUCTS = [
   { id: 1,  code: 'PRD-0001', name: 'Amoxicillin 500mg',      unit: 'Box',    rate: 450,   status: 'Active' },
@@ -37,7 +38,7 @@ const INITIAL_TEAM = [
 
 const Field = ({ label, required, error, children }) => (
   <div>
-    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-550 dark:text-gray-400 mb-1.5">
+    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-555 dark:text-gray-400 mb-1.5">
       {label} {required && <span className="text-feedback-error">*</span>}
     </label>
     {children}
@@ -46,11 +47,11 @@ const Field = ({ label, required, error, children }) => (
 );
 
 const inputCls = (err, disabled) =>
-  `w-full px-3 py-2.5 text-xs font-medium text-gray-755 dark:text-gray-200 bg-gray-55 dark:bg-gray-805 border rounded-lg outline-none
+  `w-full px-3 py-2.5 text-xs font-semibold text-gray-900 dark:text-white bg-white dark:bg-[#1e293b] border rounded-lg outline-none
    transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500
    focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40
-   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700'}
-   ${disabled ? 'opacity-70 cursor-default bg-gray-100/50 dark:bg-gray-800/30' : ''}`;
+   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/20' : 'border-gray-200 dark:border-gray-700'}
+   ${disabled ? 'cursor-default bg-gray-100 dark:bg-[#1e293b] text-gray-900 dark:text-white font-bold opacity-100' : ''}`;
 
 export default function TargetsForm({
   mode,
@@ -65,6 +66,7 @@ export default function TargetsForm({
   const isView = mode === 'view';
   const isEdit = mode === 'edit';
   const navigate = useNavigate();
+  const { setIsDirty, setOnSave } = useUnsavedChanges();
 
   // Load lists from local storage or defaults
   const products = useMemo(() => {
@@ -110,17 +112,32 @@ export default function TargetsForm({
   const [businessYear, setBusinessYear] = useState('2025-2026');
   const [productId, setProductId] = useState('');
   const [annualTarget, setAnnualTarget] = useState('');
-  const [areasDistribution, setAreasDistribution] = useState([
+  const [areasDistribution, setAreasDistributionState] = useState([
     { areaName: '', percentage: 0, teamMembers: [] }
   ]);
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState({});
 
-  // Resolve product unit (always Vials as per specification, or lookup product unit)
-  const productUnit = useMemo(() => {
-    const found = products.find(p => p.id === Number(productId));
-    return found ? (found.packSizeUnit || found.unit || 'Vials') : 'Vials';
+  const setAreasDistribution = (val) => {
+    setAreasDistributionState(val);
+    setIsDirty(true);
+  };
+
+  const selectedProduct = useMemo(() => {
+    return products.find(p => String(p.id) === String(productId));
   }, [productId, products]);
+
+  const productUnit = useMemo(() => {
+    return selectedProduct ? (selectedProduct.unitTypeName || selectedProduct.packSizeUnit || selectedProduct.unit || 'Vials') : 'Vials';
+  }, [selectedProduct]);
+
+  const productRate = useMemo(() => {
+    return selectedProduct ? (Number(selectedProduct.tp || selectedProduct.rate || selectedProduct.packPrice) || 0) : 0;
+  }, [selectedProduct]);
+
+  const annualTargetAmount = useMemo(() => {
+    return (Number(annualTarget) || 0) * productRate;
+  }, [annualTarget, productRate]);
 
   // Load target item if editing/viewing
   useEffect(() => {
@@ -128,10 +145,33 @@ export default function TargetsForm({
       setBusinessYear(item.businessYear || '2025-2026');
       setProductId(item.productId || '');
       setAnnualTarget(item.annualTarget || '');
-      setAreasDistribution(item.areasDistribution || []);
+      setAreasDistributionState(item.areasDistribution || []);
       setNotes(item.notes || '');
     }
   }, [item]);
+
+  useEffect(() => {
+    if (mode !== 'view') {
+      setOnSave(() => {
+        const e = validateForm();
+        if (Object.keys(e).length) {
+          setErrors(e);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return false;
+        }
+        setErrors({});
+        return onSave({
+          id: item?.id,
+          businessYear,
+          productId: Number(productId),
+          annualTarget: Number(annualTarget),
+          areasDistribution,
+          notes
+        });
+      });
+    }
+    return () => setOnSave(null);
+  }, [businessYear, productId, annualTarget, areasDistribution, notes, mode, onSave, item]);
 
   // Handler for adding a new area row
   const handleAddAreaRow = () => {
@@ -348,7 +388,7 @@ export default function TargetsForm({
           <select
             disabled={isView || isEdit}
             value={businessYear}
-            onChange={(e) => setBusinessYear(e.target.value)}
+            onChange={(e) => { setBusinessYear(e.target.value); setIsDirty(true); }}
             className={inputCls(false, isView || isEdit) + ' appearance-none cursor-pointer'}
           >
             {businessYearsList.map((y) => (
@@ -361,31 +401,31 @@ export default function TargetsForm({
           <select
             disabled={isView || isEdit}
             value={productId}
-            onChange={(e) => setProductId(e.target.value)}
+            onChange={(e) => { setProductId(e.target.value); setIsDirty(true); }}
             className={inputCls(errors.productId, isView || isEdit) + ' appearance-none cursor-pointer'}
           >
             <option value="">Select Product...</option>
             {products.map((p) => (
-              <option key={p.id} value={p.id}>{p.name} ({p.packSize})</option>
+              <option key={p.id} value={p.id}>{p.name} - {p.packSize}</option>
             ))}
           </select>
         </Field>
       </div>
 
-      {/* Annual Target */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Annual Target" required error={errors.annualTarget}>
+      {/* Annual Target, Unit, & Estimated Target Amount */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Field label="Annual Target Quantity" required error={errors.annualTarget}>
           <div className="relative">
             <input
               disabled={isView}
               type="number"
               min="0"
               value={annualTarget}
-              onChange={(e) => setAnnualTarget(e.target.value)}
+              onChange={(e) => { setAnnualTarget(e.target.value); setIsDirty(true); }}
               placeholder="e.g. 50000"
-              className={inputCls(errors.annualTarget, isView) + ' pr-16'}
+              className={inputCls(errors.annualTarget, isView) + ' pr-16 text-gray-900 dark:text-white font-bold bg-white dark:bg-[#1e293b]'}
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-extrabold text-gray-700 dark:text-gray-200">
               {productUnit}
             </span>
           </div>
@@ -395,8 +435,15 @@ export default function TargetsForm({
           <input
             disabled
             value={productUnit}
-            className={inputCls(false, true) + ' font-semibold'}
+            className={inputCls(false, true) + ' font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-[#1e293b]'}
           />
+        </Field>
+
+        <Field label="Estimated Target Amount">
+          <div className="w-full px-3 py-2 text-xs font-extrabold text-brand-primary dark:text-red-400 bg-gray-50 dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-between h-[38px]">
+            <span>Rs {annualTargetAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">({productRate > 0 ? `Rs ${productRate.toLocaleString()}/unit` : 'No Rate'})</span>
+          </div>
         </Field>
       </div>
 
@@ -562,7 +609,7 @@ export default function TargetsForm({
                           >
                             <option value="">Select Member...</option>
                             {availableMembers.map((m) => (
-                              <option key={m.id} value={m.name}>{m.name} ({m.designation})</option>
+                              <option key={m.id} value={m.name}>{m.name} - {m.designation}</option>
                             ))}
                           </select>
                         </div>
@@ -618,7 +665,7 @@ export default function TargetsForm({
           disabled={isView}
           rows={3}
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e) => { setNotes(e.target.value); setIsDirty(true); }}
           placeholder="Enter details or notes regarding this annual targets split..."
           className={inputCls(false, isView) + ' resize-none'}
         />

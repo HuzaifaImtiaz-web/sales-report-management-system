@@ -21,177 +21,195 @@ import Orders from '../pages/Orders/Orders';
 import OrdersFormPage from '../pages/Orders/OrdersFormPage';
 import SalesEntry from '../pages/SalesEntry/SalesEntry';
 import Reports from '../pages/Reports/Reports';
-import ImportExcel from '../pages/ImportExcel/ImportExcel';
 import ExportCenter from '../pages/ExportCenter/ExportCenter';
 import Settings from '../pages/Settings/Settings';
+import Login from '../pages/Login/Login';
+import UserManagement from '../pages/Users/UserManagement';
+import AuditLog from '../pages/AuditLog/AuditLog';
+
+import ProtectedRoute from '../components/common/ProtectedRoute';
+
+const protect = (element, permission) => <ProtectedRoute requiredPermission={permission}>{element}</ProtectedRoute>;
 
 export const routes = [
   {
+    path: '/login',
+    element: <Login />,
+  },
+  {
     path: '/dashboard',
-    element: <DashboardPlaceholder />,
+    element: protect(<DashboardPlaceholder />),
   },
 
   // Products Routes
   {
     path: '/products',
-    element: <Products />,
+    element: protect(<Products />, 'products.view'),
   },
   {
     path: '/products/new',
-    element: <ProductsFormPage />,
+    element: protect(<ProductsFormPage />, 'products.create'),
   },
   {
     path: '/products/:id',
-    element: <ProductsFormPage />,
+    element: protect(<ProductsFormPage />, 'products.view'),
   },
   {
     path: '/products/:id/edit',
-    element: <ProductsFormPage />,
+    element: protect(<ProductsFormPage />, 'products.edit'),
   },
 
   // Doctors Routes
   {
     path: '/doctors',
-    element: <Doctors />,
+    element: protect(<Doctors />, 'doctors.view'),
   },
   {
     path: '/doctors/new',
-    element: <DoctorsFormPage />,
+    element: protect(<DoctorsFormPage />, 'doctors.create'),
   },
   {
     path: '/doctors/:id',
-    element: <DoctorsFormPage />,
+    element: protect(<DoctorsFormPage />, 'doctors.view'),
   },
   {
     path: '/doctors/:id/edit',
-    element: <DoctorsFormPage />,
+    element: protect(<DoctorsFormPage />, 'doctors.edit'),
   },
 
   // Areas Routes
   {
     path: '/areas',
-    element: <Areas />,
+    element: protect(<Areas />, 'areas.view'),
   },
   {
     path: '/areas/new',
-    element: <AreasFormPage />,
+    element: protect(<AreasFormPage />, 'areas.create'),
   },
   {
     path: '/areas/:id',
-    element: <AreasFormPage />,
+    element: protect(<AreasFormPage />, 'areas.view'),
   },
   {
     path: '/areas/:id/edit',
-    element: <AreasFormPage />,
+    element: protect(<AreasFormPage />, 'areas.edit'),
   },
 
   // Team Members Routes
   {
     path: '/team',
-    element: <TeamMembers />,
+    element: protect(<TeamMembers />, 'teamMembers.view'),
   },
   {
     path: '/team/new',
-    element: <TeamMembersFormPage />,
+    element: protect(<TeamMembersFormPage />, 'teamMembers.create'),
   },
   {
     path: '/team/:id',
-    element: <TeamMembersFormPage />,
+    element: protect(<TeamMembersFormPage />, 'teamMembers.view'),
   },
   {
     path: '/team/:id/edit',
-    element: <TeamMembersFormPage />,
+    element: protect(<TeamMembersFormPage />, 'teamMembers.edit'),
   },
 
   // Groups Routes
   {
     path: '/groups',
-    element: <Groups />,
+    element: protect(<Groups />, 'groups.view'),
   },
   {
     path: '/groups/new',
-    element: <GroupsFormPage />,
+    element: protect(<GroupsFormPage />, 'groups.create'),
   },
   {
     path: '/groups/:id',
-    element: <GroupsFormPage />,
+    element: protect(<GroupsFormPage />, 'groups.view'),
   },
   {
     path: '/groups/:id/edit',
-    element: <GroupsFormPage />,
+    element: protect(<GroupsFormPage />, 'groups.edit'),
   },
 
-  // Sales Entry
+  // Sales Entry Routes
   {
     path: '/sales',
-    element: <SalesEntry />,
+    element: protect(<SalesEntry />),
   },
 
   // Orders Routes
   {
     path: '/orders',
-    element: <Orders />,
+    element: protect(<OrdersFormPage />, 'orders.create'),
+  },
+  {
+    path: '/orders/new',
+    element: protect(<OrdersFormPage />, 'orders.create'),
   },
   {
     path: '/orders/:id',
-    element: <OrdersFormPage />,
+    element: protect(<OrdersFormPage />, 'orders.view'),
   },
   {
     path: '/orders/:id/edit',
-    element: <OrdersFormPage />,
+    element: protect(<OrdersFormPage />, 'orders.edit'),
   },
 
   // Institutions Routes
   {
     path: '/institutions',
-    element: <Institutions />,
+    element: protect(<Institutions />, 'institutions.view'),
   },
   {
     path: '/institutions/new',
-    element: <InstitutionsFormPage />,
+    element: protect(<InstitutionsFormPage />, 'institutions.create'),
   },
   {
     path: '/institutions/:id',
-    element: <InstitutionsFormPage />,
+    element: protect(<InstitutionsFormPage />, 'institutions.view'),
   },
   {
     path: '/institutions/:id/edit',
-    element: <InstitutionsFormPage />,
+    element: protect(<InstitutionsFormPage />, 'institutions.edit'),
   },
 
   // Target Routes
   {
     path: '/targets',
-    element: <Targets />,
+    element: protect(<Targets />, 'targets.view'),
   },
   {
     path: '/targets/new',
-    element: <TargetsFormPage />,
+    element: protect(<TargetsFormPage />, 'targets.create'),
   },
   {
     path: '/targets/:id',
-    element: <TargetsFormPage />,
+    element: protect(<TargetsFormPage />, 'targets.view'),
   },
   {
     path: '/targets/:id/edit',
-    element: <TargetsFormPage />,
+    element: protect(<TargetsFormPage />, 'targets.edit'),
   },
 
   {
     path: '/reports',
-    element: <Reports />,
-  },
-  {
-    path: '/import',
-    element: <ImportExcel />,
+    element: protect(<Reports />, 'reports.view'),
   },
   {
     path: '/export',
-    element: <ExportCenter />,
+    element: protect(<ExportCenter />, 'reports.export'),
   },
   {
     path: '/settings',
-    element: <Settings />,
+    element: protect(<Settings />),
+  },
+  {
+    path: '/audit-logs',
+    element: protect(<AuditLog />, 'audit.view'),
+  },
+  {
+    path: '/users',
+    element: protect(<UserManagement />, 'settings.users'),
   },
   {
     path: '*',

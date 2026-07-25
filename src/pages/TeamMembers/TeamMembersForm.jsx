@@ -1,22 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { FiCheck, FiEdit2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
+import { areaService } from '../../services/areaService';
+import HybridComboBox from '../../components/common/HybridComboBox';
+import StatusSelector from '../../components/common/StatusSelector';
+import { sanitizePhoneInput, isValid11DigitPhone } from '../../utils/phoneValidator';
 
 const DESIGNATIONS = [
   'Medical Representative',
   'Territory Manager',
   'Area Sales Manager',
   'Regional Sales Manager'
-];
-
-const AREAS = [
-  'Lahore Central',
-  'Karachi South',
-  'Islamabad F-10',
-  'Rawalpindi',
-  'Faisalabad',
-  'Multan',
-  'Peshawar'
 ];
 
 const Field = ({ label, required, error, children }) => (
@@ -30,17 +25,19 @@ const Field = ({ label, required, error, children }) => (
 );
 
 const inputCls = (err, disabled) =>
-  `w-full px-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border rounded-lg outline-none
-   transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500
+  `w-full px-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border rounded-lg outline-none
+   transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-555
    focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40
-   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-100 dark:border-gray-700'}
+   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-100 dark:border-gray-750'}
    ${disabled ? 'opacity-70 cursor-default bg-gray-100/50 dark:bg-gray-800/30' : ''}`;
 
 export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
   const isView = mode === 'view';
   const isEdit = mode === 'edit';
   const navigate = useNavigate();
+  const { setIsDirty, setOnSave } = useUnsavedChanges();
 
+  const [areasList, setAreasList] = useState([]);
   const [form, setForm] = useState({
     name: '',
     code: '',
@@ -56,8 +53,16 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    areaService.getAllAreas().then((data) => {
+      if (data && data.length > 0) {
+        setAreasList(data);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     if (item) {
-      setForm({ ...item });
+      setForm({ ...item, area: item.area || item.areaName || '', mobile: item.mobile || item.phone || '' });
     }
   }, [item]);
 
@@ -65,6 +70,17 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
     if (isView) return;
     setForm((f) => ({ ...f, [k]: v }));
     setErrors((e) => ({ ...e, [k]: '' }));
+    setIsDirty(true);
+  };
+
+  const handleAreaAddNew = (newAreaName) => {
+    areaService.saveArea({
+      name: newAreaName,
+      code: `AREA-${newAreaName.slice(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
+      status: 'Active'
+    }).then(() => {
+      areaService.getAllAreas().then(res => setAreasList(res || []));
+    }).catch(() => {});
   };
 
   const validate = () => {
@@ -72,7 +88,11 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
     if (!form.name.trim()) e.name = 'Employee Name is required.';
     if (!form.designation) e.designation = 'Designation is required.';
     if (!form.area) e.area = 'Area is required.';
-    if (!form.mobile.trim()) e.mobile = 'Mobile Number is required.';
+    if (!form.mobile.trim()) {
+      e.mobile = 'Mobile Number is required.';
+    } else if (!isValid11DigitPhone(form.mobile)) {
+      e.mobile = 'Mobile Number must contain exactly 11 digits (e.g. 03001234567).';
+    }
     if (!form.joiningDate) e.joiningDate = 'Joining Date is required.';
     return e;
   };
@@ -85,6 +105,20 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
     }
     onSave({ ...form });
   };
+
+  useEffect(() => {
+    if (mode !== 'view') {
+      setOnSave(() => {
+        const e = validate();
+        if (Object.keys(e).length) {
+          setErrors(e);
+          return false;
+        }
+        return onSave({ ...form });
+      });
+    }
+    return () => setOnSave(null);
+  }, [form, mode, onSave]);
 
   return (
     <div className="space-y-5">
@@ -125,9 +159,11 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Employee ID">
           <input
-            disabled
+            disabled={isView}
             value={form.code}
-            className={inputCls(false, true) + ' font-mono'}
+            onChange={(e) => set('code', e.target.value)}
+            placeholder="e.g. TM-001"
+            className={inputCls(false, isView) + ' font-mono'}
           />
         </Field>
         <Field label="Area" required error={errors.area}>
@@ -138,16 +174,15 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
               className={inputCls(false, true)}
             />
           ) : (
-            <select
+            <HybridComboBox
               value={form.area}
-              onChange={(e) => set('area', e.target.value)}
-              className={inputCls(errors.area, isView) + ' appearance-none cursor-pointer'}
-            >
-              <option value="">Select Area…</option>
-              {AREAS.map((a) => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
+              options={areasList.map(a => a.name)}
+              onChange={(val) => set('area', val)}
+              onAddNew={handleAreaAddNew}
+              placeholder="Select or type area..."
+              disabled={isView}
+              error={Boolean(errors.area)}
+            />
           )}
         </Field>
       </div>
@@ -158,8 +193,9 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
           <input
             disabled={isView}
             value={form.mobile}
-            onChange={(e) => set('mobile', e.target.value)}
+            onChange={(e) => set('mobile', sanitizePhoneInput(e.target.value))}
             placeholder="e.g. 03001234567"
+            maxLength={11}
             className={inputCls(errors.mobile, isView)}
           />
         </Field>
@@ -223,24 +259,11 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
             </span>
           </div>
         ) : (
-          <div className="flex gap-3">
-            {['Active', 'Inactive'].map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => set('status', s)}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold border transition-all duration-150
-                  ${form.status === s
-                    ? s === 'Active'
-                      ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-feedback-success'
-                      : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-feedback-error'
-                    : 'bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700 text-gray-400 hover:border-gray-200 dark:hover:border-gray-600'
-                  }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+          <StatusSelector
+            options={['Active', 'Inactive']}
+            value={form.status}
+            onChange={(s) => set('status', s)}
+          />
         )}
       </Field>
 

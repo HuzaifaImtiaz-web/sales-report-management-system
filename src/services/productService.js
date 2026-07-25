@@ -49,6 +49,13 @@ const normalizeProductsList = (rawProducts) => {
 
 export const productService = {
   getAllProducts: async () => {
+    if (window.api && window.api.products) {
+      const res = await window.api.products.getAll();
+      if (res.success) {
+        return res.data.map(p => ({ ...p, rate: p.packPrice }));
+      }
+      throw new Error(res.error || 'Failed to fetch products');
+    }
     const saved = localStorage.getItem('products');
     if (saved) {
       try {
@@ -62,16 +69,38 @@ export const productService = {
   },
 
   getProductById: async (id) => {
+    if (window.api && window.api.products) {
+      const res = await window.api.products.getById(id);
+      if (res.success) {
+        return res.data ? { ...res.data, rate: res.data.packPrice } : null;
+      }
+      throw new Error(res.error || 'Failed to fetch product');
+    }
     const list = await productService.getAllProducts();
     return list.find(p => p.id === Number(id)) || null;
   },
 
   saveProductsList: async (products) => {
+    if (window.api && window.api.products) {
+      throw new Error('Bulk list save not supported over IPC; use individual saves.');
+    }
     localStorage.setItem('products', JSON.stringify(products));
     return products;
   },
 
   saveProduct: async (product) => {
+    if (window.api && window.api.products) {
+      const payload = {
+        ...product,
+        packPrice: product.packPrice || product.rate
+      };
+      const res = await window.api.products.save(payload);
+      if (res.success) {
+        window.dispatchEvent(new CustomEvent('himmel-db-change'));
+        return res.data;
+      }
+      throw new Error(res.error || 'Failed to save product');
+    }
     const list = await productService.getAllProducts();
     let newList;
     if (product.id) {
@@ -85,13 +114,23 @@ export const productService = {
       newList = [newProduct, ...list];
     }
     localStorage.setItem('products', JSON.stringify(newList));
+    window.dispatchEvent(new CustomEvent('himmel-db-change'));
     return newList;
   },
 
   deleteProduct: async (id) => {
+    if (window.api && window.api.products) {
+      const res = await window.api.products.delete(id);
+      if (res.success) {
+        window.dispatchEvent(new CustomEvent('himmel-db-change'));
+        return productService.getAllProducts();
+      }
+      throw new Error(res.error || 'Failed to delete product');
+    }
     const list = await productService.getAllProducts();
     const newList = list.filter(p => p.id !== Number(id));
     localStorage.setItem('products', JSON.stringify(newList));
+    window.dispatchEvent(new CustomEvent('himmel-db-change'));
     return newList;
   }
 };

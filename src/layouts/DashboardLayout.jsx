@@ -11,7 +11,7 @@ const TitleContext = createContext(null);
 export const useTitle = () => {
   const context = useContext(TitleContext);
   if (!context) {
-    throw new Error('useTitle must be used inside a TitleProvider');
+    return { title: 'Dashboard', setTitle: () => {} };
   }
   return context;
 };

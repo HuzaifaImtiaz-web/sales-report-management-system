@@ -1,33 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FiCheck, FiEdit2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
+import { groupService } from '../../services/groupService';
+import { productService } from '../../services/productService';
+import StatusSelector from '../../components/common/StatusSelector';
 
-const CATEGORIES = [
-  'Antibiotics',
-  'Analgesics',
-  'Antidiabetics',
-  'Cardiovascular',
-  'Gastrointestinal',
-  'Respiratory',
-  'Other'
-];
+const DIVISIONS = ['Himmel', 'PMS', 'MSA'];
 
 const UNIT_TYPES = [
-  'Vials',
-  'Tablets',
-  'Capsules',
-  'Syrup Bottles',
-  'Ampoules',
-  'Sachets',
-  'Tubes',
-  'Drops',
-  'Inhalers',
-  'Other'
+  'Tablet',
+  'Capsule',
+  'Vial',
+  'Ampoule',
+  'Injection',
+  'Syrup Bottle',
+  'Sachet',
+  'Tube',
+  'Cream',
+  'Bottle',
+  'Strip',
+  'Pack',
+  'Box'
 ];
 
-const Field = ({ label, required, error, children }) => (
-  <div>
-    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1.5">
+const Field = ({ label, required, error, children, className = '' }) => (
+  <div className={className}>
+    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-550 dark:text-gray-400 mb-1.5">
       {label} {required && <span className="text-feedback-error">*</span>}
     </label>
     {children}
@@ -37,7 +36,7 @@ const Field = ({ label, required, error, children }) => (
 
 const inputCls = (err, disabled) =>
   `w-full px-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border rounded-lg outline-none
-   transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-550
+   transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-555
    focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40
    ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-100 dark:border-gray-750'}
    ${disabled ? 'opacity-70 cursor-default bg-gray-100/50 dark:bg-gray-800/30' : ''}`;
@@ -46,71 +45,166 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
   const isView = mode === 'view';
   const isEdit = mode === 'edit';
   const navigate = useNavigate();
+  const { setIsDirty, setOnSave } = useUnsavedChanges();
 
   const [form, setForm] = useState({
-    name: '',
-    category: 'Antibiotics',
-    packSizeQty: '',
-    packSizeUnit: 'Tablets',
-    packPrice: '',
-    perUnitPrice: 0,
-    status: 'Active',
-    description: ''
+    productCode: '',
+    brandName: '',
+    genericName: '',
+    division: 'Himmel',
+    groupName: '',
+    strength: '',
+    dosageForm: '',
+    registrationNo: '',
+    manufacturer: 'Himmel Pharmaceutical',
+    packSize: '',
+    unitTypeName: 'Tablet',
+    tp: '',
+    mrp: '',
+    description: '',
+    status: 'Active'
   });
+
   const [errors, setErrors] = useState({});
+  const [allGroups, setAllGroups] = useState([]);
+  const [existingDosageForms, setExistingDosageForms] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showDosageSuggestions, setShowDosageSuggestions] = useState(false);
+
+  // Fetch groups and dosage forms on mount
+  useEffect(() => {
+    groupService.getAllGroups().then((data) => {
+      setAllGroups(data || []);
+    });
+    productService.getAllProducts().then((data) => {
+      if (data) {
+        const uniqueForms = [...new Set(data.map(p => p.dosageForm).filter(Boolean))];
+        setExistingDosageForms(uniqueForms);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (item) {
       setForm({
-        name: item.name || '',
-        category: item.category || 'Antibiotics',
-        packSizeQty: item.packSizeQty || '',
-        packSizeUnit: item.packSizeUnit || 'Tablets',
-        packPrice: item.packPrice || '',
-        perUnitPrice: item.perUnitPrice || 0,
-        status: item.status || 'Active',
+        id: item.id,
+        productCode: item.productCode || item.code || '',
+        brandName: item.brandName || item.name || '',
+        genericName: item.genericName || '',
+        division: item.divisionName || item.category || 'Himmel',
+        groupName: item.groupName || '',
+        strength: item.strength || '',
+        dosageForm: item.dosageForm || '',
+        registrationNo: item.registrationNo || '',
+        manufacturer: item.manufacturer || 'Himmel Pharmaceutical',
+        packSize: item.packSize || item.packSizeQty || '',
+        unitTypeName: item.unitTypeName || item.packSizeUnit || 'Tablet',
+        tp: item.tp !== undefined ? item.tp : (item.packPrice || ''),
+        mrp: item.mrp !== undefined ? item.mrp : (item.tp || item.packPrice || ''),
         description: item.description || '',
-        id: item.id
+        status: item.status || 'Active'
       });
     }
   }, [item]);
 
-  // Auto-calculate perUnitPrice when packPrice or packSizeQty changes
-  useEffect(() => {
-    const qty = Number(form.packSizeQty);
-    const price = Number(form.packPrice);
-    if (qty > 0 && price > 0) {
-      const perUnit = Number((price / qty).toFixed(2));
-      setForm((f) => (f.perUnitPrice === perUnit ? f : { ...f, perUnitPrice: perUnit }));
-    } else {
-      setForm((f) => (f.perUnitPrice === 0 ? f : { ...f, perUnitPrice: 0 }));
-    }
-  }, [form.packSizeQty, form.packPrice]);
+  // Compute suggestions based on selected division and query typed
+  const filteredGroups = useMemo(() => {
+    if (!form.division) return [];
+    return allGroups
+      .filter((g) => g.divisionName === form.division)
+      .map((g) => g.name);
+  }, [allGroups, form.division]);
+
+  const suggestions = useMemo(() => {
+    if (!form.groupName) return filteredGroups;
+    return filteredGroups.filter((g) =>
+      g.toLowerCase().includes(form.groupName.toLowerCase())
+    );
+  }, [filteredGroups, form.groupName]);
+
+  // Compute suggestions for Dosage Form Hybrid ComboBox
+  const dosageSuggestions = useMemo(() => {
+    const defaultList = [
+      'Tablet', 'Capsule', 'Syrup', 'Suspension', 'Injection', 'Infusion', 'Cream', 
+      'Ointment', 'Gel', 'Lotion', 'Drops', 'Eye Drops', 'Ear Drops', 'Nasal Spray', 
+      'Inhaler', 'Sachet', 'Powder', 'Solution', 'Oral Solution', 'IV Solution', 
+      'Ampoule', 'Vial', 'Softgel', 'Suppository', 'Patch'
+    ];
+    // Combine and case-insensitively deduplicate
+    const combined = [...defaultList];
+    existingDosageForms.forEach(f => {
+      if (!combined.some(c => c.toLowerCase() === f.toLowerCase())) {
+        combined.push(f);
+      }
+    });
+
+    if (!form.dosageForm) return combined;
+    return combined.filter(c => c.toLowerCase().includes(form.dosageForm.toLowerCase()));
+  }, [existingDosageForms, form.dosageForm]);
 
   const set = (k, v) => {
     if (isView) return;
     setForm((f) => ({ ...f, [k]: v }));
     setErrors((e) => ({ ...e, [k]: '' }));
+    setIsDirty(true);
   };
+
+  // Compute Per Unit Price
+  const computedPerUnitPrice = useMemo(() => {
+    const size = Number(form.packSize);
+    const tpVal = Number(form.tp);
+    if (size > 0 && tpVal > 0) {
+      return Number((tpVal / size).toFixed(2));
+    }
+    return 0;
+  }, [form.packSize, form.tp]);
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'Product Name is required.';
-    if (!form.category) e.category = 'Product Category is required.';
-    
-    const qty = Number(form.packSizeQty);
-    if (form.packSizeQty === '' || isNaN(qty) || qty <= 0) {
-      e.packSizeQty = 'Pack Size Quantity must be greater than 0.';
+    if (!form.brandName.trim()) e.brandName = 'Brand Name is required.';
+    if (!form.genericName.trim()) e.genericName = 'Generic Name is required.';
+    if (!form.division) e.division = 'Division selection is required.';
+    if (!form.groupName.trim()) e.groupName = 'Product Group is required.';
+
+    const size = Number(form.packSize);
+    if (form.packSize === '' || isNaN(size) || size <= 0 || !Number.isInteger(size)) {
+      e.packSize = 'Pack Size must be a positive integer.';
     }
 
-    if (!form.packSizeUnit) e.packSizeUnit = 'Unit Type is required.';
+    if (!form.unitTypeName) e.unitTypeName = 'Unit Type is required.';
 
-    const price = Number(form.packPrice);
-    if (form.packPrice === '' || isNaN(price) || price <= 0) {
-      e.packPrice = 'Pack Price must be greater than 0.';
+    const tpVal = Number(form.tp);
+    if (form.tp === '' || isNaN(tpVal) || tpVal < 0) {
+      e.tp = 'Trade Price (TP) must be a positive number.';
+    }
+
+    const mrpVal = Number(form.mrp);
+    if (form.mrp === '' || isNaN(mrpVal) || mrpVal < 0) {
+      e.mrp = 'MRP must be a positive number.';
+    }
+
+    if (!e.tp && !e.mrp && mrpVal < tpVal) {
+      e.mrp = 'MRP cannot be less than Trade Price (TP).';
     }
 
     return e;
+  };
+
+  const getSavePayload = () => {
+    const size = Number(form.packSize);
+    const tpVal = Number(form.tp);
+    const mrpVal = Number(form.mrp);
+    return {
+      ...form,
+      packSize: size,
+      tp: tpVal,
+      mrp: mrpVal,
+      packSizeQty: size, // Compatibility
+      packPrice: tpVal, // Compatibility
+      rate: tpVal, // Compatibility
+      packSizeUnit: form.unitTypeName, // Compatibility
+      category: form.division // Compatibility
+    };
   };
 
   const handleSave = () => {
@@ -119,178 +213,337 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
       setErrors(e);
       return;
     }
+    onSave(getSavePayload());
+  };
 
-    const qty = Number(form.packSizeQty);
-    const price = Number(form.packPrice);
-    const perUnit = Number((price / qty).toFixed(2));
+  useEffect(() => {
+    if (mode !== 'view') {
+      setOnSave(() => {
+        const e = validate();
+        if (Object.keys(e).length) {
+          setErrors(e);
+          return false;
+        }
+        return onSave(getSavePayload());
+      });
+    }
+    return () => setOnSave(null);
+  }, [form, mode, onSave]);
 
-    onSave({
-      ...form,
-      packSizeQty: qty,
-      packPrice: price,
-      perUnitPrice: perUnit,
-      packSize: `${qty} ${form.packSizeUnit}`,
-      rate: price // compatibility for orders/sales/reports
-    });
+  const statusBadgeCls = (status) => {
+    switch (status) {
+      case 'Active':
+        return 'bg-green-50 dark:bg-green-900/30 border-green-150 text-feedback-success';
+      case 'Inactive':
+        return 'bg-amber-50 dark:bg-amber-900/30 border-amber-150 text-amber-600';
+      case 'Discontinued':
+      default:
+        return 'bg-red-50 dark:bg-red-900/30 border-red-150 text-feedback-error';
+    }
   };
 
   return (
-    <div className="space-y-5">
-      {/* Name + Category */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Product Name" required error={errors.name}>
-          <input
-            disabled={isView}
-            value={form.name}
-            onChange={(e) => set('name', e.target.value)}
-            placeholder="e.g. Amoxicillin 500mg"
-            className={inputCls(errors.name, isView)}
-          />
-        </Field>
+    <div className="space-y-5 max-w-4xl mx-auto bg-white dark:bg-[#0f172a] p-6 rounded-enterprise border border-gray-100 dark:border-gray-800 shadow-soft">
+      {/* Strict Field Ordering:
+          1. Division
+          2. Product Group
+          3. Product Code
+          4. Brand Name
+          5. Generic Name
+          6. Strength
+          7. Dosage Form (Hybrid ComboBox)
+          8. Registration Number
+          9. Manufacturer
+          10. Pack Size
+          11. Unit Type
+          12. TP
+          13. MRP
+          14. Description
+          15. Status
+      */}
 
-        <Field label="Product Category" required error={errors.category}>
+      {/* Row 1: Division & Product Group */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="Division" required error={errors.division}>
           {isView ? (
-            <input
-              disabled
-              value={form.category}
-              className={inputCls(false, true)}
-            />
+            <input disabled value={form.division} className={inputCls(false, true)} />
           ) : (
             <select
-              value={form.category}
-              onChange={(e) => set('category', e.target.value)}
-              className={inputCls(errors.category, isView) + ' appearance-none cursor-pointer'}
+              value={form.division}
+              onChange={(e) => {
+                set('division', e.target.value);
+                set('groupName', ''); // Reset groupName when division changes
+              }}
+              className={inputCls(errors.division, isView) + ' appearance-none cursor-pointer'}
             >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              {DIVISIONS.map((d) => (
+                <option key={d} value={d}>{d}</option>
               ))}
             </select>
           )}
         </Field>
+
+        <Field label="Product Group" required error={errors.groupName} className="relative">
+          {isView ? (
+            <input disabled value={form.groupName} className={inputCls(false, true)} />
+          ) : (
+            <>
+              <input
+                value={form.groupName}
+                onChange={(e) => {
+                  set('groupName', e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                placeholder="Type or select a group..."
+                className={inputCls(errors.groupName, isView)}
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <ul className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+                  {suggestions.map((s) => (
+                    <li
+                      key={s}
+                      onMouseDown={() => {
+                        set('groupName', s);
+                        setShowSuggestions(false);
+                      }}
+                      className="px-3 py-2 text-xs hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 cursor-pointer text-gray-750 dark:text-gray-200 font-semibold"
+                    >
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </Field>
       </div>
 
-      {/* Pack Size (Quantity + Unit Type) */}
+      {/* Row 2: Product Code & Brand Name */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="grid grid-cols-2 gap-2">
-          <Field label="Pack Size Quantity" required error={errors.packSizeQty}>
-            <input
-              disabled={isView}
-              type="number"
-              min="1"
-              value={form.packSizeQty}
-              onChange={(e) => set('packSizeQty', e.target.value)}
-              placeholder="e.g. 10"
-              className={inputCls(errors.packSizeQty, isView)}
-            />
-          </Field>
-
-          <Field label="Unit Type" required error={errors.packSizeUnit}>
-            {isView ? (
-              <input
-                disabled
-                value={form.packSizeUnit}
-                className={inputCls(false, true)}
-              />
-            ) : (
-              <select
-                value={form.packSizeUnit}
-                onChange={(e) => set('packSizeUnit', e.target.value)}
-                className={inputCls(errors.packSizeUnit, isView) + ' appearance-none cursor-pointer'}
-              >
-                {UNIT_TYPES.map((u) => (
-                  <option key={u} value={u}>{u}</option>
-                ))}
-              </select>
-            )}
-          </Field>
-        </div>
-
-        {/* Display Read-only computed Pack Size */}
-        <Field label="Pack Size Description">
+        <Field label="Product Code" error={errors.productCode}>
           <input
-            disabled
-            value={form.packSizeQty && form.packSizeUnit ? `${form.packSizeQty} ${form.packSizeUnit}` : ''}
-            placeholder="Auto-generated Pack Size"
-            className={inputCls(false, true)}
+            disabled={isView}
+            value={form.productCode}
+            onChange={(e) => set('productCode', e.target.value)}
+            placeholder="e.g. PRD-001"
+            className={inputCls(errors.productCode, isView) + ' font-mono'}
+          />
+        </Field>
+
+        <Field label="Brand Name" required error={errors.brandName}>
+          <input
+            disabled={isView}
+            value={form.brandName}
+            onChange={(e) => set('brandName', e.target.value)}
+            placeholder="e.g. Amoxil"
+            className={inputCls(errors.brandName, isView)}
           />
         </Field>
       </div>
 
-      {/* Pack Price + Per Unit Price */}
+      {/* Row 3: Generic Name & Strength */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Pack Price (Rs.)" required error={errors.packPrice}>
+        <Field label="Generic Name" required error={errors.genericName}>
+          <input
+            disabled={isView}
+            value={form.genericName}
+            onChange={(e) => set('genericName', e.target.value)}
+            placeholder="e.g. Amoxicillin Trihydrate"
+            className={inputCls(errors.genericName, isView)}
+          />
+        </Field>
+
+        <Field label="Strength" error={errors.strength}>
+          <input
+            disabled={isView}
+            value={form.strength}
+            onChange={(e) => set('strength', e.target.value)}
+            placeholder="e.g. 500mg, 10ml, etc."
+            className={inputCls(errors.strength, isView)}
+          />
+        </Field>
+      </div>
+
+      {/* Row 4: Dosage Form & Registration Number */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="Dosage Form" error={errors.dosageForm} className="relative">
+          {isView ? (
+            <input disabled value={form.dosageForm} className={inputCls(false, true)} />
+          ) : (
+            <>
+              <div className="relative">
+                <input
+                  value={form.dosageForm}
+                  onChange={(e) => {
+                    set('dosageForm', e.target.value);
+                    setShowDosageSuggestions(true);
+                  }}
+                  onFocus={() => setShowDosageSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowDosageSuggestions(false), 200)}
+                  placeholder="Type or select a dosage form..."
+                  className={inputCls(errors.dosageForm, isView)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowDosageSuggestions(!showDosageSuggestions)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-650"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+              {showDosageSuggestions && dosageSuggestions.length > 0 && (
+                <ul className="absolute z-20 w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+                  {dosageSuggestions.map((s) => (
+                    <li
+                      key={s}
+                      onMouseDown={() => {
+                        set('dosageForm', s);
+                        setShowDosageSuggestions(false);
+                      }}
+                      className="px-3 py-2 text-xs hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 cursor-pointer text-gray-750 dark:text-gray-200 font-semibold"
+                    >
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </Field>
+
+        <Field label="Registration Number" error={errors.registrationNo}>
+          <input
+            disabled={isView}
+            value={form.registrationNo}
+            onChange={(e) => set('registrationNo', e.target.value)}
+            placeholder="e.g. Reg-100012"
+            className={inputCls(errors.registrationNo, isView)}
+          />
+        </Field>
+      </div>
+
+      {/* Row 5: Manufacturer & Pack Size */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="Manufacturer" error={errors.manufacturer}>
+          <input
+            disabled={isView}
+            value={form.manufacturer}
+            onChange={(e) => set('manufacturer', e.target.value)}
+            placeholder="e.g. Himmel Pharmaceutical"
+            className={inputCls(errors.manufacturer, isView)}
+          />
+        </Field>
+
+        <Field label="Pack Size" required error={errors.packSize}>
           <input
             disabled={isView}
             type="number"
             min="1"
-            value={form.packPrice}
-            onChange={(e) => set('packPrice', e.target.value)}
+            value={form.packSize}
+            onChange={(e) => set('packSize', e.target.value)}
+            placeholder="e.g. 10"
+            className={inputCls(errors.packSize, isView)}
+          />
+        </Field>
+      </div>
+
+      {/* Row 6: Unit Type & Trade Price */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="Unit Type" required error={errors.unitTypeName}>
+          {isView ? (
+            <input disabled value={form.unitTypeName} className={inputCls(false, true)} />
+          ) : (
+            <select
+              value={form.unitTypeName}
+              onChange={(e) => set('unitTypeName', e.target.value)}
+              className={inputCls(errors.unitTypeName, isView) + ' appearance-none cursor-pointer'}
+            >
+              {UNIT_TYPES.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          )}
+        </Field>
+
+        <Field label="Trade Price" required error={errors.tp}>
+          <input
+            disabled={isView}
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.tp}
+            onChange={(e) => set('tp', e.target.value)}
+            placeholder="e.g. 4500"
+            className={inputCls(errors.tp, isView)}
+          />
+        </Field>
+      </div>
+
+      {/* Row 7: MRP & Computed Per Unit Price */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="Maximum Retail Price" required error={errors.mrp}>
+          <input
+            disabled={isView}
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.mrp}
+            onChange={(e) => set('mrp', e.target.value)}
             placeholder="e.g. 5000"
-            className={inputCls(errors.packPrice, isView)}
+            className={inputCls(errors.mrp, isView)}
           />
         </Field>
 
-        <Field label="Per Unit Price (Auto Calculated)">
+        <Field label="Per Unit Price">
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400">Rs.</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-405">Rs.</span>
             <input
               disabled
-              value={form.perUnitPrice > 0 ? `${form.perUnitPrice.toLocaleString()} per ${form.packSizeUnit ? form.packSizeUnit.replace(/s$/, '') : 'Unit'}` : '0'}
+              value={computedPerUnitPrice > 0 ? `${computedPerUnitPrice.toLocaleString()} per ${form.unitTypeName}` : '0'}
               className={inputCls(false, true) + ' pl-9 font-bold text-brand-primary'}
             />
           </div>
         </Field>
       </div>
 
-      {/* Description */}
+      {/* Row 8: Description */}
       <Field label="Description">
         <textarea
           disabled={isView}
           rows={3}
           value={form.description}
           onChange={(e) => set('description', e.target.value)}
-          placeholder="Optional product description…"
+          placeholder="Optional product description details…"
           className={inputCls(false, isView) + ' resize-none'}
         />
       </Field>
 
-      {/* Status */}
+      {/* Row 9: Status */}
       <Field label="Status" required>
         {isView ? (
           <div className="pt-1">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold border ${
-              form.status === 'Active'
-                ? 'bg-green-50 dark:bg-green-900/30 border-green-150 text-feedback-success'
-                : 'bg-red-50 dark:bg-red-900/30 border-red-150 text-feedback-error'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${form.status === 'Active' ? 'bg-feedback-success' : 'bg-feedback-error'}`} />
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold border ${statusBadgeCls(form.status)}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                form.status === 'Active' ? 'bg-feedback-success' : form.status === 'Inactive' ? 'bg-amber-500' : 'bg-feedback-error'
+              }`} />
               {form.status}
             </span>
           </div>
         ) : (
-          <div className="flex gap-3">
-            {['Active', 'Inactive'].map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => set('status', s)}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold border transition-all duration-150
-                  ${form.status === s
-                    ? s === 'Active'
-                      ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-feedback-success'
-                      : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-feedback-error'
-                    : 'bg-gray-55 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700 text-gray-400 hover:border-gray-200 dark:hover:border-gray-600'
-                  }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+          <StatusSelector
+            options={['Active', 'Inactive', 'Discontinued']}
+            value={form.status}
+            onChange={(s) => set('status', s)}
+          />
         )}
       </Field>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-105 dark:border-gray-800">
         {isView ? (
           <>
             <button

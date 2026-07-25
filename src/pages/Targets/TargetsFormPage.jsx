@@ -6,11 +6,14 @@ import { targetService } from '../../services/targetService';
 import { productService } from '../../services/productService';
 import { areaService } from '../../services/areaService';
 import { teamMemberService } from '../../services/teamMemberService';
+import Toast from '../../components/common/Toast';
+import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 
 export default function TargetsFormPage() {
   const { id } = useParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { setIsDirty, confirmNavigation } = useUnsavedChanges();
 
   const [currentItem, setCurrentItem] = useState(null);
   const [businessYearsList, setBusinessYearsList] = useState([]);
@@ -18,6 +21,8 @@ export default function TargetsFormPage() {
   const [areasList, setAreasList] = useState([]);
   const [teamMembersList, setTeamMembersList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [formKey, setFormKey] = useState(0);
+  const [toast, setToast] = useState(null);
 
   const mode = useMemo(() => {
     if (pathname.includes('/new')) return 'add';
@@ -49,8 +54,39 @@ export default function TargetsFormPage() {
     });
   }, [id]);
 
+  useEffect(() => {
+    return () => {
+      setIsDirty(false);
+    };
+  }, [setIsDirty]);
+
   const handleSave = (form) => {
-    targetService.saveTarget(form).then(() => {
+    setToast(null);
+    return targetService.saveTarget(form)
+      .then(() => {
+        setIsDirty(false);
+        if (mode === 'add') {
+          setToast({ message: 'Record saved successfully.', type: 'success' });
+          setFormKey((prev) => prev + 1);
+          setTimeout(() => {
+            const firstInput = document.querySelector('input, select, textarea');
+            if (firstInput) firstInput.focus();
+          }, 50);
+        } else {
+          navigate('/targets', {
+            state: { toast: { message: 'Record updated successfully.', type: 'success' } }
+          });
+        }
+        return true;
+      })
+      .catch((err) => {
+        setToast({ message: err.message || 'Failed to save targets.', type: 'error' });
+        return false;
+      });
+  };
+
+  const handleCancel = () => {
+    confirmNavigation(() => {
       navigate('/targets');
     });
   };
@@ -75,9 +111,11 @@ export default function TargetsFormPage() {
   return (
     <DashboardLayout pageTitle={pageTitle}>
       <div className="space-y-6 animate-fade-in max-w-4xl mx-auto pb-12">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/targets')}
+            onClick={handleCancel}
             className="p-2 hover:bg-gray-155 dark:hover:bg-gray-800 rounded-lg text-gray-550 hover:text-gray-700 transition-colors"
           >
             ← Back
@@ -94,6 +132,7 @@ export default function TargetsFormPage() {
 
         <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-sm p-6 sm:p-8">
           <TargetsForm
+            key={formKey}
             mode={mode}
             item={currentItem}
             businessYearsList={businessYearsList}
@@ -101,7 +140,7 @@ export default function TargetsFormPage() {
             areasList={areasList}
             teamMembersList={teamMembersList}
             onSave={handleSave}
-            onCancel={() => navigate('/targets')}
+            onCancel={handleCancel}
           />
         </div>
       </div>
