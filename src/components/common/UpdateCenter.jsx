@@ -16,7 +16,7 @@ import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 export default function UpdateCenter({ isOpen = true, onClose, isInline = false }) {
   const { isDirty } = useUnsavedChanges();
   const [statusState, setStatusState] = useState({
-    currentVersion: '1.0.0',
+    currentVersion: '1.0.1',
     updateChannel: 'Stable',
     lastChecked: null,
     status: 'idle', // idle, checking, available, downloading, downloaded, not-available, error

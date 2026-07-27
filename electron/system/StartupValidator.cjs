@@ -35,7 +35,7 @@ class StartupValidator {
     
     // 1. Check folders
     const folders = this.getRequiredFolders(storageDir);
-    const missingFolders = folders.some(f => !fs.existsSync(f.path));
+    const missingFolders = folders.filter(f => !fs.existsSync(f.path));
 
     // 2. Check config file
     const configFile = this.getConfigFile(storageDir);
@@ -45,8 +45,12 @@ class StartupValidator {
     const authDbPath = path.join(storageDir, 'users.db');
     const missingAuthDb = !fs.existsSync(authDbPath);
 
-    const isFirst = missingFolders || missingConfig || missingAuthDb;
-    logger.info(`First run check performed. Result: ${isFirst ? 'FIRST_RUN_REQUIRED' : 'NORMAL_STARTUP'} (Missing Folders: ${missingFolders}, Missing Config: ${missingConfig}, Missing Auth DB: ${missingAuthDb})`);
+    // 4. Check admin database
+    const adminDbPath = path.join(storageDir, 'database', 'admin.db');
+    const missingAdminDb = !fs.existsSync(adminDbPath);
+
+    const isFirst = missingFolders.length > 0 || missingConfig || missingAuthDb || missingAdminDb;
+    logger.info(`[Startup] First run check performed. Result: ${isFirst ? 'FIRST_RUN_REQUIRED' : 'NORMAL_STARTUP'} (Missing Folders: ${missingFolders.map(f => f.name).join(', ') || 'None'}, Missing Config: ${missingConfig}, Missing Auth DB: ${missingAuthDb}, Missing Admin DB: ${missingAdminDb})`);
     
     return isFirst;
   }
@@ -70,8 +74,8 @@ class StartupValidator {
    */
   static validateStartup(baseDir = null) {
     const storageDir = baseDir || UserDatabaseService.getStorageDirectory();
-    logger.info('Application Started');
-    logger.info('Checking folders...');
+    logger.info('[Startup] App launched');
+    logger.info('[Startup] Checking runtime folders');
 
     // 1. Recreate missing folders idempotently
     const folders = this.getRequiredFolders(storageDir);
@@ -79,22 +83,22 @@ class StartupValidator {
     folders.forEach(f => {
       if (!fs.existsSync(f.path)) {
         this.ensureDirSync(f.path);
-        logger.info(`Recreated missing runtime folder: ${f.name} at ${f.path}`);
+        logger.info(`[Startup] Recreated missing runtime folder: ${f.name} at ${f.path}`);
         recreatedFolderCount++;
       }
     });
     if (recreatedFolderCount === 0) {
-      logger.info('Folders OK');
+      logger.info('[Startup] Runtime folders verified');
     }
 
     // 2. Check configuration file
-    logger.info('Checking configuration...');
+    logger.info('[Startup] Checking configuration...');
     const configFile = this.getConfigFile(storageDir);
     if (!fs.existsSync(configFile)) {
-      logger.info(`Configuration missing. Creating default configuration file at ${configFile}`);
+      logger.info(`[Startup] Configuration missing. Creating default configuration file at ${configFile}`);
       const defaultConfig = {
         appName: 'Himmel Pharmaceutical',
-        version: '1.0.0',
+        version: '1.0.1',
         storageDirectory: storageDir,
         theme: 'light',
         autoBackupEnabled: true,
@@ -102,24 +106,38 @@ class StartupValidator {
       };
       fs.mkdirSync(path.dirname(configFile), { recursive: true });
       fs.writeFileSync(configFile, JSON.stringify(defaultConfig, null, 2), 'utf-8');
-      logger.info('Configuration created cleanly');
+      logger.info('[Startup] Configuration loaded');
     } else {
-      logger.info('Configuration OK');
+      logger.info('[Startup] Configuration loaded');
     }
 
-    // 3. Check database
-    logger.info('Checking database...');
+    // 3. Check databases
+    logger.info('[Startup] Checking databases');
     const authDbPath = path.join(storageDir, 'users.db');
-    if (!fs.existsSync(authDbPath)) {
-      logger.info('Auth database missing. Triggering system initializer...');
-      const SystemInitializer = require('./SystemInitializer.cjs');
-      SystemInitializer.initializeSystemSync(storageDir);
-      logger.info('Database Created');
+    const adminDbPath = path.join(storageDir, 'database', 'admin.db');
+
+    if (fs.existsSync(authDbPath)) {
+      logger.info('[Startup] users.db found');
     } else {
-      logger.info('Database OK');
+      logger.info('[Startup] users.db missing');
     }
 
-    logger.info('Startup validation completed successfully.');
+    if (fs.existsSync(adminDbPath)) {
+      logger.info('[Startup] admin.db found');
+    } else {
+      logger.info('[Startup] admin.db missing');
+    }
+
+    const isFirst = !fs.existsSync(authDbPath) || !fs.existsSync(adminDbPath);
+    if (isFirst) {
+      logger.info('[Startup] First Run = TRUE');
+    } else {
+      logger.info('[Startup] First Run = FALSE');
+      logger.info('[Startup] Initialization skipped');
+      logger.info('[Startup] Launching Login');
+    }
+
+    logger.info('[Startup] Startup validation completed successfully.');
     return true;
   }
 }

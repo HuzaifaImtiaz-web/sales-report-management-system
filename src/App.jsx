@@ -31,7 +31,8 @@ function App() {
     const checkFirstRun = async () => {
       try {
         if (window.api && window.api.system && typeof window.api.system.checkFirstRun === 'function') {
-          const isFirst = await window.api.system.checkFirstRun();
+          const res = await window.api.system.checkFirstRun();
+          const isFirst = Boolean(res && typeof res === 'object' && 'data' in res ? res.data : res);
           if (isFirst) {
             setShowInitScreen(true);
           }

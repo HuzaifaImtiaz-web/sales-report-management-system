@@ -104,7 +104,9 @@ function setupIpcHandlers(db) {
           }
         }
 
-        const res = await handlerFn(...args);
+        const res = options.passEvent
+          ? await handlerFn(event, ...args)
+          : await handlerFn(...args);
         return { success: true, data: res };
       } catch (error) {
         logger.error(`IPC Error on ${channel}:`, error);
@@ -951,11 +953,11 @@ function setupIpcHandlers(db) {
   wrapHandler('system:start-initialization', async (event) => {
     const SystemInitializer = require('./system/SystemInitializer.cjs');
     return SystemInitializer.initializeSystem(null, (progress) => {
-      if (event && event.sender) {
+      if (event && event.sender && typeof event.sender.send === 'function') {
         event.sender.send('system:init-progress', progress);
       }
     });
-  }, { isPublic: true });
+  }, { isPublic: true, passEvent: true });
 
   wrapHandler('system:validate-startup', async () => {
     const StartupValidator = require('./system/StartupValidator.cjs');
@@ -970,6 +972,13 @@ function setupIpcHandlers(db) {
       fs.mkdirSync(logDir, { recursive: true });
     }
     await shell.openPath(logDir);
+    return true;
+  }, { isPublic: true });
+
+  wrapHandler('system:exit-app', async () => {
+    const { app } = require('electron');
+    logger.info('[Startup] system:exit-app requested by renderer');
+    app.quit();
     return true;
   }, { isPublic: true });
 

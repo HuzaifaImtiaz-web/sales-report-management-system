@@ -161,7 +161,7 @@ const Login = () => {
         {/* Footer Info */}
         <div className="z-10 space-y-1">
           <p className="text-[10px] font-bold tracking-widest text-white/70 uppercase">
-            v1.0.0 — Enterprise Desktop
+            v1.0.1 — Enterprise Desktop
           </p>
           <p className="text-[9px] text-white/50 font-medium">
             © {new Date().getFullYear()} Himmel Pharmaceutical. All rights reserved.
@@ -326,7 +326,7 @@ const Login = () => {
 
         {/* Small version label for smaller screens */}
         <div className="lg:hidden text-center text-[10px] font-bold text-gray-450 dark:text-slate-500 tracking-widest uppercase">
-          v1.0.0 — Enterprise Desktop
+          v1.0.1 — Enterprise Desktop
         </div>
       </div>
     </div>

@@ -60,7 +60,7 @@ if (!gotTheLock) {
 
   function initApp() {
     try {
-      logger.info('Starting Himmel Sales Management application...');
+      logger.info('[Startup] Starting Himmel Sales Management application...');
       const StartupValidator = require('./system/StartupValidator.cjs');
       StartupValidator.validateStartup();
 
