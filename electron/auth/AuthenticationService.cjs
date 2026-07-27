@@ -465,7 +465,5 @@ class AuthenticationService {
   }
 }
 
-// Auto initialize on module import
-AuthenticationService.initialize();
-
+// Export AuthenticationService without auto-running top-level initialization
 module.exports = AuthenticationService;

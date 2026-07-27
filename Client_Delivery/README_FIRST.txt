@@ -1,6 +1,6 @@
 ================================================================
 HIMMEL PHARMACEUTICAL SALES MANAGEMENT SYSTEM
-Version 1.0.0 — Enterprise First Release (RC1)
+Version 1.0.1 — Enterprise Hotfix Release
 ================================================================
 
 WELCOME TO HIMMEL SALES MANAGEMENT SYSTEM!
@@ -19,13 +19,13 @@ Thank you for choosing Himmel Pharmaceutical Sales Management System for your bu
 ----------------------------------------------------------------
 Option A: Standard Installation (Recommended)
 1. Open the "Installer" folder in this distribution package.
-2. Double-click "Himmel_Pharmaceutical_Sales_Management_Setup_1.0.0.exe".
+2. Double-click "Himmel_Pharmaceutical_Sales_Management_Setup_1.0.1.exe".
 3. Follow the installation wizard prompts.
 4. Launch the application from your Desktop or Start Menu shortcut.
 
 Option B: Portable Execution (No Installation Required)
 1. Open the "Installer" folder.
-2. Double-click "Himmel_Pharmaceutical_Sales_Management_Portable_1.0.0.exe".
+2. Double-click "Himmel_Pharmaceutical_Sales_Management_Portable_1.0.1.exe".
 3. The application will launch immediately without needing administrative installation rights.
 
 ----------------------------------------------------------------
@@ -75,8 +75,8 @@ For technical assistance, system deployment guidance, or software support:
 ----------------------------------------------------------------
 8. VERSION NUMBER & BUILD STAMP
 ----------------------------------------------------------------
-Version: v1.0.0 (Production Release Candidate 1)
-Build Date: July 25, 2026
+Version: v1.0.1 (Production Hotfix Release)
+Build Date: July 27, 2026
 
 ================================================================
 Copyright © 2026 Himmel Pharmaceutical Ltd. All rights reserved.

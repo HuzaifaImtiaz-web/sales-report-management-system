@@ -22,8 +22,18 @@ const SystemInitScreen = ({ onComplete }) => {
     setCompletedSteps([]);
     setCurrentStep(1);
     setStatusText('Preparing Application...');
+    setIsDone(false);
 
     let unsubscribe = null;
+    let isFinished = false;
+
+    // Timeout Protection: 30 seconds max startup timeout
+    const timeoutId = setTimeout(() => {
+      if (!isFinished) {
+        isFinished = true;
+        setError('System initialization timed out. A background task took too long to complete. Please retry or check log files.');
+      }
+    }, 30000);
 
     if (window.api && window.api.system && typeof window.api.system.onInitProgress === 'function') {
       unsubscribe = window.api.system.onInitProgress((prog) => {
@@ -38,6 +48,8 @@ const SystemInitScreen = ({ onComplete }) => {
             setStatusText(prog.text);
           }
           if (prog.complete) {
+            isFinished = true;
+            clearTimeout(timeoutId);
             setIsDone(true);
             setStatusText('System Ready');
             setCompletedSteps([1, 2, 3, 4, 5]);
@@ -54,7 +66,9 @@ const SystemInitScreen = ({ onComplete }) => {
     try {
       if (window.api && window.api.system && typeof window.api.system.startInitialization === 'function') {
         const res = await window.api.system.startInitialization();
-        if (res && res.success) {
+        if (res && res.success && (res.data === undefined || res.data.success)) {
+          isFinished = true;
+          clearTimeout(timeoutId);
           setIsDone(true);
           setStatusText('System Ready');
           setCompletedSteps([1, 2, 3, 4, 5]);
@@ -63,6 +77,11 @@ const SystemInitScreen = ({ onComplete }) => {
               onComplete();
             }
           }, 800);
+        } else {
+          isFinished = true;
+          clearTimeout(timeoutId);
+          const errMsg = (res && res.error) || (res && res.data && res.data.error) || 'Initialization failed on server.';
+          setError(errMsg);
         }
       } else {
         // Fallback for browser / non-electron dev mode simulation
@@ -71,6 +90,8 @@ const SystemInitScreen = ({ onComplete }) => {
           setCurrentStep(i);
           setCompletedSteps((prev) => [...prev, i]);
         }
+        isFinished = true;
+        clearTimeout(timeoutId);
         setIsDone(true);
         setStatusText('System Ready');
         setTimeout(() => {
@@ -80,6 +101,8 @@ const SystemInitScreen = ({ onComplete }) => {
         }, 500);
       }
     } catch (err) {
+      isFinished = true;
+      clearTimeout(timeoutId);
       setError(err.message || 'Unable to initialize database.');
     } finally {
       if (unsubscribe) unsubscribe();
