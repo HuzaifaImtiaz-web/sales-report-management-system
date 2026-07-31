@@ -4,6 +4,10 @@ const { app, BrowserWindow, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// Configure Chromium switches for Windows network stability
+app.commandLine.appendSwitch('disable-features', 'OutOfProcessNetworkService');
+app.commandLine.appendSwitch('no-sandbox');
+
 // Configure application name and custom user data directory
 app.setName('Himmel Pharmaceutical');
 const userDataPath = path.join(app.getPath('appData'), 'Himmel Pharmaceutical');
