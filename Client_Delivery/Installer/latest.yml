@@ -1,8 +1,8 @@
-version: 1.0.2
+version: 1.0.3
 files:
-  - url: Himmel_Pharmaceutical_Sales_Management_Setup_1.0.2.exe
-    sha512: rQEB1eT7TxdSdVrw9KU72eZek1/IXjvmosepuEo4EPwHPOa45EqocZPiItmJj/wijOzKFkXBDUDpeqrA8IeVng==
-    size: 240155667
-path: Himmel_Pharmaceutical_Sales_Management_Setup_1.0.2.exe
-sha512: rQEB1eT7TxdSdVrw9KU72eZek1/IXjvmosepuEo4EPwHPOa45EqocZPiItmJj/wijOzKFkXBDUDpeqrA8IeVng==
-releaseDate: '2026-07-31T21:08:12.173Z'
+  - url: Himmel_Pharmaceutical_Sales_Management_Setup_1.0.3.exe
+    sha512: JMkqBdhpAz68Fx9x5XsOoC5C/4RTPfJrq00PDKDvo6HGUaEdJHij0mDUEX2M46AHQTRzD7Y71X2EIySuZQr+4A==
+    size: 240155784
+path: Himmel_Pharmaceutical_Sales_Management_Setup_1.0.3.exe
+sha512: JMkqBdhpAz68Fx9x5XsOoC5C/4RTPfJrq00PDKDvo6HGUaEdJHij0mDUEX2M46AHQTRzD7Y71X2EIySuZQr+4A==
+releaseDate: '2026-07-31T21:13:59.163Z'
