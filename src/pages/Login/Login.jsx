@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import CompanyLogo from '../../components/common/CompanyLogo';
 import { FiLock, FiUser, FiAlertCircle, FiSun, FiMoon } from 'react-icons/fi';
+import { APP_VERSION_LABEL } from '../../utils/version';
 
 import EmergencyRecoveryModal from '../../components/auth/EmergencyRecoveryModal';
 import FirstLoginSecurityWizard from '../../components/auth/FirstLoginSecurityWizard';
@@ -140,7 +141,9 @@ const Login = () => {
 
         {/* Brand Header */}
         <div className="z-10 flex items-center gap-3">
-          <CompanyLogo className="h-8 w-auto max-w-[36px]" />
+          <div className="p-2 bg-white rounded-xl shadow-md border border-white/20 shrink-0 inline-flex items-center justify-center">
+            <CompanyLogo className="h-7 w-auto max-w-[36px] object-contain" />
+          </div>
           <div>
             <h2 className="text-sm font-extrabold tracking-[0.25em] uppercase leading-none">Himmel</h2>
             <p className="text-[10px] font-semibold tracking-[0.2em] text-white/70 uppercase mt-1">Pharmaceutical</p>
@@ -161,7 +164,7 @@ const Login = () => {
         {/* Footer Info */}
         <div className="z-10 space-y-1">
           <p className="text-[10px] font-bold tracking-widest text-white/70 uppercase">
-            v1.0.2 — Enterprise Desktop
+            {APP_VERSION_LABEL}
           </p>
           <p className="text-[9px] text-white/50 font-medium">
             © {new Date().getFullYear()} Himmel Pharmaceutical. All rights reserved.
@@ -175,7 +178,9 @@ const Login = () => {
         {/* Top bar with theme toggle */}
         <div className="flex justify-between items-center">
           <div className="lg:hidden flex items-center gap-2">
-            <CompanyLogo className="h-7 w-7" />
+            <div className="p-1.5 bg-white rounded-lg shadow-sm border border-gray-150 shrink-0 inline-flex items-center justify-center">
+              <CompanyLogo className="h-6 w-auto object-contain" />
+            </div>
             <span className="text-xs font-black tracking-widest uppercase text-gray-800 dark:text-white">Himmel</span>
           </div>
           <div className="hidden lg:block"></div>
@@ -326,7 +331,7 @@ const Login = () => {
 
         {/* Small version label for smaller screens */}
         <div className="lg:hidden text-center text-[10px] font-bold text-gray-450 dark:text-slate-500 tracking-widest uppercase">
-          v1.0.2 — Enterprise Desktop
+          {APP_VERSION_LABEL}
         </div>
       </div>
     </div>

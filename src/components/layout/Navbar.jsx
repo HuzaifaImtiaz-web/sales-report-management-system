@@ -83,7 +83,9 @@ const Navbar = ({ onMenuClick }) => {
         </button>
 
         {/* Company logo — visible only on mobile when sidebar is hidden */}
-        <CompanyLogo className="md:hidden h-7 w-auto object-contain" />
+        <div className="md:hidden p-1 bg-white rounded-lg shadow-sm border border-gray-150 shrink-0 inline-flex items-center justify-center">
+          <CompanyLogo className="h-6 w-auto object-contain" />
+        </div>
 
         <div className="hidden sm:block">
           <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-none">{title}</h1>
