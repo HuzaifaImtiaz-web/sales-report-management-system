@@ -71,7 +71,9 @@ function createMainWindow(preloadPath) {
     y: state.y,
     minWidth: 1024,
     minHeight: 768,
-    icon: path.join(__dirname, '../src/assets/logos/Himmel-sale-logo.png'),
+    icon: fs.existsSync(path.join(__dirname, '../src/assets/logos/Himmel-Logo.png'))
+      ? path.join(__dirname, '../src/assets/logos/Himmel-Logo.png')
+      : path.join(__dirname, '../build/icon.png'),
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,

@@ -1,3 +1,5 @@
+import logoImg from '../assets/logos/Himmel-Logo.png';
+
 const getVal = async (key, fallback) => {
   if (window.api && window.api.settings) {
     const res = await window.api.settings.getByKey(key);
@@ -37,13 +39,17 @@ const setVal = async (key, value, group = 'General') => {
 
 export const settingsService = {
   getCompanyInfo: async () => {
-    return getVal('himmel_company_info', {
+    const company = await getVal('himmel_company_info', {
       name: 'Himmel Pharmaceutical',
-      logo: 'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=150&auto=format&fit=crop&q=60',
+      logo: logoImg,
       email: 'info@himmelpharma.com',
       phone: '+92 (21) 111-HIMMEL',
       address: 'Plot 42, Sector 23, Korangi Industrial Area, Karachi, Pakistan'
     });
+    if (company && typeof company === 'object' && (!company.logo || company.logo.includes('unsplash'))) {
+      company.logo = logoImg;
+    }
+    return company;
   },
 
   saveCompanyInfo: async (info) => {

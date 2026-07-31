@@ -13,6 +13,8 @@ import {
 } from 'react-icons/fi';
 import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 
+import CompanyLogo from './CompanyLogo';
+
 export default function UpdateCenter({ isOpen = true, onClose, isInline = false }) {
   const { isDirty } = useUnsavedChanges();
   const [statusState, setStatusState] = useState({
@@ -105,9 +107,7 @@ export default function UpdateCenter({ isOpen = true, onClose, isInline = false 
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-crimson-50 dark:bg-crimson-950/40 border border-crimson-200/50 dark:border-crimson-800/40 flex items-center justify-center text-brand-primary font-bold">
-            <FiRefreshCw className={`w-5 h-5 ${statusState.status === 'checking' ? 'animate-spin' : ''}`} />
-          </div>
+          <CompanyLogo className="w-9 h-9 object-contain drop-shadow-sm" />
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-gray-900 dark:text-white">Enterprise Update Center</h2>
