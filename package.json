@@ -82,6 +82,8 @@
       "uninstallDisplayName": "Himmel Pharmaceutical Sales Management System",
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
       "allowElevation": true,
       "perMachine": true,
