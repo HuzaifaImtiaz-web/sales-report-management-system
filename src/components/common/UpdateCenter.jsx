@@ -14,11 +14,12 @@ import {
 import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 
 import CompanyLogo from './CompanyLogo';
+import { APP_VERSION } from '../../utils/version';
 
 export default function UpdateCenter({ isOpen = true, onClose, isInline = false }) {
   const { isDirty } = useUnsavedChanges();
   const [statusState, setStatusState] = useState({
-    currentVersion: '1.0.2',
+    currentVersion: APP_VERSION,
     updateChannel: 'Stable',
     lastChecked: null,
     status: 'idle', // idle, checking, available, downloading, downloaded, not-available, error
@@ -107,7 +108,9 @@ export default function UpdateCenter({ isOpen = true, onClose, isInline = false 
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-3">
-          <CompanyLogo className="w-9 h-9 object-contain drop-shadow-sm" />
+          <div className="p-1.5 bg-white rounded-lg shadow-sm border border-gray-150 shrink-0 inline-flex items-center justify-center">
+            <CompanyLogo className="w-7 h-7 object-contain drop-shadow-sm" />
+          </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-gray-900 dark:text-white">Enterprise Update Center</h2>

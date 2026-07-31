@@ -110,10 +110,12 @@ const SidebarContent = ({
     <div className="flex flex-col h-full overflow-hidden relative">
       {/* Brand Header (Fixed) */}
       <div className={`flex-shrink-0 flex items-center gap-3 px-5 py-4 border-b border-white/10 ${isCollapsed ? 'justify-center px-3' : ''}`}>
-        <CompanyLogo
-          className={`flex-shrink-0 object-contain transition-all duration-300 ${isCollapsed ? 'h-7 w-7' : 'h-8 w-auto max-w-[36px]'}`}
-          aria-label="Himmel Pharmaceutical"
-        />
+        <div className="p-1.5 bg-white rounded-lg shadow-sm border border-white/20 shrink-0 inline-flex items-center justify-center">
+          <CompanyLogo
+            className={`flex-shrink-0 object-contain transition-all duration-300 ${isCollapsed ? 'h-6 w-6' : 'h-7 w-auto max-w-[32px]'}`}
+            aria-label="Himmel Pharmaceutical"
+          />
+        </div>
         <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>
           <p className="text-white font-bold text-sm leading-none tracking-wide whitespace-nowrap">Himmel</p>
           <p className="text-white/55 text-xs mt-0.5 font-medium leading-none whitespace-nowrap">Pharmaceutical</p>

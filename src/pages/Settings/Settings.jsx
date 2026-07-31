@@ -22,6 +22,7 @@ import {
 
 import CompanyLogo from '../../components/common/CompanyLogo';
 import logoImg from '../../assets/logos/Himmel-Logo.png';
+import { APP_VERSION } from '../../utils/version';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -179,7 +180,7 @@ const Settings = () => {
   };
 
   // Production / Admin Settings States
-  const [appConfig, setAppConfig] = useState({ mode: 'production', version: '1.0.2', dbversion: '1.0.2' });
+  const [appConfig, setAppConfig] = useState({ mode: 'production', version: APP_VERSION, dbVersion: APP_VERSION });
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [diagnostics, setDiagnostics] = useState(null);
   const [integrityReport, setIntegrityReport] = useState(null);
@@ -1350,7 +1351,9 @@ const Settings = () => {
               {/* Header with Himmel Logo & Main App Info */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-4">
-                  <CompanyLogo className="h-12 w-auto object-contain drop-shadow-sm" />
+                  <div className="p-2 bg-white rounded-xl shadow-sm border border-gray-150 shrink-0 inline-flex items-center justify-center">
+                    <CompanyLogo className="h-10 w-auto object-contain drop-shadow-sm" />
+                  </div>
                   <div>
                     <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
                       Himmel Pharmaceutical Sales Management System
@@ -1363,7 +1366,7 @@ const Settings = () => {
 
                 <div className="flex items-center gap-2">
                   <span className="px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-red-400 rounded-full border border-brand-primary/20">
-                    v{appConfig.version || '1.0.2'}
+                    v{appConfig.version || APP_VERSION}
                   </span>
                   <span className="px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800/40">
                     Stable Release
@@ -1381,14 +1384,14 @@ const Settings = () => {
                   Enterprise Pharmaceutical Sales &amp; Distribution Management System designed for managing Products, Doctors, Institutions, Areas, Team Members, Sales, Orders, Reporting, Analytics, Business Year Management, and Enterprise Backup &amp; Recovery.
                 </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-gray-150 dark:border-gray-800/60 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-3 border-t border-gray-150 dark:border-gray-800/60 text-xs">
                   <div>
                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Application Name</span>
                     <p className="font-bold text-gray-800 dark:text-white mt-0.5">Himmel Pharmaceutical Sales Management System</p>
                   </div>
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Version</span>
-                    <p className="font-bold text-gray-800 dark:text-white mt-0.5">{appConfig.version || '1.0.2'}</p>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Installed Version</span>
+                    <p className="font-bold text-gray-800 dark:text-white mt-0.5">v{appConfig.version || APP_VERSION}</p>
                   </div>
                   <div>
                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Release Channel</span>
@@ -1398,8 +1401,13 @@ const Settings = () => {
                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Build Type</span>
                     <p className="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">Stable Release</p>
                   </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Build Date</span>
+                    <p className="font-bold text-gray-800 dark:text-gray-200 mt-0.5">{appConfig.buildDate || '2026-08-01'}</p>
+                  </div>
                 </div>
               </div>
+
 
               {/* Developer & System Information Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1445,7 +1453,7 @@ const Settings = () => {
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
                     <div>
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">App Version</span>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.version || '1.0.2'}</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.version || APP_VERSION}</span>
                     </div>
                     <div>
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Electron</span>

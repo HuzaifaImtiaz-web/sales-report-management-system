@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CompanyLogo from './CompanyLogo';
 import { useAuth } from '../../context/AuthContext';
+import { APP_VERSION_FULL_LABEL } from '../../utils/version';
 
 const SplashScreen = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
@@ -76,8 +77,8 @@ const SplashScreen = ({ onComplete }) => {
       {/* Main Brand Content */}
       <div className="flex flex-col items-center max-w-md w-full mx-auto px-8 text-center z-10">
         <div className="mb-6 transform hover:scale-103 transition-transform duration-300">
-          <div className="p-4 bg-white dark:bg-[#1C2541] rounded-2xl shadow-premium border border-gray-100 dark:border-[#2A375E] inline-block">
-            <CompanyLogo className="h-16 w-16 mx-auto drop-shadow-lg" />
+          <div className="p-4 bg-white dark:bg-white rounded-2xl shadow-premium border border-gray-100 dark:border-gray-200 inline-block">
+            <CompanyLogo className="h-16 w-auto mx-auto object-contain drop-shadow-sm" />
           </div>
           <h2 className="text-xl font-black tracking-[0.25em] uppercase text-gray-800 dark:text-white leading-none mt-5">
             Himmel
@@ -109,7 +110,7 @@ const SplashScreen = ({ onComplete }) => {
       {/* Bottom Footer Info */}
       <div className="w-full text-center pb-8 z-10 space-y-1.5">
         <p className="text-[9px] font-black text-gray-400 dark:text-slate-500 tracking-[0.2em] uppercase">
-          v1.0.2 — Enterprise Desktop Edition
+          {APP_VERSION_FULL_LABEL}
         </p>
         <p className="text-[8px] font-bold text-gray-400/80 dark:text-slate-550/80 uppercase tracking-wider">
           © {new Date().getFullYear()} Himmel Pharmaceutical. All rights reserved.

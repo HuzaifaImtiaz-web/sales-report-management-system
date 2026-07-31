@@ -149,6 +149,7 @@ function setupIpcHandlers(db) {
       mode: config.mode,
       version: config.version,
       dbVersion: config.dbVersion,
+      buildDate: '2026-08-01',
       electronVersion: process.versions.electron || '42.0.1',
       nodeVersion: process.versions.node || '20.11.0',
       chromeVersion: process.versions.chrome || '124.0.0',

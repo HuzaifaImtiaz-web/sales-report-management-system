@@ -146,8 +146,8 @@ const SystemInitScreen = ({ onComplete }) => {
 
       {/* Main Container */}
       <div className="flex flex-col items-center max-w-lg w-full mx-auto px-6 py-8 text-center z-10">
-        <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-2xl mb-4">
-          <CompanyLogo className="h-14 w-14 mx-auto text-white drop-shadow-md" />
+        <div className="p-4 bg-white rounded-2xl border border-white/20 shadow-2xl mb-4 inline-flex items-center justify-center">
+          <CompanyLogo className="h-14 w-auto mx-auto object-contain drop-shadow-sm" />
         </div>
         <h1 className="text-xl font-black tracking-widest uppercase text-white">
           Himmel Pharmaceutical
