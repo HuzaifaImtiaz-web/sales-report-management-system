@@ -6,7 +6,6 @@ import { areaService } from '../../services/areaService';
 import { institutionService } from '../../services/institutionService';
 import HybridComboBox from '../../components/common/HybridComboBox';
 import StatusSelector from '../../components/common/StatusSelector';
-import { sanitizePhoneInput, isValid11DigitPhone } from '../../utils/phoneValidator';
 
 const DEFAULT_SPECIALTIES = [
   'Cardiologist',
@@ -48,14 +47,10 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
   const [institutionsList, setInstitutionsList] = useState([]);
   const [form, setForm] = useState({
     name: '',
-    code: '',
     specialty: '',
     hospital: '',
     area: '',
     city: '',
-    mobile: '',
-    email: '',
-    address: '',
     notes: '',
     status: 'Active'
   });
@@ -76,7 +71,16 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
 
   useEffect(() => {
     if (item) {
-      setForm({ ...item, area: item.area || item.areaName || '' });
+      setForm({
+        id: item.id,
+        name: item.name || '',
+        specialty: item.specialty || '',
+        hospital: item.hospital || '',
+        area: item.area || item.areaName || '',
+        city: item.city || '',
+        notes: item.notes || '',
+        status: item.status || 'Active'
+      });
     }
   }, [item]);
 
@@ -90,7 +94,6 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
   const handleAreaAddNew = (newAreaName) => {
     areaService.saveArea({
       name: newAreaName,
-      code: `AREA-${newAreaName.slice(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
       status: 'Active'
     }).then(() => {
       areaService.getAllAreas().then(res => setAreasList(res || []));
@@ -108,16 +111,22 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'Doctor Name is required.';
-    if (!form.specialty) e.specialty = 'Specialty is required.';
-    if (!form.area) e.area = 'Area is required.';
-    if (!form.city.trim()) e.city = 'City is required.';
-    if (!form.mobile.trim()) {
-      e.mobile = 'Mobile Number is required.';
-    } else if (!isValid11DigitPhone(form.mobile)) {
-      e.mobile = 'Mobile Number must contain exactly 11 digits (e.g. 03001234567).';
-    }
+    if (!form.name || !form.name.trim()) e.name = 'Doctor Name is required.';
     return e;
+  };
+
+  const resetForm = () => {
+    setForm({
+      name: '',
+      specialty: '',
+      hospital: '',
+      area: '',
+      city: '',
+      notes: '',
+      status: 'Active'
+    });
+    setErrors({});
+    setIsDirty(false);
   };
 
   const handleSave = () => {
@@ -126,7 +135,10 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
       setErrors(e);
       return;
     }
-    onSave({ ...form });
+    const res = onSave({ ...form });
+    if (res !== false && !isEdit) {
+      resetForm();
+    }
   };
 
   useEffect(() => {
@@ -137,7 +149,11 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
           setErrors(e);
           return false;
         }
-        return onSave({ ...form });
+        const res = onSave({ ...form });
+        if (res !== false && !isEdit) {
+          resetForm();
+        }
+        return res;
       });
     }
     return () => setOnSave(null);
@@ -145,7 +161,7 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
 
   return (
     <div className="space-y-5">
-      {/* Row 1: Name + Specialty */}
+      {/* Row 1: Doctor Name & Specialty */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Doctor Name" required error={errors.name}>
           <input
@@ -156,7 +172,7 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
             className={inputCls(errors.name, isView)}
           />
         </Field>
-        <Field label="Specialty" required error={errors.specialty}>
+        <Field label="Specialty" error={errors.specialty}>
           {isView ? (
             <input
               disabled
@@ -176,17 +192,8 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
         </Field>
       </div>
 
-      {/* Row 2: Doctor Code (Fully Editable & Optional) + Hospital */}
+      {/* Row 2: Hospital / Institution & Area */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Doctor Code">
-          <input
-            disabled={isView}
-            value={form.code}
-            onChange={(e) => set('code', e.target.value)}
-            placeholder="e.g. DOC-001"
-            className={inputCls(false, isView) + ' font-mono'}
-          />
-        </Field>
         <Field label="Hospital / Institution" error={errors.hospital}>
           {isView ? (
             <input
@@ -205,11 +212,7 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
             />
           )}
         </Field>
-      </div>
-
-      {/* Row 3: Area & City */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Area" required error={errors.area}>
+        <Field label="Area" error={errors.area}>
           {isView ? (
             <input
               disabled
@@ -228,7 +231,11 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
             />
           )}
         </Field>
-        <Field label="City" required error={errors.city}>
+      </div>
+
+      {/* Row 3: City */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="City" error={errors.city}>
           <input
             disabled={isView}
             value={form.city}
@@ -239,42 +246,7 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
         </Field>
       </div>
 
-      {/* Row 4: Mobile & Email */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Mobile Number" required error={errors.mobile}>
-          <input
-            disabled={isView}
-            value={form.mobile}
-            onChange={(e) => set('mobile', sanitizePhoneInput(e.target.value))}
-            placeholder="e.g. 03001234567"
-            maxLength={11}
-            className={inputCls(errors.mobile, isView)}
-          />
-        </Field>
-        <Field label="Email Address" error={errors.email}>
-          <input
-            disabled={isView}
-            type="email"
-            value={form.email}
-            onChange={(e) => set('email', e.target.value)}
-            placeholder="e.g. name@domain.com"
-            className={inputCls(errors.email, isView)}
-          />
-        </Field>
-      </div>
-
-      {/* Address */}
-      <Field label="Address">
-        <input
-          disabled={isView}
-          value={form.address}
-          onChange={(e) => set('address', e.target.value)}
-          placeholder="Clinic/Room details…"
-          className={inputCls(false, isView)}
-        />
-      </Field>
-
-      {/* Notes */}
+      {/* Row 4: Notes */}
       <Field label="Notes / Remarks">
         <textarea
           disabled={isView}
@@ -286,7 +258,7 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
         />
       </Field>
 
-      {/* Status (Standardized Target UI/UX) */}
+      {/* Row 5: Status */}
       <Field label="Status" required>
         {isView ? (
           <div className="pt-1">
@@ -315,7 +287,7 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-55 transition-colors"
             >
               Back
             </button>
@@ -332,7 +304,7 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-55 transition-colors"
             >
               Cancel
             </button>

@@ -9,9 +9,8 @@ class CategoryRepository {
     if (!row) return null;
     return {
       id: row.id,
-      code: `GRP-${String(row.id).padStart(4, '0')}`,
       name: row.name,
-      divisionId: row.division_id,
+      divisionId: row.division_id || null,
       divisionName: row.division_name || '',
       description: row.description || '',
       status: row.is_active ? 'Active' : 'Inactive',
@@ -26,7 +25,7 @@ class CategoryRepository {
              d.name AS division_name,
              (SELECT COUNT(*) FROM products p WHERE p.group_id = g.id) AS total_products
       FROM groups g
-      JOIN divisions d ON g.division_id = d.id
+      LEFT JOIN divisions d ON g.division_id = d.id
       ORDER BY d.name ASC, g.name ASC
     `).all();
     return rows.map(r => this._mapRow(r));
@@ -39,7 +38,7 @@ class CategoryRepository {
              d.name AS division_name,
              (SELECT COUNT(*) FROM products p WHERE p.group_id = g.id) AS total_products
       FROM groups g
-      JOIN divisions d ON g.division_id = d.id
+      LEFT JOIN divisions d ON g.division_id = d.id
       WHERE g.id = ?
     `).get(id);
     return this._mapRow(row);
@@ -52,7 +51,7 @@ class CategoryRepository {
       VALUES (?, ?, ?, ?)
     `);
     const isActive = c.status === 'Inactive' ? 0 : 1;
-    const res = stmt.run(c.divisionId, c.name, c.description || null, isActive);
+    const res = stmt.run(c.divisionId || null, c.name, c.description || null, isActive);
     return this.findById(res.lastInsertRowid);
   }
 
@@ -64,7 +63,7 @@ class CategoryRepository {
       WHERE id = ?
     `);
     const isActive = c.status === 'Inactive' ? 0 : 1;
-    stmt.run(c.divisionId, c.name, c.description || null, isActive, id);
+    stmt.run(c.divisionId || null, c.name, c.description || null, isActive, id);
     return this.findById(id);
   }
 

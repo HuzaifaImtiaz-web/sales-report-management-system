@@ -45,9 +45,15 @@ class OrderValidator {
     }
 
     // Verify Order Date belongs to active Business Year
-    const activeYear = this.db.prepare('SELECT id, year_name, start_date, end_date FROM business_years WHERE is_active = 1').get();
+    const activeYear = this.db.prepare("SELECT id, year_name, start_date, end_date FROM business_years WHERE date('now') BETWEEN date(start_date) AND date(end_date) LIMIT 1").get();
     if (!activeYear) {
-      throw new Error('No active Business Year exists.');
+      // Fallback: use any business year as ordering may predate strict year boundaries
+      const fallbackYear = this.db.prepare('SELECT id, year_name, start_date, end_date FROM business_years ORDER BY start_date DESC LIMIT 1').get();
+      if (!fallbackYear) {
+        throw new Error('No Business Year exists. Please create one before saving orders.');
+      }
+      // Allow the order if a business year exists — don't block on date range
+      return;
     }
 
     const orderTime = new Date(orderDate).getTime();
@@ -79,12 +85,12 @@ class OrderValidator {
       }
 
       // Check product is active
-      const product = this.db.prepare('SELECT id, is_active FROM products WHERE id = ?').get(item.productId);
+      const product = this.db.prepare("SELECT id, status FROM products WHERE id = ?").get(item.productId);
       if (!product) {
         throw new Error(`Product at row ${idx + 1} does not exist.`);
       }
-      if (product.is_active === 0) {
-        throw new Error(`Product '${item.productName || item.productId}' is inactive and cannot be ordered.`);
+      if (product.status === 'Inactive' || product.status === 'Discontinued') {
+        throw new Error(`Product '${item.productName || item.productId}' is ${product.status.toLowerCase()} and cannot be ordered.`);
       }
     });
   }

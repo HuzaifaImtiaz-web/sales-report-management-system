@@ -6,7 +6,7 @@ import { groupService } from '../../services/groupService';
 import { productService } from '../../services/productService';
 import StatusSelector from '../../components/common/StatusSelector';
 
-const DIVISIONS = ['Himmel', 'PMS', 'MSA'];
+const DIVISIONS = ['Cardiology', 'Oncology'];
 
 const UNIT_TYPES = [
   'Tablet',
@@ -51,10 +51,9 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
     productCode: '',
     brandName: '',
     genericName: '',
-    division: 'Himmel',
+    division: 'Cardiology',
     groupName: '',
     strength: '',
-    dosageForm: '',
     registrationNo: '',
     manufacturer: 'Himmel Pharmaceutical',
     packSize: '',
@@ -67,20 +66,12 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
 
   const [errors, setErrors] = useState({});
   const [allGroups, setAllGroups] = useState([]);
-  const [existingDosageForms, setExistingDosageForms] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showDosageSuggestions, setShowDosageSuggestions] = useState(false);
 
-  // Fetch groups and dosage forms on mount
+  // Fetch groups on mount
   useEffect(() => {
     groupService.getAllGroups().then((data) => {
       setAllGroups(data || []);
-    });
-    productService.getAllProducts().then((data) => {
-      if (data) {
-        const uniqueForms = [...new Set(data.map(p => p.dosageForm).filter(Boolean))];
-        setExistingDosageForms(uniqueForms);
-      }
     });
   }, []);
 
@@ -91,14 +82,13 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
         productCode: item.productCode || item.code || '',
         brandName: item.brandName || item.name || '',
         genericName: item.genericName || '',
-        division: item.divisionName || item.category || 'Himmel',
+        division: (item.divisionName && ['Cardiology', 'Oncology'].includes(item.divisionName)) ? item.divisionName : (item.category && ['Cardiology', 'Oncology'].includes(item.category)) ? item.category : 'Cardiology',
         groupName: item.groupName || '',
         strength: item.strength || '',
-        dosageForm: item.dosageForm || '',
         registrationNo: item.registrationNo || '',
         manufacturer: item.manufacturer || 'Himmel Pharmaceutical',
         packSize: item.packSize || item.packSizeQty || '',
-        unitTypeName: item.unitTypeName || item.packSizeUnit || 'Tablet',
+        unitTypeName: item.unitTypeName || item.packSizeUnit || item.dosageForm || 'Tablet',
         tp: item.tp !== undefined ? item.tp : (item.packPrice || ''),
         mrp: item.mrp !== undefined ? item.mrp : (item.tp || item.packPrice || ''),
         description: item.description || '',
@@ -122,26 +112,6 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
     );
   }, [filteredGroups, form.groupName]);
 
-  // Compute suggestions for Dosage Form Hybrid ComboBox
-  const dosageSuggestions = useMemo(() => {
-    const defaultList = [
-      'Tablet', 'Capsule', 'Syrup', 'Suspension', 'Injection', 'Infusion', 'Cream', 
-      'Ointment', 'Gel', 'Lotion', 'Drops', 'Eye Drops', 'Ear Drops', 'Nasal Spray', 
-      'Inhaler', 'Sachet', 'Powder', 'Solution', 'Oral Solution', 'IV Solution', 
-      'Ampoule', 'Vial', 'Softgel', 'Suppository', 'Patch'
-    ];
-    // Combine and case-insensitively deduplicate
-    const combined = [...defaultList];
-    existingDosageForms.forEach(f => {
-      if (!combined.some(c => c.toLowerCase() === f.toLowerCase())) {
-        combined.push(f);
-      }
-    });
-
-    if (!form.dosageForm) return combined;
-    return combined.filter(c => c.toLowerCase().includes(form.dosageForm.toLowerCase()));
-  }, [existingDosageForms, form.dosageForm]);
-
   const set = (k, v) => {
     if (isView) return;
     setForm((f) => ({ ...f, [k]: v }));
@@ -161,49 +131,37 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
 
   const validate = () => {
     const e = {};
-    if (!form.brandName.trim()) e.brandName = 'Brand Name is required.';
-    if (!form.genericName.trim()) e.genericName = 'Generic Name is required.';
-    if (!form.division) e.division = 'Division selection is required.';
-    if (!form.groupName.trim()) e.groupName = 'Product Group is required.';
-
-    const size = Number(form.packSize);
-    if (form.packSize === '' || isNaN(size) || size <= 0 || !Number.isInteger(size)) {
-      e.packSize = 'Pack Size must be a positive integer.';
+    if (!(form.brandName || '').trim()) {
+      e.brandName = 'Product Name is required.';
     }
-
-    if (!form.unitTypeName) e.unitTypeName = 'Unit Type is required.';
-
-    const tpVal = Number(form.tp);
-    if (form.tp === '' || isNaN(tpVal) || tpVal < 0) {
-      e.tp = 'Trade Price (TP) must be a positive number.';
-    }
-
-    const mrpVal = Number(form.mrp);
-    if (form.mrp === '' || isNaN(mrpVal) || mrpVal < 0) {
-      e.mrp = 'MRP must be a positive number.';
-    }
-
-    if (!e.tp && !e.mrp && mrpVal < tpVal) {
-      e.mrp = 'MRP cannot be less than Trade Price (TP).';
-    }
-
     return e;
   };
 
   const getSavePayload = () => {
-    const size = Number(form.packSize);
-    const tpVal = Number(form.tp);
-    const mrpVal = Number(form.mrp);
+    const brandNameStr = (form.brandName || '').trim();
+    const genericNameStr = (form.genericName || '').trim() || brandNameStr;
+    const size = Number(form.packSize) > 0 ? Number(form.packSize) : 1;
+    const tpVal = Number(form.tp) >= 0 ? Number(form.tp) : 0;
+    const mrpVal = Number(form.mrp) >= 0 ? Number(form.mrp) : tpVal;
+    const divStr = form.division || 'Cardiology';
+    const groupStr = (form.groupName || '').trim() || 'General';
+    const unitStr = form.unitTypeName || 'Tablet';
+
     return {
       ...form,
+      brandName: brandNameStr,
+      genericName: genericNameStr,
+      division: divStr,
+      groupName: groupStr,
+      unitTypeName: unitStr,
       packSize: size,
       tp: tpVal,
       mrp: mrpVal,
       packSizeQty: size, // Compatibility
       packPrice: tpVal, // Compatibility
       rate: tpVal, // Compatibility
-      packSizeUnit: form.unitTypeName, // Compatibility
-      category: form.division // Compatibility
+      packSizeUnit: unitStr, // Compatibility
+      category: divStr // Compatibility
     };
   };
 
@@ -366,55 +324,8 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
         </Field>
       </div>
 
-      {/* Row 4: Dosage Form & Registration Number */}
+      {/* Row 4: Registration Number & Manufacturer */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Dosage Form" error={errors.dosageForm} className="relative">
-          {isView ? (
-            <input disabled value={form.dosageForm} className={inputCls(false, true)} />
-          ) : (
-            <>
-              <div className="relative">
-                <input
-                  value={form.dosageForm}
-                  onChange={(e) => {
-                    set('dosageForm', e.target.value);
-                    setShowDosageSuggestions(true);
-                  }}
-                  onFocus={() => setShowDosageSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowDosageSuggestions(false), 200)}
-                  placeholder="Type or select a dosage form..."
-                  className={inputCls(errors.dosageForm, isView)}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowDosageSuggestions(!showDosageSuggestions)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-650"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-              </div>
-              {showDosageSuggestions && dosageSuggestions.length > 0 && (
-                <ul className="absolute z-20 w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
-                  {dosageSuggestions.map((s) => (
-                    <li
-                      key={s}
-                      onMouseDown={() => {
-                        set('dosageForm', s);
-                        setShowDosageSuggestions(false);
-                      }}
-                      className="px-3 py-2 text-xs hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 cursor-pointer text-gray-750 dark:text-gray-200 font-semibold"
-                    >
-                      {s}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-        </Field>
-
         <Field label="Registration Number" error={errors.registrationNo}>
           <input
             disabled={isView}
@@ -424,10 +335,7 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
             className={inputCls(errors.registrationNo, isView)}
           />
         </Field>
-      </div>
 
-      {/* Row 5: Manufacturer & Pack Size */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Manufacturer" error={errors.manufacturer}>
           <input
             disabled={isView}
@@ -437,7 +345,10 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
             className={inputCls(errors.manufacturer, isView)}
           />
         </Field>
+      </div>
 
+      {/* Row 5: Pack Size & Unit Type */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Pack Size" required error={errors.packSize}>
           <input
             disabled={isView}
@@ -449,10 +360,7 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
             className={inputCls(errors.packSize, isView)}
           />
         </Field>
-      </div>
 
-      {/* Row 6: Unit Type & Trade Price */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Unit Type" required error={errors.unitTypeName}>
           {isView ? (
             <input disabled value={form.unitTypeName} className={inputCls(false, true)} />
@@ -468,7 +376,10 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
             </select>
           )}
         </Field>
+      </div>
 
+      {/* Row 6: Trade Price & Maximum Retail Price */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Trade Price" required error={errors.tp}>
           <input
             disabled={isView}
@@ -481,10 +392,7 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
             className={inputCls(errors.tp, isView)}
           />
         </Field>
-      </div>
 
-      {/* Row 7: MRP & Computed Per Unit Price */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Maximum Retail Price" required error={errors.mrp}>
           <input
             disabled={isView}
@@ -497,89 +405,90 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
             className={inputCls(errors.mrp, isView)}
           />
         </Field>
+        {/* Row 7: Per Unit Price */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label="Per Unit Price">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-405">Rs.</span>
+              <input
+                disabled
+                value={computedPerUnitPrice > 0 ? `${computedPerUnitPrice.toLocaleString()} per ${form.unitTypeName}` : '0'}
+                className={inputCls(false, true) + ' pl-9 font-bold text-brand-primary'}
+              />
+            </div>
+          </Field>
+        </div>
 
-        <Field label="Per Unit Price">
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-405">Rs.</span>
-            <input
-              disabled
-              value={computedPerUnitPrice > 0 ? `${computedPerUnitPrice.toLocaleString()} per ${form.unitTypeName}` : '0'}
-              className={inputCls(false, true) + ' pl-9 font-bold text-brand-primary'}
-            />
-          </div>
-        </Field>
-      </div>
-
-      {/* Row 8: Description */}
-      <Field label="Description">
-        <textarea
-          disabled={isView}
-          rows={3}
-          value={form.description}
-          onChange={(e) => set('description', e.target.value)}
-          placeholder="Optional product description details…"
-          className={inputCls(false, isView) + ' resize-none'}
-        />
-      </Field>
-
-      {/* Row 9: Status */}
-      <Field label="Status" required>
-        {isView ? (
-          <div className="pt-1">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold border ${statusBadgeCls(form.status)}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${
-                form.status === 'Active' ? 'bg-feedback-success' : form.status === 'Inactive' ? 'bg-amber-500' : 'bg-feedback-error'
-              }`} />
-              {form.status}
-            </span>
-          </div>
-        ) : (
-          <StatusSelector
-            options={['Active', 'Inactive', 'Discontinued']}
-            value={form.status}
-            onChange={(s) => set('status', s)}
+        {/* Row 8: Description */}
+        <Field label="Description">
+          <textarea
+            disabled={isView}
+            rows={3}
+            value={form.description}
+            onChange={(e) => set('description', e.target.value)}
+            placeholder="Enter product description details…"
+            className={inputCls(false, isView) + ' resize-none'}
           />
-        )}
-      </Field>
+        </Field>
 
-      {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-105 dark:border-gray-800">
-        {isView ? (
-          <>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              Back
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate(`/products/${form.id}/edit`)}
-              className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
-            >
-              <FiEdit2 className="w-3.5 h-3.5" /> Edit
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
-            >
-              <FiCheck className="w-3.5 h-3.5" />
-              {isEdit ? 'Update' : 'Save'}
-            </button>
-          </>
-        )}
+        {/* Row 9: Status */}
+        <Field label="Status" required>
+          {isView ? (
+            <div className="pt-1">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold border ${statusBadgeCls(form.status)}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${form.status === 'Active' ? 'bg-feedback-success' : form.status === 'Inactive' ? 'bg-amber-500' : 'bg-feedback-error'
+                  }`} />
+                {form.status}
+              </span>
+            </div>
+          ) : (
+            <StatusSelector
+              options={['Active', 'Inactive', 'Discontinued']}
+              value={form.status}
+              onChange={(s) => set('status', s)}
+            />
+          )}
+        </Field>
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-105 dark:border-gray-800">
+          {isView ? (
+            <>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/products/${form.id}/edit`)}
+                className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
+              >
+                <FiEdit2 className="w-3.5 h-3.5" /> Edit
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
+              >
+                <FiCheck className="w-3.5 h-3.5" />
+                {isEdit ? 'Update' : 'Save'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

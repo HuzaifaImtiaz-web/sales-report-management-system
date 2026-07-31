@@ -29,7 +29,6 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
 
   const [form, setForm] = useState({
     name: '',
-    code: '',
     divisionId: '',
     description: '',
     totalProducts: 0,
@@ -41,17 +40,13 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
   useEffect(() => {
     groupService.getAllDivisions().then((data) => {
       setDivisions(data || []);
-      if (data && data.length > 0 && !form.divisionId && !item) {
-        setForm((f) => ({ ...f, divisionId: data[0].id }));
-      }
     });
-  }, [item]);
+  }, []);
 
   useEffect(() => {
     if (item) {
       setForm({
         id: item.id,
-        code: item.code || '',
         name: item.name || '',
         divisionId: item.divisionId || '',
         description: item.description || '',
@@ -70,9 +65,20 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'Group Name is required.';
-    if (!form.divisionId) e.divisionId = 'Division is required.';
+    if (!form.name || !form.name.trim()) e.name = 'Group Name is required.';
     return e;
+  };
+
+  const resetForm = () => {
+    setForm({
+      name: '',
+      divisionId: '',
+      description: '',
+      totalProducts: 0,
+      status: 'Active'
+    });
+    setErrors({});
+    setIsDirty(false);
   };
 
   const handleSave = () => {
@@ -81,7 +87,10 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
       setErrors(e);
       return;
     }
-    onSave({ ...form });
+    const res = onSave({ ...form });
+    if (res !== false && !isEdit) {
+      resetForm();
+    }
   };
 
   useEffect(() => {
@@ -92,7 +101,11 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
           setErrors(e);
           return false;
         }
-        return onSave({ ...form });
+        const res = onSave({ ...form });
+        if (res !== false && !isEdit) {
+          resetForm();
+        }
+        return res;
       });
     }
     return () => setOnSave(null);
@@ -100,37 +113,8 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
 
   return (
     <div className="space-y-5">
-      {/* Row 1: Code + Name */}
+      {/* Row 1: Name + Division */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mode !== 'new' && (
-          <Field label="Group Code">
-            <input
-              disabled
-              value={form.code}
-              className={inputCls(false, true) + ' font-mono'}
-            />
-          </Field>
-        )}
-        <Field label="Division" required error={errors.divisionId}>
-          {isView ? (
-            <input
-              disabled
-              value={divisions.find(d => d.id === form.divisionId)?.name || ''}
-              className={inputCls(false, true)}
-            />
-          ) : (
-            <select
-              value={form.divisionId}
-              onChange={(e) => set('divisionId', Number(e.target.value))}
-              className={inputCls(errors.divisionId, isView) + ' appearance-none cursor-pointer'}
-            >
-              {divisions.map((d) => (
-                <option key={d.id} value={d.id}>{d.name}</option>
-              ))}
-            </select>
-          )}
-        </Field>
-
         <Field label="Group Name" required error={errors.name}>
           <input
             disabled={isView}
@@ -139,6 +123,27 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
             placeholder="e.g. Cardiovascular"
             className={inputCls(errors.name, isView)}
           />
+        </Field>
+
+        <Field label="Division" error={errors.divisionId}>
+          {isView ? (
+            <input
+              disabled
+              value={divisions.find(d => d.id === Number(form.divisionId))?.name || 'Unassigned'}
+              className={inputCls(false, true)}
+            />
+          ) : (
+            <select
+              value={form.divisionId}
+              onChange={(e) => set('divisionId', e.target.value ? Number(e.target.value) : '')}
+              className={inputCls(errors.divisionId, isView) + ' appearance-none cursor-pointer'}
+            >
+              <option value="">Select Division</option>
+              {divisions.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+          )}
         </Field>
       </div>
 

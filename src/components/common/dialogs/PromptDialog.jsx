@@ -20,8 +20,12 @@ const PromptDialog = ({
   const inputRef = useRef(null);
   const previousFocusRef = useRef(null);
 
+  const wasOpenRef = useRef(false);
+
   useEffect(() => {
-    if (open) {
+    if (open && !wasOpenRef.current) {
+      // Dialog just opened — reset to default
+      wasOpenRef.current = true;
       setInputValue(defaultValue || '');
       setError('');
       previousFocusRef.current = document.activeElement;
@@ -44,14 +48,16 @@ const PromptDialog = ({
         clearTimeout(timer);
         window.removeEventListener('keydown', handleKeyDown);
       };
-    } else if (previousFocusRef.current) {
-      const el = previousFocusRef.current;
-      previousFocusRef.current = null;
-      requestAnimationFrame(() => {
-        if (el && typeof el.focus === 'function') {
-          el.focus();
-        }
-      });
+    } else if (!open && wasOpenRef.current) {
+      // Dialog just closed — restore focus
+      wasOpenRef.current = false;
+      if (previousFocusRef.current) {
+        const el = previousFocusRef.current;
+        previousFocusRef.current = null;
+        requestAnimationFrame(() => {
+          if (el && typeof el.focus === 'function') el.focus();
+        });
+      }
     }
   }, [open, defaultValue, loading, onCancel]);
 

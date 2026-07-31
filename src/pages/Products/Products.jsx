@@ -342,7 +342,7 @@ const Products = () => {
                 if (f.groupFilter !== undefined) setGroupFilter(f.groupFilter);
               }}
               defaultPresets={[
-                { id: 'p_pms_prods', name: 'PMS Products', filters: { statusFilter: 'Active', divisionFilter: 'PMS' } },
+                { id: 'p_cardio_prods', name: 'Cardiology Products', filters: { statusFilter: 'Active', divisionFilter: 'Cardiology' } },
                 { id: 'p_discontinued', name: 'Discontinued Products', filters: { statusFilter: 'Discontinued' } }
               ]}
             />
@@ -386,9 +386,8 @@ const Products = () => {
                   className="w-full px-3 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-205 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
                 >
                   <option value="All">All Divisions</option>
-                  <option value="Himmel">Himmel</option>
-                  <option value="PMS">PMS</option>
-                  <option value="MSA">MSA</option>
+                  <option value="Cardiology">Cardiology</option>
+                  <option value="Oncology">Oncology</option>
                 </select>
               </div>
 

@@ -37,32 +37,25 @@ function seedDatabase(db) {
     });
 
     // 2. Seed divisions and groups
-    const divisions = ['Himmel', 'PMS', 'MSA'];
+    const divisions = ['Cardiology', 'Oncology'];
     const stmtDiv = db.prepare('INSERT OR IGNORE INTO divisions (name) VALUES (?)');
     divisions.forEach(name => stmtDiv.run(name));
 
     const divisionsMap = getLookup('divisions', 'name');
 
     const groups = [
-      // Himmel Groups
-      { divisionName: 'Himmel', name: 'Antibiotics', description: 'Antibiotics' },
-      { divisionName: 'Himmel', name: 'Analgesics', description: 'Analgesics' },
-      { divisionName: 'Himmel', name: 'Antidiabetics', description: 'Antidiabetics' },
-      { divisionName: 'Himmel', name: 'Cardiovascular', description: 'Cardiovascular' },
-      { divisionName: 'Himmel', name: 'Respiratory', description: 'Respiratory' },
-      { divisionName: 'Himmel', name: 'Gastroenterology', description: 'Gastroenterology' },
-      { divisionName: 'Himmel', name: 'General', description: 'General' },
+      // Cardiology Groups
+      { divisionName: 'Cardiology', name: 'Cardiovascular', description: 'Cardiovascular medications' },
+      { divisionName: 'Cardiology', name: 'Anti-hypertensive', description: 'Blood pressure control' },
+      { divisionName: 'Cardiology', name: 'Anti-arrhythmic', description: 'Heart rhythm control' },
+      { divisionName: 'Cardiology', name: 'Heart Failure', description: 'Heart failure management' },
+      { divisionName: 'Cardiology', name: 'General', description: 'General cardiology' },
       
-      // PMS Groups
-      { divisionName: 'PMS', name: 'Surgical', description: 'Surgical products' },
-      { divisionName: 'PMS', name: 'ICU', description: 'ICU products' },
-      { divisionName: 'PMS', name: 'Critical Care', description: 'Critical Care products' },
-      
-      // MSA Groups
-      { divisionName: 'MSA', name: 'OTC', description: 'Over-the-counter' },
-      { divisionName: 'MSA', name: 'Nutrition', description: 'Nutrition' },
-      { divisionName: 'MSA', name: 'Vitamins', description: 'Vitamins' },
-      { divisionName: 'MSA', name: 'Supplements', description: 'Supplements' }
+      // Oncology Groups
+      { divisionName: 'Oncology', name: 'Chemotherapy', description: 'Chemotherapy agents' },
+      { divisionName: 'Oncology', name: 'Targeted Therapy', description: 'Targeted cancer therapy' },
+      { divisionName: 'Oncology', name: 'Immunotherapy', description: 'Cancer immunotherapy' },
+      { divisionName: 'Oncology', name: 'Supportive Care', description: 'Oncology supportive care' }
     ];
 
     let groupSeedCount = 0;
@@ -109,17 +102,17 @@ function seedDatabase(db) {
 
     // 5. Seed areas if empty or missing defaults
     const defaultAreas = [
-      { name: 'Lahore Gulberg', code: 'LHR-001', description: 'Main city center area' },
-      { name: 'Karachi Clifton', code: 'KHI-001', description: 'Seaside commercial zone' },
-      { name: 'Islamabad F-10', code: 'ISB-001', description: 'Sector office zone' },
-      { name: 'Faisalabad Civil Lines', code: 'FSD-001', description: 'Textile hub area' },
-      { name: 'Peshawar University Road', code: 'PEW-001', description: 'Khyber medical hub' },
-      { name: 'Multan Cantt', code: 'MUX-001', description: 'South Punjab zone' },
-      { name: 'Sialkot Saddar', code: 'SKT-001', description: 'Industrial Export zone' }
+      { name: 'Lahore Gulberg', city: 'Lahore', description: 'Main city center area' },
+      { name: 'Karachi Clifton', city: 'Karachi', description: 'Seaside commercial zone' },
+      { name: 'Islamabad F-10', city: 'Islamabad', description: 'Sector office zone' },
+      { name: 'Faisalabad Civil Lines', city: 'Faisalabad', description: 'Textile hub area' },
+      { name: 'Peshawar University Road', city: 'Peshawar', description: 'Khyber medical hub' },
+      { name: 'Multan Cantt', city: 'Multan', description: 'South Punjab zone' },
+      { name: 'Sialkot Saddar', city: 'Sialkot', description: 'Industrial Export zone' }
     ];
-    const stmtArea = db.prepare('INSERT OR IGNORE INTO areas (name, code, description, is_active) VALUES (?, ?, ?, 1)');
+    const stmtArea = db.prepare('INSERT OR IGNORE INTO areas (name, city, description, is_active) VALUES (?, ?, ?, 1)');
     defaultAreas.forEach(area => {
-      stmtArea.run(area.name, area.code, area.description);
+      stmtArea.run(area.name, area.city, area.description);
     });
 
     // Build lookup maps for Areas and Unit Types (always rebuilt dynamically)
@@ -128,15 +121,15 @@ function seedDatabase(db) {
 
     // 6. Seed team members if missing defaults
     const defaultTeam = [
-      { name: 'Ahmed Shah', email: 'ahmed.shah@himmel.com', phone: '03001112222', role: 'Rep', areaName: 'Lahore Gulberg' },
-      { name: 'Zainab Fatima', email: 'zainab.fatima@himmel.com', phone: '03003334444', role: 'Rep', areaName: 'Karachi Clifton' },
-      { name: 'Usman Ali', email: 'usman.ali@himmel.com', phone: '03005556666', role: 'Rep', areaName: 'Islamabad F-10' },
-      { name: 'Mariam Khan', email: 'mariam.khan@himmel.com', phone: '03007778888', role: 'Rep', areaName: 'Faisalabad Civil Lines' },
-      { name: 'Bilal Siddiqui', email: 'bilal.siddiqui@himmel.com', phone: '03009990000', role: 'Rep', areaName: 'Peshawar University Road' }
+      { name: 'Ahmed Shah', role: 'Rep', areaName: 'Lahore Gulberg' },
+      { name: 'Zainab Fatima', role: 'Rep', areaName: 'Karachi Clifton' },
+      { name: 'Usman Ali', role: 'Rep', areaName: 'Islamabad F-10' },
+      { name: 'Mariam Khan', role: 'Rep', areaName: 'Faisalabad Civil Lines' },
+      { name: 'Bilal Siddiqui', role: 'Rep', areaName: 'Peshawar University Road' }
     ];
-    const stmtTeam = db.prepare('INSERT OR IGNORE INTO team_members (name, email, phone, role, area_id, is_active) VALUES (?, ?, ?, ?, ?, 1)');
+    const stmtTeam = db.prepare('INSERT OR IGNORE INTO team_members (name, role, area_id, is_active) VALUES (?, ?, ?, 1)');
     defaultTeam.forEach(t => {
-      stmtTeam.run(t.name, t.email, t.phone, t.role, getRequiredId(areasMap, t.areaName, 'Area'));
+      stmtTeam.run(t.name, t.role, getRequiredId(areasMap, t.areaName, 'Area'));
     });
 
     // Build lookup maps for Groups (rebuilt dynamically)
@@ -147,16 +140,12 @@ function seedDatabase(db) {
 
     // 7. Seed products if missing defaults
     const defaultProducts = [
-      { brandName: 'Amoxicillin 500mg', code: 'PROD-AMOX', division: 'Himmel', group: 'Antibiotics', genericName: 'Amoxicillin', strength: '500mg', dosageForm: 'Injection', registrationNo: 'REG-10001', manufacturer: 'Himmel Pharmaceutical', qty: 10, unitTypeName: 'Vial', tp: 4500, mrp: 5000, description: 'Broad spectrum antibiotic' },
-      { brandName: 'Paracetamol 650mg', code: 'PROD-PARA', division: 'Himmel', group: 'Analgesics', genericName: 'Paracetamol', strength: '650mg', dosageForm: 'Tablet', registrationNo: 'REG-10002', manufacturer: 'Himmel Pharmaceutical', qty: 20, unitTypeName: 'Tablet', tp: 2400, mrp: 2650, description: 'Pain and fever relief' },
-      { brandName: 'Metformin 850mg', code: 'PROD-METF', division: 'Himmel', group: 'Antidiabetics', genericName: 'Metformin', strength: '850mg', dosageForm: 'Tablet', registrationNo: 'REG-10003', manufacturer: 'Himmel Pharmaceutical', qty: 30, unitTypeName: 'Capsule', tp: 11400, mrp: 12500, description: 'Diabetes management' },
-      { brandName: 'Lipitor 10mg', code: 'PROD-LIPI', division: 'Himmel', group: 'Cardiovascular', genericName: 'Atorvastatin', strength: '10mg', dosageForm: 'Tablet', registrationNo: 'REG-10004', manufacturer: 'Himmel Pharmaceutical', qty: 10, unitTypeName: 'Tablet', tp: 9500, mrp: 10500, description: 'Cholesterol treatment' },
-      { brandName: 'Ibuprofen 400mg', code: 'PROD-IBUP', division: 'Himmel', group: 'Analgesics', genericName: 'Ibuprofen', strength: '400mg', dosageForm: 'Tablet', registrationNo: 'REG-10005', manufacturer: 'Himmel Pharmaceutical', qty: 20, unitTypeName: 'Tablet', tp: 1800, mrp: 2000, description: 'Anti-inflammatory' },
-      { brandName: 'Omeprazole 20mg', code: 'PROD-OMEP', division: 'Himmel', group: 'Gastroenterology', genericName: 'Omeprazole', strength: '20mg', dosageForm: 'Capsule', registrationNo: 'REG-10006', manufacturer: 'Himmel Pharmaceutical', qty: 10, unitTypeName: 'Capsule', tp: 5200, mrp: 5750, description: 'Acid reflux treatment' },
-      { brandName: 'Augmentin 625mg', code: 'PROD-AUGM', division: 'Himmel', group: 'Antibiotics', genericName: 'Co-amoxiclav', strength: '625mg', dosageForm: 'Tablet', registrationNo: 'REG-10007', manufacturer: 'Himmel Pharmaceutical', qty: 14, unitTypeName: 'Tablet', tp: 15400, mrp: 17000, description: 'Bacterial infection medicine' },
-      { brandName: 'Azithromycin 250mg', code: 'PROD-AZIT', division: 'Himmel', group: 'Antibiotics', genericName: 'Azithromycin', strength: '250mg', dosageForm: 'Tablet', registrationNo: 'REG-10008', manufacturer: 'Himmel Pharmaceutical', qty: 6, unitTypeName: 'Tablet', tp: 4020, mrp: 4450, description: 'Macrolide antibiotic' },
-      { brandName: 'Ventolin Inhaler', code: 'PROD-VENT', division: 'Himmel', group: 'Respiratory', genericName: 'Salbutamol', strength: '100mcg', dosageForm: 'Inhaler', registrationNo: 'REG-10009', manufacturer: 'Himmel Pharmaceutical', qty: 1, unitTypeName: 'Bottle', tp: 850, mrp: 950, description: 'Asthma inhaler' },
-      { brandName: 'Crestor 10mg', code: 'PROD-CRES', division: 'Himmel', group: 'Cardiovascular', genericName: 'Rosuvastatin', strength: '10mg', dosageForm: 'Tablet', registrationNo: 'REG-10010', manufacturer: 'Himmel Pharmaceutical', qty: 10, unitTypeName: 'Tablet', tp: 13500, mrp: 14850, description: 'High cholesterol regulator' }
+      { brandName: 'CardioVas 50mg', code: 'PROD-CARD1', division: 'Cardiology', group: 'Cardiovascular', genericName: 'Candesartan', strength: '50mg', dosageForm: 'Tablet', registrationNo: 'REG-10001', manufacturer: 'Himmel Pharmaceutical', qty: 10, unitTypeName: 'Tablet', tp: 4500, mrp: 5000, description: 'Cardiovascular management' },
+      { brandName: 'HyperNorm 10mg', code: 'PROD-CARD2', division: 'Cardiology', group: 'Anti-hypertensive', genericName: 'Amlodipine', strength: '10mg', dosageForm: 'Tablet', registrationNo: 'REG-10002', manufacturer: 'Himmel Pharmaceutical', qty: 20, unitTypeName: 'Tablet', tp: 2400, mrp: 2650, description: 'Blood pressure regulation' },
+      { brandName: 'Lipitor 10mg', code: 'PROD-LIPI', division: 'Cardiology', group: 'Cardiovascular', genericName: 'Atorvastatin', strength: '10mg', dosageForm: 'Tablet', registrationNo: 'REG-10004', manufacturer: 'Himmel Pharmaceutical', qty: 10, unitTypeName: 'Tablet', tp: 9500, mrp: 10500, description: 'Cholesterol treatment' },
+      { brandName: 'Crestor 10mg', code: 'PROD-CRES', division: 'Cardiology', group: 'Cardiovascular', genericName: 'Rosuvastatin', strength: '10mg', dosageForm: 'Tablet', registrationNo: 'REG-10010', manufacturer: 'Himmel Pharmaceutical', qty: 10, unitTypeName: 'Tablet', tp: 13500, mrp: 14850, description: 'High cholesterol regulator' },
+      { brandName: 'OncoChemo 100mg', code: 'PROD-ONCO1', division: 'Oncology', group: 'Chemotherapy', genericName: 'Cisplatin', strength: '100mg', dosageForm: 'Vial', registrationNo: 'REG-10011', manufacturer: 'Himmel Pharmaceutical', qty: 1, unitTypeName: 'Vial', tp: 15400, mrp: 17000, description: 'Oncology chemotherapy agent' },
+      { brandName: 'OncoTarget 250mg', code: 'PROD-ONCO2', division: 'Oncology', group: 'Targeted Therapy', genericName: 'Gefitinib', strength: '250mg', dosageForm: 'Tablet', registrationNo: 'REG-10012', manufacturer: 'Himmel Pharmaceutical', qty: 10, unitTypeName: 'Tablet', tp: 28000, mrp: 30000, description: 'Targeted cancer therapy' }
     ];
 
     const stmtProduct = db.prepare(`
@@ -197,28 +186,28 @@ function seedDatabase(db) {
 
     // 8. Seed doctors if missing defaults
     const defaultDocs = [
-      { name: 'Dr. Ayesha Khan', specialty: 'Cardiologist', hospital: 'Mayo Hospital', city: 'Lahore', address: 'Room 12, Cardiology Ward, Mayo Hospital, Lahore', notes: 'Preferred meeting time: Tuesday morning.', email: 'ayesha.khan@gmail.com', phone: '03001234567', areaName: 'Lahore Gulberg' },
-      { name: 'Dr. Hamid Raza', specialty: 'General Physician', hospital: 'Jinnah Hospital', city: 'Karachi', address: 'Clinic Annex, Near Main Gate, Jinnah Hospital, Karachi', notes: 'Discuss cardiometabolic drugs.', email: 'hamid.raza@yahoo.com', phone: '03217654321', areaName: 'Karachi Clifton' },
-      { name: 'Dr. Nadia Siddiqui', specialty: 'Pediatrician', hospital: 'Shifa International', city: 'Islamabad', address: 'Consultant Clinic 4, Shifa International Hospital, Islamabad', notes: 'Focus on pediatric allergy medicines.', email: 'nadia.siddiqui@shifa.com', phone: '03339876543', areaName: 'Islamabad F-10' },
-      { name: 'Dr. Farhan Latif', specialty: 'ENT Specialist', hospital: 'Holy Family Hospital', city: 'Rawalpindi', address: 'Asghar Mall Road, Rawalpindi', notes: 'Focus on throat infections.', email: 'farhan.latif@outlook.com', phone: '03456789012', areaName: 'Faisalabad Civil Lines' },
-      { name: 'Dr. Saima Riaz', specialty: 'Dermatologist', hospital: 'FIC Faisalabad', city: 'Faisalabad', address: 'Sargodha Road, Faisalabad', notes: 'Focus on topical products.', email: 'saima.riaz@gmail.com', phone: '03009988776', areaName: 'Peshawar University Road' },
-      { name: 'Dr. Tariq Mehmood', specialty: 'Neurologist', hospital: 'Nishtar Hospital', city: 'Multan', address: 'Nishtar Road, Multan', notes: 'Focus on cognitive range.', email: 'tariq.mehmood@gmail.com', phone: '03005544332', areaName: 'Multan Cantt' },
-      { name: 'Dr. Fatima Ali', specialty: 'Gynecologist', hospital: 'Lady Reading Hospital', city: 'Peshawar', address: 'Peshawar Road, Peshawar', notes: 'Focus on prenatal supplements.', email: 'fatima.ali@gmail.com', phone: '03006655443', areaName: 'Sialkot Saddar' }
+      { name: 'Dr. Ayesha Khan', specialty: 'Cardiologist', hospital: 'Mayo Hospital', city: 'Lahore', notes: 'Preferred meeting time: Tuesday morning.', areaName: 'Lahore Gulberg' },
+      { name: 'Dr. Hamid Raza', specialty: 'General Physician', hospital: 'Jinnah Hospital', city: 'Karachi', notes: 'Discuss cardiometabolic drugs.', areaName: 'Karachi Clifton' },
+      { name: 'Dr. Nadia Siddiqui', specialty: 'Pediatrician', hospital: 'Shifa International', city: 'Islamabad', notes: 'Focus on pediatric allergy medicines.', areaName: 'Islamabad F-10' },
+      { name: 'Dr. Farhan Latif', specialty: 'ENT Specialist', hospital: 'Holy Family Hospital', city: 'Rawalpindi', notes: 'Focus on throat infections.', areaName: 'Faisalabad Civil Lines' },
+      { name: 'Dr. Saima Riaz', specialty: 'Dermatologist', hospital: 'FIC Faisalabad', city: 'Faisalabad', notes: 'Focus on topical products.', areaName: 'Peshawar University Road' },
+      { name: 'Dr. Tariq Mehmood', specialty: 'Neurologist', hospital: 'Nishtar Hospital', city: 'Multan', notes: 'Focus on cognitive range.', areaName: 'Multan Cantt' },
+      { name: 'Dr. Fatima Ali', specialty: 'Gynecologist', hospital: 'Lady Reading Hospital', city: 'Peshawar', notes: 'Focus on prenatal supplements.', areaName: 'Sialkot Saddar' }
     ];
-    const stmtDoc = db.prepare('INSERT OR IGNORE INTO doctors (name, specialty, hospital, city, address, notes, email, phone, area_id, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)');
+    const stmtDoc = db.prepare('INSERT OR IGNORE INTO doctors (name, specialty, hospital, city, notes, area_id, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)');
     defaultDocs.forEach(d => {
-      stmtDoc.run(d.name, d.specialty, d.hospital, d.city, d.address, d.notes, d.email, d.phone, getRequiredId(areasMap, d.areaName, 'Area'));
+      stmtDoc.run(d.name, d.specialty, d.hospital, d.city, d.notes, getRequiredId(areasMap, d.areaName, 'Area'));
     });
 
     // 9. Seed institutions if missing defaults
     const defaultInsts = [
-      { name: 'Mayo Hospital', code: 'INST-MAYO', type: 'Hospital', city: 'Lahore', address: 'Gulberg Road, Lahore', contact_person: 'Dr. Tariq Mahmood', contact_number: '+92 300 1234567', notes: 'Largest public hospital.', areaName: 'Lahore Gulberg' },
-      { name: 'Jinnah Hospital', code: 'INST-JINN', type: 'Hospital', city: 'Karachi', address: 'Clifton, Karachi', contact_person: 'Dr. Hamid Raza', contact_number: '+92 321 9876543', notes: 'High volume public hospital.', areaName: 'Karachi Clifton' },
-      { name: 'Shifa International', code: 'INST-SHIF', type: 'Hospital', city: 'Islamabad', address: 'F-10, Islamabad', contact_person: 'Dr. Nadia Siddiqui', contact_number: '+92 333 5556667', notes: 'Premium private care.', areaName: 'Islamabad F-10' }
+      { name: 'Mayo Hospital', code: 'INST-MAYO', type: 'Hospital', city: 'Lahore', notes: 'Largest public hospital.', areaName: 'Lahore Gulberg' },
+      { name: 'Jinnah Hospital', code: 'INST-JINN', type: 'Hospital', city: 'Karachi', notes: 'High volume public hospital.', areaName: 'Karachi Clifton' },
+      { name: 'Shifa International', code: 'INST-SHIF', type: 'Hospital', city: 'Islamabad', notes: 'Premium private care.', areaName: 'Islamabad F-10' }
     ];
-    const stmtInst = db.prepare('INSERT OR IGNORE INTO institutions (name, code, type, city, address, contact_person, contact_number, notes, area_id, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)');
+    const stmtInst = db.prepare('INSERT OR IGNORE INTO institutions (name, code, type, city, notes, area_id, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)');
     defaultInsts.forEach(i => {
-      stmtInst.run(i.name, i.code, i.type, i.city, i.address, i.contact_person, i.contact_number, i.notes, getRequiredId(areasMap, i.areaName, 'Area'));
+      stmtInst.run(i.name, i.code, i.type, i.city, i.notes, getRequiredId(areasMap, i.areaName, 'Area'));
     });
 
     // Rebuild lookup maps (always rebuilt dynamically)

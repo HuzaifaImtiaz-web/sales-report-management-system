@@ -229,7 +229,6 @@ const Areas = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => exportToCSV('areas_export', filtered, [
-                { key: 'code', label: 'Area Code' },
                 { key: 'name', label: 'Area Name' },
                 { key: 'city', label: 'City' },
                 { key: 'region', label: 'Region' },
@@ -282,7 +281,7 @@ const Areas = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by Area Name, City, Region, or Area Code..."
+                placeholder="Search by Area Name, City, Region..."
                 className="w-full pl-9 pr-4 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-205 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
@@ -344,7 +343,7 @@ const Areas = () => {
             <table className="w-full text-xs" aria-label="Areas table">
               <thead className="sticky top-0 z-10 bg-gray-55 dark:bg-[#0f172a] shadow-xs">
                 <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                  {['Area Code', 'Area Name', 'City', 'Region', 'Status', 'Actions'].map((h) => (
+                  {['Area Name', 'City', 'Region', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-5 py-3.5 whitespace-nowrap">
                       {h}
                     </th>
@@ -361,11 +360,6 @@ const Areas = () => {
                       key={a.id}
                       className="hover:bg-gray-55/60 dark:hover:bg-gray-800/30 transition-colors duration-100 group"
                     >
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <span className="font-mono text-[10px] font-extrabold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
-                          {a.code}
-                        </span>
-                      </td>
                       <td className="px-5 py-4 font-semibold text-gray-855 dark:text-gray-200 whitespace-nowrap">{a.name}</td>
                       <td className="px-5 py-4 text-gray-650 dark:text-gray-300 whitespace-nowrap">{a.city}</td>
                       <td className="px-5 py-4 text-gray-650 dark:text-gray-300 whitespace-nowrap">{a.region}</td>

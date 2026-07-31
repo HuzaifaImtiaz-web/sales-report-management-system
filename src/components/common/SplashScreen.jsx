@@ -109,7 +109,7 @@ const SplashScreen = ({ onComplete }) => {
       {/* Bottom Footer Info */}
       <div className="w-full text-center pb-8 z-10 space-y-1.5">
         <p className="text-[9px] font-black text-gray-400 dark:text-slate-500 tracking-[0.2em] uppercase">
-          v1.0.1 — Enterprise Desktop Edition
+          v1.0.2 — Enterprise Desktop Edition
         </p>
         <p className="text-[8px] font-bold text-gray-400/80 dark:text-slate-550/80 uppercase tracking-wider">
           © {new Date().getFullYear()} Himmel Pharmaceutical. All rights reserved.
@@ -120,3 +120,4 @@ const SplashScreen = ({ onComplete }) => {
 };
 
 export default SplashScreen;
+

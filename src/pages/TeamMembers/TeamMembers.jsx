@@ -18,16 +18,6 @@ const DESIGNATIONS = [
   'Regional Sales Manager'
 ];
 
-const AREAS = [
-  'Lahore Central',
-  'Karachi South',
-  'Islamabad F-10',
-  'Rawalpindi',
-  'Faisalabad',
-  'Multan',
-  'Peshawar'
-];
-
 const StatusBadge = ({ status }) =>
   status === 'Active' ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-50 dark:bg-green-900/30 text-feedback-success border border-green-100 dark:border-green-800/50">
@@ -43,7 +33,7 @@ const StatusBadge = ({ status }) =>
 
 const EmptyState = ({ onAdd }) => (
   <tr>
-    <td colSpan={6} className="px-5 py-16 text-center">
+    <td colSpan={5} className="px-5 py-16 text-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-16 h-16 rounded-2xl bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
           <FiUsers className="w-8 h-8 text-gray-200 dark:text-gray-650" />
@@ -72,7 +62,6 @@ const DeleteDialog = ({ member, onCancel, onConfirm }) => (
         </div>
         <div>
           <h2 className="text-sm font-bold text-gray-900 dark:text-white">Delete Team Member</h2>
-          <p className="text-[11px] text-gray-400 dark:text-gray-550 font-medium mt-0.5">{member.code}</p>
         </div>
       </div>
       <div className="px-6 py-5">
@@ -133,15 +122,22 @@ const TeamMembers = () => {
     setCurrentPage(1);
   }, [search, areaFilter, designationFilter, statusFilter]);
 
+  const areasList = useMemo(() => {
+    const set = new Set();
+    team.forEach(t => {
+      if (t.area) set.add(t.area);
+    });
+    return Array.from(set);
+  }, [team]);
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return team.filter((t) => {
       const matchQ =
         !q ||
         t.name.toLowerCase().includes(q) ||
-        t.code.toLowerCase().includes(q) ||
-        t.area.toLowerCase().includes(q) ||
-        t.designation.toLowerCase().includes(q);
+        (t.area && t.area.toLowerCase().includes(q)) ||
+        (t.designation && t.designation.toLowerCase().includes(q));
 
       const matchArea = !areaFilter || t.area === areaFilter;
       const matchDesignation = !designationFilter || t.designation === designationFilter;
@@ -210,7 +206,6 @@ const TeamMembers = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => exportToCSV('team_members_export', filtered, [
-                { key: 'code', label: 'Employee ID' },
                 { key: 'name', label: 'Employee Name' },
                 { key: 'designation', label: 'Designation' },
                 { key: 'area', label: 'Area' },
@@ -263,7 +258,7 @@ const TeamMembers = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by Employee Name, Employee ID, Area, or Designation..."
+                placeholder="Search by Employee Name, Area, or Designation..."
                 className="w-full pl-9 pr-4 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-205 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
@@ -277,7 +272,7 @@ const TeamMembers = () => {
                   className="w-full pl-3 pr-8 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-250 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none cursor-pointer min-w-[150px] appearance-none"
                 >
                   <option value="">All Areas</option>
-                  {AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+                  {areasList.map((a) => <option key={a} value={a}>{a}</option>)}
                 </select>
               </div>
 
@@ -325,7 +320,7 @@ const TeamMembers = () => {
             <table className="w-full text-xs" aria-label="Team table">
               <thead className="sticky top-0 z-10 bg-gray-55 dark:bg-[#0f172a] shadow-xs">
                 <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                  {['Employee ID', 'Employee Name', 'Designation', 'Area', 'Status', 'Actions'].map((h) => (
+                  {['Employee Name', 'Designation', 'Area', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-5 py-3.5 whitespace-nowrap">
                       {h}
                     </th>
@@ -342,14 +337,9 @@ const TeamMembers = () => {
                       key={t.id}
                       className="hover:bg-gray-55/60 dark:hover:bg-gray-800/30 transition-colors duration-100 group"
                     >
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <span className="font-mono text-[10px] font-extrabold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
-                          {t.code}
-                        </span>
-                      </td>
                       <td className="px-5 py-4 font-semibold text-gray-855 dark:text-gray-205 whitespace-nowrap">{t.name}</td>
-                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300 whitespace-nowrap">{t.designation}</td>
-                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300 whitespace-nowrap">{t.area}</td>
+                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300 whitespace-nowrap">{t.designation || '—'}</td>
+                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300 whitespace-nowrap">{t.area || '—'}</td>
                       <td className="px-5 py-4 whitespace-nowrap">
                         <StatusBadge status={t.status} />
                       </td>

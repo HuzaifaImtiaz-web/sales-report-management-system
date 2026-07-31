@@ -420,6 +420,20 @@ const Orders = () => {
                                 <FiEdit3 className="w-3 h-3" /> Edit
                               </button>
                               <button
+                                onClick={() => handleStatusChange(po, 'Completed')}
+                                title="Mark as Completed"
+                                className="px-2.5 py-1 bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 rounded text-[10px] font-bold inline-flex items-center gap-1"
+                              >
+                                <FiCheckCircle className="w-3 h-3" /> Complete
+                              </button>
+                              <button
+                                onClick={() => setToCancel(po)}
+                                title="Cancel Order"
+                                className="px-2.5 py-1 bg-yellow-50 dark:bg-yellow-950/40 text-yellow-600 dark:text-yellow-500 rounded text-[10px] font-bold inline-flex items-center gap-1"
+                              >
+                                <FiRotateCcw className="w-3 h-3" /> Cancel
+                              </button>
+                              <button
                                 onClick={() => setToDelete(po)}
                                 title="Delete Order"
                                 className="px-2.5 py-1 bg-red-50 dark:bg-red-950/40 text-rose-600 dark:text-rose-400 rounded text-[10px] font-bold inline-flex items-center gap-1"
