@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 
-let packageVersion = '1.0.2';
+let packageVersion = '1.0.3';
 try {
   const pkgPath = path.join(__dirname, '..', 'package.json');
   if (fs.existsSync(pkgPath)) {

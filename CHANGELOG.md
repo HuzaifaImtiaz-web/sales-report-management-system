@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.3] - 2026-08-01 (Phase 20.6.3 Dynamic Branding & Icon Release)
+### Added
+- **Single-Source Dynamic Version Architecture**: Connected `package.json` version directly to Electron main process, React frontend (`src/utils/version.js`), Update Center, and Settings UI. Updating `package.json` automatically updates all application screens.
+- **Logo White Badge Cards**: Added pure white rounded background cards with subtle borders around the Himmel logo on all colored, dark crimson, and dark mode screens (Login panel, Splash screen, System init screen, Sidebar, Navbar, Settings header, Update Center modal).
+- **Windows Multi-Resolution Icon Assets**: Generated crisp white-badged 256x256 `icon.png` and multi-resolution `icon.ico` for Windows Desktop shortcuts, Taskbar, Start Menu, File Explorer, NSIS setup installer, and uninstaller.
+- **About Application Settings Enhancement**: Added Installed Version, Release Channel, Build Type, and Build Date to Settings → About Application.
+
+### Changed
+- **Electron Icon Loader**: Updated `electron/window.cjs` and `package.json` NSIS builder configuration to prioritize loading white-badged `build/icon.png` and `build/icon.ico`.
+- **Public Assets**: Added `public/favicon.png` and `public/favicon.ico` so web views and window titles display the new icon.
+
 ## [1.0.2] - 2026-08-01 (Phase 20.6 Production Stability Release)
 ### Fixed
 - **Database FK Corruption**: Detected and rebuilt `orders`, `order_items`, `products`, and `product_targets` tables whose foreign key definitions were corrupted by SQLite's automatic RENAME cascade during previous migration phases. All FK references to `*_temp` tables eliminated.

@@ -1,14 +1,35 @@
-# Release Notes — v1.0.2 (Production Stability Release)
+# Release Notes — v1.0.3 (Branding, Icon & Dynamic Version Architecture Release)
 
-**Release Date:** 2026-08-01
-**Release Type:** Stability / Bugfix
-**Previous Version:** v1.0.1
+**Release Date:** 2026-08-01  
+**Release Type:** Feature & Branding Enhancement  
+**Previous Version:** v1.0.2  
 
 ---
 
 ## Overview
 
-Himmel Pharmaceutical Sales Management System v1.0.2 is a comprehensive stability release that resolves all known production blockers introduced by database migration side effects from Phase 20.5. This release completes the master data simplification, repairs schema corruption, and fully enables the Order workflow — including save, complete, cancel, and delete — without any errors.
+Himmel Pharmaceutical Sales Management System **v1.0.3** introduces a single-source dynamic versioning architecture, enterprise white-badge logo visibility across all light and dark screens, updated Windows icon assets (`.ico` and `.png`), and an expanded About Application diagnostic card layout.
+
+---
+
+## What's New in v1.0.3
+
+### 🎨 Logo Visibility & White Badge Cards
+- **High-Contrast Badges**: Added pure white rounded background cards with subtle borders around the Himmel logo on all dark crimson, dark mode, and colored screens (Login panel, Splash screen, System init screen, Sidebar, Navbar, Settings header, Update Center modal).
+- **Aspect Ratio Preservation**: Guaranteed crisp logo display without cropping or background color bleeding across all display resolutions.
+
+### 🖼️ Windows Multi-Resolution Icon Assets
+- **Generated 256x256 Badged Icon**: Built white-badged 256x256 `icon.png` and multi-resolution `icon.ico` for Windows Desktop shortcuts, Taskbar, Start Menu, File Explorer, NSIS installer, and uninstaller.
+- **Vite Favicon Support**: Added `public/favicon.png` & `public/favicon.ico` so web views and window titlebars render the badged logo icon.
+
+### ⚙️ Single-Source Dynamic Version Architecture
+- **Centralized Resolution**: Connected `package.json` version directly to Electron main process, React frontend (`src/utils/version.js`), Update Center, and Settings UI.
+- **Auto-Syncing**: Updating `package.json` version automatically updates every screen and process in the application without touching any source code strings.
+- **Settings → About Application**: Expanded card layout to display Installed Version, Release Channel (`Production`), Build Type (`Stable Release`), and Build Date (`2026-08-01`).
+
+---
+
+## Release Notes — v1.0.2 (Production Stability Release)
 
 ---
 
