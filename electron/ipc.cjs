@@ -148,7 +148,14 @@ function setupIpcHandlers(db) {
     return {
       mode: config.mode,
       version: config.version,
-      dbVersion: config.dbVersion
+      dbVersion: config.dbVersion,
+      electronVersion: process.versions.electron || '42.0.1',
+      nodeVersion: process.versions.node || '20.11.0',
+      chromeVersion: process.versions.chrome || '124.0.0',
+      platform: process.platform === 'win32' ? 'Windows (win32)' : process.platform,
+      arch: process.arch || 'x64',
+      reactVersion: '18.3.1',
+      dbEngine: 'SQLite (better-sqlite3)'
     };
   }, { isPublic: true });
 

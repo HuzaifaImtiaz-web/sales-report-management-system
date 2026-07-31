@@ -16,7 +16,8 @@ import {
   FiCalendar, FiSun, FiMoon, FiMonitor, FiSettings,
   FiFileText, FiUser, FiLock, FiDatabase,
   FiDownloadCloud, FiInfo, FiCheck, FiX, FiEdit, FiLoader,
-  FiActivity, FiAlertTriangle, FiFolder, FiRefreshCw, FiKey, FiShield
+  FiActivity, FiAlertTriangle, FiFolder, FiRefreshCw, FiKey, FiShield,
+  FiCode, FiCpu
 } from 'react-icons/fi';
 
 import CompanyLogo from '../../components/common/CompanyLogo';
@@ -364,6 +365,13 @@ const Settings = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        if (window.api && window.api.production && window.api.production.getConfig) {
+          const configRes = await window.api.production.getConfig();
+          if (configRes && configRes.success && configRes.data) {
+            setAppConfig(prev => ({ ...prev, ...configRes.data }));
+          }
+        }
+
         const company = await settingsService.getCompanyInfo();
         setCompanyInfo(company);
         
@@ -1336,32 +1344,144 @@ const Settings = () => {
               </div>
             )}
 
-            {/* 7. About */}
-            <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 md:col-span-2">
-              <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-855 mb-4">
-                <FiInfo className="w-4 h-4 text-brand-primary" />
-                <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">About Application</h3>
+            {/* 7. About Application & Developer Information */}
+            <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-6 md:col-span-2 space-y-6 select-none">
+              
+              {/* Header with Himmel Logo & Main App Info */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-4">
+                  <CompanyLogo className="h-12 w-auto object-contain drop-shadow-sm" />
+                  <div>
+                    <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
+                      Himmel Pharmaceutical Sales Management System
+                    </h2>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
+                      Enterprise Sales &amp; Distribution Management Platform
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-red-400 rounded-full border border-brand-primary/20">
+                    v{appConfig.version || '1.0.2'}
+                  </span>
+                  <span className="px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800/40">
+                    Stable Release
+                  </span>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-medium py-1">
-                <div>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase">Application Name</span>
-                  <p className="font-bold text-gray-800 dark:text-white mt-0.5">Himmel Sales System</p>
+              {/* Application Details & Description Card */}
+              <div className="bg-gray-50/60 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+                  <FiInfo className="w-4 h-4 text-brand-primary" />
+                  <span>Application Information</span>
                 </div>
-                <div>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase">Version</span>
-                  <p className="font-semibold text-gray-800 dark:text-gray-200 mt-0.5">v1.4.2</p>
-                </div>
-                <div>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase">Developer Info</span>
-                  <p className="font-semibold text-gray-805 dark:text-gray-200 mt-0.5">Enterprise Systems Group</p>
-                </div>
-                <div>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase">Copyright</span>
-                  <p className="font-semibold text-gray-800 dark:text-gray-300 mt-0.5">© 2026 Himmel Pharma</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-normal">
+                  Enterprise Pharmaceutical Sales &amp; Distribution Management System designed for managing Products, Doctors, Institutions, Areas, Team Members, Sales, Orders, Reporting, Analytics, Business Year Management, and Enterprise Backup &amp; Recovery.
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-3 border-t border-gray-150 dark:border-gray-800/60 text-xs">
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Application Name</span>
+                    <p className="font-bold text-gray-800 dark:text-white mt-0.5">Himmel Pharmaceutical Sales Management System</p>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Version</span>
+                    <p className="font-bold text-gray-800 dark:text-white mt-0.5">{appConfig.version || '1.0.2'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Release Channel</span>
+                    <p className="font-bold text-gray-800 dark:text-white mt-0.5">Production</p>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Build Type</span>
+                    <p className="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">Stable Release</p>
+                  </div>
                 </div>
               </div>
+
+              {/* Developer & System Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                
+                {/* Developer Information Card */}
+                <div className="bg-gray-50/60 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 pb-2.5 border-b border-gray-150 dark:border-gray-800 mb-3">
+                      <FiCode className="w-4 h-4 text-brand-primary" />
+                      <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Developer Information</h3>
+                    </div>
+
+                    <div className="space-y-3 text-xs">
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-800/40">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Developer</span>
+                        <span className="font-extrabold text-gray-900 dark:text-white">Huzaifa Imtiaz</span>
+                      </div>
+
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-800/40">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Role</span>
+                        <span className="font-bold text-gray-700 dark:text-gray-300">Software Engineer</span>
+                      </div>
+
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Copyright</span>
+                        <span className="font-semibold text-gray-600 dark:text-gray-400">© 2026 Huzaifa Imtiaz</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 text-[10px] text-gray-400 dark:text-gray-500 font-semibold italic text-center border-t border-gray-100 dark:border-gray-800/40">
+                    All Rights Reserved.
+                  </div>
+                </div>
+
+                {/* System Information Card */}
+                <div className="bg-gray-50/60 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-gray-150 dark:border-gray-800">
+                    <FiCpu className="w-4 h-4 text-brand-primary" />
+                    <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">System Information</h3>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">App Version</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.version || '1.0.2'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Electron</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.electronVersion || '42.0.1'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Node.js</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.nodeVersion || '20.11.0'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Chromium</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.chromeVersion || '124.0.0'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">React</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.reactVersion || '18.3.1'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Database Engine</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.dbEngine || 'SQLite (better-sqlite3)'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Platform</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.platform || 'Windows (win32)'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Architecture</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.arch || 'x64'}</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
+
 
           </div>
         )}

@@ -18,7 +18,7 @@ const formatDate = () =>
 
 const WelcomeCard = () => {
   const { user } = useAuth();
-  const name = user?.name || user?.email?.split('@')[0] || 'Huzaifa';
+  const name = user?.fullName || user?.username || user?.name || user?.email?.split('@')[0] || 'User';
 
   return (
     <div className="relative overflow-hidden rounded-enterprise bg-gradient-to-br from-brand-navy via-[#162447] to-[#1a2e5a] shadow-premium p-6 sm:p-8 text-white transition-all duration-250 hover:shadow-premium">
