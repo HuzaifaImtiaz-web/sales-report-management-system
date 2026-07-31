@@ -1,0 +1,100 @@
+
+============================================================
+PHASE 20.5.4 — RUNTIME DATABASE INVESTIGATION
+============================================================
+
+=== STEP 1: DATABASE PATH ===
+Path: C:\Users\sajid\AppData\Roaming\Himmel Pharmaceutical\database\admin.db
+Exists: true
+
+=== STEP 2: LIVE TABLE SCHEMAS ===
+
+--- areas (8 columns) ---
+  [0] id  INTEGER  nullable  
+  [1] name  TEXT  NOT NULL  
+  [2] city  TEXT  nullable  
+  [3] region  TEXT  nullable  
+  [4] description  TEXT  nullable  
+  [5] is_active  INTEGER  NOT NULL  DEFAULT 1
+  [6] created_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+  [7] updated_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+
+--- doctors (10 columns) ---
+  [0] id  INTEGER  nullable  
+  [1] name  TEXT  NOT NULL  
+  [2] specialty  TEXT  nullable  
+  [3] hospital  TEXT  nullable  
+  [4] city  TEXT  nullable  
+  [5] notes  TEXT  nullable  
+  [6] area_id  INTEGER  nullable  
+  [7] is_active  INTEGER  NOT NULL  DEFAULT 1
+  [8] created_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+  [9] updated_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+
+--- institutions (10 columns) ---
+  [0] id  INTEGER  nullable  
+  [1] name  TEXT  NOT NULL  
+  [2] code  TEXT  nullable  
+  [3] type  TEXT  nullable  
+  [4] city  TEXT  nullable  
+  [5] notes  TEXT  nullable  
+  [6] area_id  INTEGER  nullable  
+  [7] is_active  INTEGER  NOT NULL  DEFAULT 1
+  [8] created_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+  [9] updated_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+
+--- team_members (8 columns) ---
+  [0] id  INTEGER  nullable  
+  [1] name  TEXT  NOT NULL  
+  [2] role  TEXT  NOT NULL  DEFAULT 'Sales Representative'
+  [3] area_id  INTEGER  nullable  
+  [4] notes  TEXT  nullable  
+  [5] is_active  INTEGER  NOT NULL  DEFAULT 1
+  [6] created_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+  [7] updated_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+
+--- groups (7 columns) ---
+  [0] id  INTEGER  nullable  
+  [1] division_id  INTEGER  NOT NULL  
+  [2] name  TEXT  NOT NULL  
+  [3] description  TEXT  nullable  
+  [4] is_active  INTEGER  NOT NULL  DEFAULT 1
+  [5] created_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+  [6] updated_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+
+--- products (18 columns) ---
+  [0] id  INTEGER  nullable  
+  [1] division_id  INTEGER  NOT NULL  
+  [2] group_id  INTEGER  NOT NULL  
+  [3] product_code  TEXT  NOT NULL  
+  [4] brand_name  TEXT  NOT NULL  
+  [5] generic_name  TEXT  nullable  
+  [6] strength  TEXT  nullable  
+  [7] dosage_form  TEXT  nullable  
+  [8] registration_no  TEXT  nullable  
+  [9] manufacturer  TEXT  nullable  
+  [10] pack_size  INTEGER  NOT NULL  
+  [11] unit_type_id  INTEGER  NOT NULL  
+  [12] tp  REAL  NOT NULL  
+  [13] mrp  REAL  NOT NULL  
+  [14] description  TEXT  nullable  
+  [15] status  TEXT  NOT NULL  DEFAULT 'Active'
+  [16] created_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+  [17] updated_at  TEXT  NOT NULL  DEFAULT CURRENT_TIMESTAMP
+
+=== STEP 3: LEGACY COLUMN DETECTION ===
+  OK  'areas': no legacy columns
+  OK  'doctors': no legacy columns
+  OK  'institutions': no legacy columns
+  OK  'team_members': no legacy columns
+  OK  'groups': no legacy columns
+
+  ALL TABLES CLEAN — migration ran successfully.
+
+=== STEP 5: ROW COUNTS ===
+  areas: 1 rows
+  doctors: 1 rows
+  institutions: 1 rows
+  team_members: 1 rows
+  groups: 15 rows
+  products: 1 rows

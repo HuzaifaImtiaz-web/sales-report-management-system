@@ -5,13 +5,17 @@ import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 import { areaService } from '../../services/areaService';
 import HybridComboBox from '../../components/common/HybridComboBox';
 import StatusSelector from '../../components/common/StatusSelector';
-import { sanitizePhoneInput, isValid11DigitPhone } from '../../utils/phoneValidator';
 
 const DESIGNATIONS = [
+  'SPO',
+  'Area Manager',
+  'Regional Sales Manager',
+  'Zonal Manager',
+  'Sales Director',
   'Medical Representative',
+  'Territory Executive',
   'Territory Manager',
-  'Area Sales Manager',
-  'Regional Sales Manager'
+  'Area Sales Manager'
 ];
 
 const Field = ({ label, required, error, children }) => (
@@ -40,13 +44,8 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
   const [areasList, setAreasList] = useState([]);
   const [form, setForm] = useState({
     name: '',
-    code: '',
     designation: '',
     area: '',
-    mobile: '',
-    email: '',
-    address: '',
-    joiningDate: '',
     notes: '',
     status: 'Active'
   });
@@ -62,7 +61,14 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
 
   useEffect(() => {
     if (item) {
-      setForm({ ...item, area: item.area || item.areaName || '', mobile: item.mobile || item.phone || '' });
+      setForm({
+        id: item.id,
+        name: item.name || '',
+        designation: item.designation || item.role || '',
+        area: item.area || item.areaName || '',
+        notes: item.notes || '',
+        status: item.status || 'Active'
+      });
     }
   }, [item]);
 
@@ -76,7 +82,6 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
   const handleAreaAddNew = (newAreaName) => {
     areaService.saveArea({
       name: newAreaName,
-      code: `AREA-${newAreaName.slice(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
       status: 'Active'
     }).then(() => {
       areaService.getAllAreas().then(res => setAreasList(res || []));
@@ -85,16 +90,20 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'Employee Name is required.';
-    if (!form.designation) e.designation = 'Designation is required.';
-    if (!form.area) e.area = 'Area is required.';
-    if (!form.mobile.trim()) {
-      e.mobile = 'Mobile Number is required.';
-    } else if (!isValid11DigitPhone(form.mobile)) {
-      e.mobile = 'Mobile Number must contain exactly 11 digits (e.g. 03001234567).';
-    }
-    if (!form.joiningDate) e.joiningDate = 'Joining Date is required.';
+    if (!form.name || !form.name.trim()) e.name = 'Employee Name is required.';
     return e;
+  };
+
+  const resetForm = () => {
+    setForm({
+      name: '',
+      designation: '',
+      area: '',
+      notes: '',
+      status: 'Active'
+    });
+    setErrors({});
+    setIsDirty(false);
   };
 
   const handleSave = () => {
@@ -103,7 +112,10 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
       setErrors(e);
       return;
     }
-    onSave({ ...form });
+    const res = onSave({ ...form });
+    if (res !== false && !isEdit) {
+      resetForm();
+    }
   };
 
   useEffect(() => {
@@ -114,7 +126,11 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
           setErrors(e);
           return false;
         }
-        return onSave({ ...form });
+        const res = onSave({ ...form });
+        if (res !== false && !isEdit) {
+          resetForm();
+        }
+        return res;
       });
     }
     return () => setOnSave(null);
@@ -133,7 +149,7 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
             className={inputCls(errors.name, isView)}
           />
         </Field>
-        <Field label="Designation" required error={errors.designation}>
+        <Field label="Designation" error={errors.designation}>
           {isView ? (
             <input
               disabled
@@ -141,32 +157,21 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
               className={inputCls(false, true)}
             />
           ) : (
-            <select
+            <HybridComboBox
               value={form.designation}
-              onChange={(e) => set('designation', e.target.value)}
-              className={inputCls(errors.designation, isView) + ' appearance-none cursor-pointer'}
-            >
-              <option value="">Select Designation…</option>
-              {DESIGNATIONS.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
+              options={DESIGNATIONS}
+              onChange={(val) => set('designation', val)}
+              placeholder="Select or type designation..."
+              disabled={isView}
+              error={Boolean(errors.designation)}
+            />
           )}
         </Field>
       </div>
 
-      {/* Row 2: Code & Area */}
+      {/* Row 2: Area */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Employee ID">
-          <input
-            disabled={isView}
-            value={form.code}
-            onChange={(e) => set('code', e.target.value)}
-            placeholder="e.g. TM-001"
-            className={inputCls(false, isView) + ' font-mono'}
-          />
-        </Field>
-        <Field label="Area" required error={errors.area}>
+        <Field label="Area" error={errors.area}>
           {isView ? (
             <input
               disabled
@@ -184,52 +189,6 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
               error={Boolean(errors.area)}
             />
           )}
-        </Field>
-      </div>
-
-      {/* Row 3: Mobile & Email */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Mobile Number" required error={errors.mobile}>
-          <input
-            disabled={isView}
-            value={form.mobile}
-            onChange={(e) => set('mobile', sanitizePhoneInput(e.target.value))}
-            placeholder="e.g. 03001234567"
-            maxLength={11}
-            className={inputCls(errors.mobile, isView)}
-          />
-        </Field>
-        <Field label="Email Address" error={errors.email}>
-          <input
-            disabled={isView}
-            type="email"
-            value={form.email}
-            onChange={(e) => set('email', e.target.value)}
-            placeholder="e.g. name@himmel.com"
-            className={inputCls(errors.email, isView)}
-          />
-        </Field>
-      </div>
-
-      {/* Row 4: Joining Date & Address */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Joining Date" required error={errors.joiningDate}>
-          <input
-            disabled={isView}
-            type="date"
-            value={form.joiningDate}
-            onChange={(e) => set('joiningDate', e.target.value)}
-            className={inputCls(errors.joiningDate, isView)}
-          />
-        </Field>
-        <Field label="Address">
-          <input
-            disabled={isView}
-            value={form.address}
-            onChange={(e) => set('address', e.target.value)}
-            placeholder="Residential address details…"
-            className={inputCls(false, isView)}
-          />
         </Field>
       </div>
 
@@ -280,7 +239,7 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
             </button>
             <button
               type="button"
-              onClick={() => navigate(`/team/${form.id}/edit`)}
+              onClick={() => navigate(`/team-members/${form.id}/edit`)}
               className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
             >
               <FiEdit2 className="w-3.5 h-3.5" /> Edit

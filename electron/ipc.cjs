@@ -53,17 +53,8 @@ function setupIpcHandlers(db) {
       if (msg.includes('product_code') || msg.includes('products.code')) {
         return 'This Product Code already exists. Please use a unique Product Code.';
       }
-      if (msg.includes('doctor_code') || msg.includes('doctors.code')) {
-        return 'This Doctor Code already exists. Please use a unique Doctor Code.';
-      }
       if (msg.includes('institution_code') || msg.includes('institutions.code')) {
         return 'This Institution Code already exists. Please use a unique Institution Code.';
-      }
-      if (msg.includes('area_code') || msg.includes('areas.code')) {
-        return 'This Area Code already exists. Please use a unique Area Code.';
-      }
-      if (msg.includes('employee_id') || msg.includes('team_members.code')) {
-        return 'This Employee ID already exists. Please use a unique Employee ID.';
       }
       if (msg.includes('name')) {
         return 'A record with this name already exists.';

@@ -15,7 +15,7 @@ class AnalyticsService {
     logger.info('SQL Trace: Fetching dashboard summary...');
 
     // Fetch active business year
-    const activeYear = db.prepare("SELECT year_name, start_date, end_date FROM business_years WHERE is_active = 1").get();
+    const activeYear = db.prepare("SELECT year_name, start_date, end_date FROM business_years WHERE date('now') BETWEEN date(start_date) AND date(end_date) LIMIT 1").get();
     const currentBusinessYear = activeYear ? activeYear.year_name : 'N/A';
 
     // 1. KPI Counts and Totals
@@ -25,7 +25,7 @@ class AnalyticsService {
         (SELECT COUNT(*) FROM orders) as totalOrders,
         (SELECT COUNT(*) FROM orders WHERE status = 'Pending') as pendingOrders,
         (SELECT COUNT(*) FROM orders WHERE status = 'Completed') as completedOrders,
-        (SELECT COUNT(*) FROM products WHERE is_active = 1) as activeProducts,
+        (SELECT COUNT(*) FROM products WHERE status = 'Active') as activeProducts,
         (SELECT COUNT(*) FROM doctors WHERE is_active = 1) as activeDoctors,
         (SELECT COUNT(*) FROM institutions WHERE is_active = 1) as activeInstitutions,
         (SELECT COUNT(*) FROM team_members WHERE is_active = 1 AND role IN ('Rep', 'Sales Representative')) as activeRepresentatives
@@ -122,7 +122,7 @@ class AnalyticsService {
 
     return db.prepare(`
       SELECT 
-        COALESCE(p.brand_name, p.name) as name, 
+        p.brand_name as name, 
         p.product_code as productCode,
         SUM(oi.quantity) as quantity 
       FROM order_items oi 
@@ -177,7 +177,7 @@ class AnalyticsService {
     const db = this.getActiveDb();
     logger.info('SQL Trace: Fetching target progress from Product Master...');
 
-    const activeYear = db.prepare("SELECT id, start_date, end_date FROM business_years WHERE is_active = 1").get();
+    const activeYear = db.prepare("SELECT id, start_date, end_date FROM business_years WHERE date('now') BETWEEN date(start_date) AND date(end_date) LIMIT 1").get();
     if (!activeYear || !activeYear.start_date || !activeYear.end_date) {
       return { target: 0, achieved: 0, remaining: 0, percent: 0 };
     }

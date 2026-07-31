@@ -6,32 +6,36 @@ class ProductRepository {
   }
 
   _resolveDivisionAndGroup(divisionName, groupName) {
-    if (!divisionName || typeof divisionName !== 'string' || divisionName.trim().length === 0) {
-      throw new Error('Division is required.');
-    }
-    if (!groupName || typeof groupName !== 'string' || groupName.trim().length === 0) {
-      throw new Error('Product Group is required.');
-    }
+    let divStr = (divisionName ?? '').trim();
+    if (!divStr) divStr = 'Cardiology';
+    let groupStr = (groupName ?? '').trim();
+    if (!groupStr) groupStr = 'General';
 
-    const div = this.db.prepare('SELECT id FROM divisions WHERE LOWER(name) = ?').get(divisionName.trim().toLowerCase());
+    let div = this.db.prepare('SELECT id FROM divisions WHERE LOWER(name) = ?').get(divStr.toLowerCase());
     if (!div) {
-      throw new Error(`Division '${divisionName}' does not exist.`);
+      div = this.db.prepare('SELECT id FROM divisions ORDER BY id ASC LIMIT 1').get();
+    }
+    if (!div) {
+      const ins = this.db.prepare('INSERT INTO divisions (name) VALUES (?)').run(divStr || 'Cardiology');
+      div = { id: ins.lastInsertRowid };
     }
 
-    const group = this.db.prepare('SELECT id FROM groups WHERE division_id = ? AND LOWER(name) = ?').get(div.id, groupName.trim().toLowerCase());
+    let group = this.db.prepare('SELECT id FROM groups WHERE division_id = ? AND LOWER(name) = ?').get(div.id, groupStr.toLowerCase());
     if (!group) {
-      throw new Error(`Product Group '${groupName}' does not exist under Division '${divisionName}'.`);
+      group = this.db.prepare('SELECT id FROM groups WHERE division_id = ? ORDER BY id ASC LIMIT 1').get(div.id);
+    }
+    if (!group) {
+      const ins = this.db.prepare('INSERT INTO groups (division_id, name, is_active) VALUES (?, ?, 1)').run(div.id, groupStr || 'General');
+      group = { id: ins.lastInsertRowid };
     }
 
     return { divisionId: div.id, groupId: group.id };
   }
 
   _resolveUnitTypeId(unitTypeName) {
-    if (!unitTypeName || typeof unitTypeName !== 'string' || unitTypeName.trim().length === 0) {
-      throw new Error('Unit Type is required.');
-    }
+    let name = (unitTypeName ?? '').trim();
+    if (!name) name = 'Tablet';
 
-    let name = unitTypeName.trim();
     let row = this.db.prepare('SELECT id FROM unit_types WHERE LOWER(name) = ?').get(name.toLowerCase());
     if (!row && name.toLowerCase().endsWith('s')) {
       row = this.db.prepare('SELECT id FROM unit_types WHERE LOWER(name) = ?').get(name.slice(0, -1).toLowerCase());
@@ -40,6 +44,8 @@ class ProductRepository {
       row = this.db.prepare('SELECT id FROM unit_types WHERE LOWER(name) LIKE ?').get(`${name.toLowerCase()}%`);
     }
     if (!row) {
+      let firstUnit = this.db.prepare('SELECT id FROM unit_types ORDER BY id ASC LIMIT 1').get();
+      if (firstUnit) return firstUnit.id;
       const ins = this.db.prepare('INSERT INTO unit_types (name) VALUES (?)').run(name);
       return ins.lastInsertRowid;
     }

@@ -175,7 +175,7 @@ const Settings = () => {
   };
 
   // Production / Admin Settings States
-  const [appConfig, setAppConfig] = useState({ mode: 'production', version: '1.0.1', dbVersion: '1.0.1' });
+  const [appConfig, setAppConfig] = useState({ mode: 'production', version: '1.0.2', dbversion: '1.0.2' });
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [diagnostics, setDiagnostics] = useState(null);
   const [integrityReport, setIntegrityReport] = useState(null);
@@ -1531,3 +1531,5 @@ const Settings = () => {
 };
 
 export default Settings;
+
+

@@ -58,7 +58,7 @@ class OrderRepository {
 
     // Fetch all order items and group them
     const items = this.db.prepare(`
-      SELECT oi.*, p.name AS product_name 
+      SELECT oi.*, p.brand_name AS product_name 
       FROM order_items oi 
       JOIN products p ON oi.product_id = p.id
     `).all();
@@ -99,7 +99,7 @@ class OrderRepository {
     if (!row) return null;
 
     const items = this.db.prepare(`
-      SELECT oi.*, p.name AS product_name 
+      SELECT oi.*, p.brand_name AS product_name 
       FROM order_items oi 
       JOIN products p ON oi.product_id = p.id
       WHERE oi.order_id = ?

@@ -3,12 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import { institutionService } from '../../services/institutionService';
 import Pagination from '../../components/common/Pagination';
-import FilterPresetBar from '../../components/common/FilterPresetBar';
 import StatusSelector from '../../components/common/StatusSelector';
 import { exportToCSV } from '../../utils/exportUtils';
 import {
-  FiSearch, FiPlus, FiEye, FiEdit2, FiTrash2,
-  FiX, FiAlertTriangle, FiDownload
+  FiSearch, FiPlus, FiTrash2, FiAlertTriangle, FiDownload
 } from 'react-icons/fi';
 
 const StatusBadge = ({ status }) =>
@@ -95,10 +93,9 @@ const Institutions = () => {
     return list.filter((item) => {
       const matchSearch = !q ||
         item.name.toLowerCase().includes(q) ||
-        item.code.toLowerCase().includes(q) ||
-        item.area.toLowerCase().includes(q) ||
-        item.city.toLowerCase().includes(q) ||
-        (item.contactPerson && item.contactPerson.toLowerCase().includes(q));
+        (item.code && item.code.toLowerCase().includes(q)) ||
+        (item.area && item.area.toLowerCase().includes(q)) ||
+        (item.city && item.city.toLowerCase().includes(q));
 
       const matchStatus = statusFilter === 'All' || !statusFilter || item.status === statusFilter;
       return matchSearch && matchStatus;
@@ -156,8 +153,6 @@ const Institutions = () => {
                 { key: 'name', label: 'Institution Name' },
                 { key: 'area', label: 'Area' },
                 { key: 'city', label: 'City' },
-                { key: 'contactPerson', label: 'Contact Person' },
-                { key: 'contactNumber', label: 'Contact Number' },
                 { key: 'status', label: 'Status' }
               ])}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -212,7 +207,7 @@ const Institutions = () => {
             <table className="w-full text-xs" aria-label="Institutions table">
               <thead className="sticky top-0 z-10 bg-gray-55 dark:bg-[#0f172a] shadow-xs">
                 <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                  {['Institution Code', 'Institution Name', 'Area', 'City', 'Contact Person', 'Contact Number', 'Status', 'Actions'].map((h) => (
+                  {['Institution Code', 'Institution Name', 'Area', 'City', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-5 py-3.5 whitespace-nowrap">
                       {h}
                     </th>
@@ -222,7 +217,7 @@ const Institutions = () => {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {paginated.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-5 py-12 text-center text-gray-400 font-bold text-xs">
+                    <td colSpan={6} className="px-5 py-12 text-center text-gray-400 font-bold text-xs">
                       No institutions found.
                     </td>
                   </tr>
@@ -233,12 +228,10 @@ const Institutions = () => {
                       key={item.id}
                       className="hover:bg-gray-55/50 dark:hover:bg-gray-800/30 transition-colors"
                     >
-                      <td className="px-5 py-4 font-mono font-bold text-gray-750 dark:text-gray-300">{item.code}</td>
+                      <td className="px-5 py-4 font-mono font-bold text-gray-750 dark:text-gray-300">{item.code || '—'}</td>
                       <td className="px-5 py-4 font-bold text-gray-905 dark:text-white">{item.name}</td>
-                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300">{item.area}</td>
-                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300">{item.city}</td>
-                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300">{item.contactPerson || '—'}</td>
-                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300">{item.contactNumber || '—'}</td>
+                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300">{item.area || '—'}</td>
+                      <td className="px-5 py-4 text-gray-650 dark:text-gray-300">{item.city || '—'}</td>
                       <td className="px-5 py-4"><StatusBadge status={item.status} /></td>
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">

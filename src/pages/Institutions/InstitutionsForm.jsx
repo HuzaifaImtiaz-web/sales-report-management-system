@@ -5,7 +5,6 @@ import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 import { areaService } from '../../services/areaService';
 import HybridComboBox from '../../components/common/HybridComboBox';
 import StatusSelector from '../../components/common/StatusSelector';
-import { sanitizePhoneInput, isValid11DigitPhone } from '../../utils/phoneValidator';
 
 const CITIES = [
   'Lahore',
@@ -45,10 +44,7 @@ export default function InstitutionsForm({ mode, item, onSave, onCancel }) {
     name: '',
     code: '',
     area: '',
-    city: 'Lahore',
-    address: '',
-    contactPerson: '',
-    contactNumber: '',
+    city: '',
     notes: '',
     status: 'Active'
   });
@@ -64,7 +60,15 @@ export default function InstitutionsForm({ mode, item, onSave, onCancel }) {
 
   useEffect(() => {
     if (item) {
-      setForm({ ...item, area: item.area || item.areaName || '', contactNumber: item.contactNumber || item.phone || '' });
+      setForm({
+        id: item.id,
+        name: item.name || '',
+        code: item.code || '',
+        area: item.area || item.areaName || '',
+        city: item.city || '',
+        notes: item.notes || '',
+        status: item.status || 'Active'
+      });
     }
   }, [item]);
 
@@ -78,7 +82,6 @@ export default function InstitutionsForm({ mode, item, onSave, onCancel }) {
   const handleAreaAddNew = (newAreaName) => {
     areaService.saveArea({
       name: newAreaName,
-      code: `AREA-${newAreaName.slice(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
       status: 'Active'
     }).then(() => {
       areaService.getAllAreas().then(res => setAreasList(res || []));
@@ -87,13 +90,21 @@ export default function InstitutionsForm({ mode, item, onSave, onCancel }) {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'Institution Name is required.';
-    if (!form.city) e.city = 'City is required.';
-    if (!form.area) e.area = 'Area is required.';
-    if (form.contactNumber && !isValid11DigitPhone(form.contactNumber)) {
-      e.contactNumber = 'Contact Number must contain exactly 11 digits (e.g. 03001234567).';
-    }
+    if (!form.name || !form.name.trim()) e.name = 'Institution Name is required.';
     return e;
+  };
+
+  const resetForm = () => {
+    setForm({
+      name: '',
+      code: '',
+      area: '',
+      city: '',
+      notes: '',
+      status: 'Active'
+    });
+    setErrors({});
+    setIsDirty(false);
   };
 
   const handleSave = () => {
@@ -102,7 +113,10 @@ export default function InstitutionsForm({ mode, item, onSave, onCancel }) {
       setErrors(e);
       return;
     }
-    onSave(form);
+    const res = onSave({ ...form });
+    if (res !== false && !isEdit) {
+      resetForm();
+    }
   };
 
   useEffect(() => {
@@ -113,7 +127,11 @@ export default function InstitutionsForm({ mode, item, onSave, onCancel }) {
           setErrors(e);
           return false;
         }
-        return onSave(form);
+        const res = onSave({ ...form });
+        if (res !== false && !isEdit) {
+          resetForm();
+        }
+        return res;
       });
     }
     return () => setOnSave(null);
@@ -145,7 +163,7 @@ export default function InstitutionsForm({ mode, item, onSave, onCancel }) {
 
       {/* Area & City */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Area" required error={errors.area}>
+        <Field label="Area" error={errors.area}>
           {isView ? (
             <input
               disabled
@@ -164,7 +182,7 @@ export default function InstitutionsForm({ mode, item, onSave, onCancel }) {
             />
           )}
         </Field>
-        <Field label="City" required error={errors.city}>
+        <Field label="City" error={errors.city}>
           {isView ? (
             <input
               disabled
@@ -172,50 +190,15 @@ export default function InstitutionsForm({ mode, item, onSave, onCancel }) {
               className={inputCls(false, true)}
             />
           ) : (
-            <select
+            <HybridComboBox
               value={form.city}
-              onChange={(e) => set('city', e.target.value)}
-              className={inputCls(errors.city, isView) + ' appearance-none cursor-pointer'}
-            >
-              {CITIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+              options={CITIES}
+              onChange={(val) => set('city', val)}
+              placeholder="Select or type city..."
+              disabled={isView}
+              error={Boolean(errors.city)}
+            />
           )}
-        </Field>
-      </div>
-
-      {/* Address */}
-      <Field label="Address">
-        <input
-          disabled={isView}
-          value={form.address || ''}
-          onChange={(e) => set('address', e.target.value)}
-          placeholder="e.g. Sector-G, Medical Area"
-          className={inputCls(false, isView)}
-        />
-      </Field>
-
-      {/* Contact Person & Number */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Contact Person">
-          <input
-            disabled={isView}
-            value={form.contactPerson || ''}
-            onChange={(e) => set('contactPerson', e.target.value)}
-            placeholder="e.g. Dr. Tariq Mahmood"
-            className={inputCls(false, isView)}
-          />
-        </Field>
-        <Field label="Contact Number" error={errors.contactNumber}>
-          <input
-            disabled={isView}
-            value={form.contactNumber || ''}
-            onChange={(e) => set('contactNumber', sanitizePhoneInput(e.target.value))}
-            placeholder="e.g. 03001234567"
-            maxLength={11}
-            className={inputCls(errors.contactNumber, isView)}
-          />
         </Field>
       </div>
 

@@ -78,14 +78,14 @@ class ExportRepository {
 
       case 'doctors':
         title = 'Doctors Directory Report';
-        sql = `SELECT d.id, ('DOC-' || d.id) AS doctor_code, d.name AS doctor_name, COALESCE(d.hospital, '—') AS designation, COALESCE(d.specialty, '—') AS specialty, a.name AS area_name, COALESCE(d.phone, '—') AS phone, CASE WHEN d.is_active = 1 THEN 'Active' ELSE 'Inactive' END AS status
+        sql = `SELECT d.id, d.name AS doctor_name, COALESCE(d.hospital, '—') AS designation, COALESCE(d.specialty, '—') AS specialty, COALESCE(d.city, '—') AS city, a.name AS area_name, CASE WHEN d.is_active = 1 THEN 'Active' ELSE 'Inactive' END AS status
                FROM doctors d
                LEFT JOIN areas a ON d.area_id = a.id
                WHERE 1=1`;
         if (filters.search) {
-          sql += ` AND (d.name LIKE ? OR d.specialty LIKE ? OR d.hospital LIKE ?)`;
+          sql += ` AND (d.name LIKE ? OR d.specialty LIKE ? OR d.hospital LIKE ? OR d.city LIKE ?)`;
           const term = `%${filters.search}%`;
-          params.push(term, term, term);
+          params.push(term, term, term, term);
         }
         if (filters.doctor || filters.doctorId) {
           sql += ` AND d.id = ?`;
@@ -104,12 +104,11 @@ class ExportRepository {
 
         columns = [
           { header: 'ID', key: 'id', width: 8, type: 'number' },
-          { header: 'Code', key: 'doctor_code', width: 15, type: 'text' },
           { header: 'Doctor Name', key: 'doctor_name', width: 28, type: 'text' },
-          { header: 'Hospital/Designation', key: 'designation', width: 20, type: 'text' },
+          { header: 'Hospital/Designation', key: 'designation', width: 22, type: 'text' },
           { header: 'Specialty', key: 'specialty', width: 20, type: 'text' },
+          { header: 'City', key: 'city', width: 16, type: 'text' },
           { header: 'Area', key: 'area_name', width: 18, type: 'text' },
-          { header: 'Phone', key: 'phone', width: 15, type: 'text' },
           { header: 'Status', key: 'status', width: 12, type: 'text' }
         ];
 
@@ -119,14 +118,14 @@ class ExportRepository {
 
       case 'institutions':
         title = 'Institutions Master Report';
-        sql = `SELECT i.id, COALESCE(i.code, 'INST-' || i.id) AS institution_code, i.name, COALESCE(i.type, '—') AS type, a.name AS area_name, COALESCE(i.contact_number, '—') AS phone, CASE WHEN i.is_active = 1 THEN 'Active' ELSE 'Inactive' END AS status
+        sql = `SELECT i.id, COALESCE(i.code, 'INST-' || i.id) AS institution_code, i.name, COALESCE(i.type, '—') AS type, COALESCE(i.city, '—') AS city, a.name AS area_name, CASE WHEN i.is_active = 1 THEN 'Active' ELSE 'Inactive' END AS status
                FROM institutions i
                LEFT JOIN areas a ON i.area_id = a.id
                WHERE 1=1`;
         if (filters.search) {
-          sql += ` AND (i.name LIKE ? OR i.code LIKE ? OR i.type LIKE ?)`;
+          sql += ` AND (i.name LIKE ? OR i.code LIKE ? OR i.type LIKE ? OR i.city LIKE ?)`;
           const term = `%${filters.search}%`;
-          params.push(term, term, term);
+          params.push(term, term, term, term);
         }
         if (filters.institution || filters.institutionId) {
           sql += ` AND i.id = ?`;
@@ -148,8 +147,8 @@ class ExportRepository {
           { header: 'Code', key: 'institution_code', width: 15, type: 'text' },
           { header: 'Institution Name', key: 'name', width: 32, type: 'text' },
           { header: 'Type', key: 'type', width: 18, type: 'text' },
+          { header: 'City', key: 'city', width: 16, type: 'text' },
           { header: 'Area', key: 'area_name', width: 20, type: 'text' },
-          { header: 'Phone', key: 'phone', width: 15, type: 'text' },
           { header: 'Status', key: 'status', width: 12, type: 'text' }
         ];
 
@@ -159,9 +158,9 @@ class ExportRepository {
 
       case 'areas':
         title = 'Territory & Area Directory Report';
-        sql = `SELECT id, code AS area_code, name AS area_name, COALESCE(description, '—') AS region, CASE WHEN is_active = 1 THEN 'Active' ELSE 'Inactive' END AS status FROM areas WHERE 1=1`;
+        sql = `SELECT id, name AS area_name, COALESCE(city, '—') AS city, COALESCE(description, '—') AS region, CASE WHEN is_active = 1 THEN 'Active' ELSE 'Inactive' END AS status FROM areas WHERE 1=1`;
         if (filters.search) {
-          sql += ` AND (name LIKE ? OR code LIKE ? OR description LIKE ?)`;
+          sql += ` AND (name LIKE ? OR city LIKE ? OR description LIKE ?)`;
           const term = `%${filters.search}%`;
           params.push(term, term, term);
         }
@@ -178,8 +177,8 @@ class ExportRepository {
 
         columns = [
           { header: 'ID', key: 'id', width: 8, type: 'number' },
-          { header: 'Area Code', key: 'area_code', width: 15, type: 'text' },
           { header: 'Area Name', key: 'area_name', width: 30, type: 'text' },
+          { header: 'City', key: 'city', width: 18, type: 'text' },
           { header: 'Description', key: 'region', width: 22, type: 'text' },
           { header: 'Status', key: 'status', width: 12, type: 'text' }
         ];
@@ -192,7 +191,7 @@ class ExportRepository {
       case 'team_members':
       case 'teammembers':
         title = 'Team Members & Field Force Report';
-        sql = `SELECT t.id, ('TM-' || t.id) AS member_code, t.name, t.role, a.name AS area_name, COALESCE(t.phone, '—') AS phone, COALESCE(t.email, '—') AS email, CASE WHEN t.is_active = 1 THEN 'Active' ELSE 'Inactive' END AS status
+        sql = `SELECT t.id, t.name, t.role, a.name AS area_name, CASE WHEN t.is_active = 1 THEN 'Active' ELSE 'Inactive' END AS status
                FROM team_members t
                LEFT JOIN areas a ON t.area_id = a.id
                WHERE 1=1`;
@@ -218,11 +217,9 @@ class ExportRepository {
 
         columns = [
           { header: 'ID', key: 'id', width: 8, type: 'number' },
-          { header: 'Code', key: 'member_code', width: 15, type: 'text' },
           { header: 'Full Name', key: 'name', width: 28, type: 'text' },
           { header: 'Role', key: 'role', width: 20, type: 'text' },
           { header: 'Assigned Area', key: 'area_name', width: 20, type: 'text' },
-          { header: 'Phone', key: 'phone', width: 15, type: 'text' },
           { header: 'Status', key: 'status', width: 12, type: 'text' }
         ];
 

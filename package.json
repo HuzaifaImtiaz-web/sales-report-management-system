@@ -1,7 +1,7 @@
 {
   "name": "himmel-sales-management",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Himmel Pharmaceutical Sales Management System",
   "author": "Himmel Pharmaceutical Ltd",
   "type": "module",

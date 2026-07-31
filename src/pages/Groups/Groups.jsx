@@ -23,7 +23,7 @@ const StatusBadge = ({ status }) =>
 
 const EmptyState = ({ onAdd }) => (
   <tr>
-    <td colSpan={7} className="px-5 py-16 text-center">
+    <td colSpan={6} className="px-5 py-16 text-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-16 h-16 rounded-2xl bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
           <FiLayers className="w-8 h-8 text-gray-200 dark:text-gray-650" />
@@ -52,7 +52,6 @@ const DeleteDialog = ({ group, onCancel, onConfirm }) => (
         </div>
         <div>
           <h2 className="text-sm font-bold text-gray-900 dark:text-white">Delete Group</h2>
-          <p className="text-[11px] text-gray-400 dark:text-gray-550 font-medium mt-0.5">{group.code}</p>
         </div>
       </div>
       <div className="px-6 py-5">
@@ -95,7 +94,7 @@ const Groups = () => {
 
   useEffect(() => {
     groupService.getAllGroups().then((data) => {
-      setGroups(data);
+      setGroups(data || []);
       setLoading(false);
     });
   }, []);
@@ -111,9 +110,8 @@ const Groups = () => {
       const matchQ =
         !q ||
         g.name.toLowerCase().includes(q) ||
-        g.code.toLowerCase().includes(q) ||
         (g.divisionName && g.divisionName.toLowerCase().includes(q)) ||
-        g.description.toLowerCase().includes(q);
+        (g.description && g.description.toLowerCase().includes(q));
 
       const matchStatus = !statusFilter || g.status === statusFilter;
       const matchDivision = !divisionFilter || g.divisionName === divisionFilter;
@@ -192,7 +190,7 @@ const Groups = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by Group Name, Division, Code, or Description..."
+                placeholder="Search by Group Name, Division, or Description..."
                 className="w-full pl-9 pr-4 py-2.5 text-xs font-medium text-gray-705 dark:text-gray-205 bg-gray-55 dark:bg-gray-800/50 border border-gray-105 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
@@ -207,9 +205,8 @@ const Groups = () => {
                   className="w-full pl-3 pr-8 py-2.5 text-xs font-medium text-gray-705 dark:text-gray-250 bg-gray-55 dark:bg-gray-800/50 border border-gray-105 dark:border-gray-700 rounded-lg outline-none cursor-pointer min-w-[130px] appearance-none"
                 >
                   <option value="">All Divisions</option>
-                  <option value="Himmel">Himmel</option>
-                  <option value="PMS">PMS</option>
-                  <option value="MSA">MSA</option>
+                  <option value="Cardiology">Cardiology</option>
+                  <option value="Oncology">Oncology</option>
                 </select>
               </div>
 
@@ -253,7 +250,7 @@ const Groups = () => {
             <table className="w-full text-xs" aria-label="Groups table">
               <thead>
                 <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                  {['Group Code', 'Division', 'Group Name', 'Description', 'Total Products', 'Status', 'Actions'].map((h) => (
+                  {['Division', 'Group Name', 'Description', 'Total Products', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-5 py-3.5 whitespace-nowrap">
                       {h}
                     </th>
@@ -267,13 +264,8 @@ const Groups = () => {
                   paginatedGroups.map((g) => (
                     <tr key={g.id} className="hover:bg-gray-55/60 dark:hover:bg-gray-800/30 transition-colors duration-100 group">
                       <td className="px-5 py-4 whitespace-nowrap">
-                        <span className="font-mono text-[10px] font-extrabold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
-                          {g.code}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center w-max px-2.5 py-0.5 rounded text-[9px] font-bold bg-brand-primary/10 text-brand-primary">
-                          {g.divisionName}
+                          {g.divisionName || 'Unassigned'}
                         </span>
                       </td>
                       <td className="px-5 py-4 font-extrabold text-gray-855 dark:text-gray-200 whitespace-nowrap">{g.name}</td>

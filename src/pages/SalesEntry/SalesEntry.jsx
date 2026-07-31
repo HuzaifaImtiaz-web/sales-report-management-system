@@ -160,7 +160,7 @@ export default function SalesEntry() {
 
   const handleConfirmComplete = () => {
     if (!toComplete) return;
-    orderService.changeStatus(toComplete.id, 'Completed')
+    orderService.changeOrderStatus(toComplete.id, 'Completed')
       .then(() => {
         setToast({ message: `Sale PO ${toComplete.poNumber} completed successfully. Revenue and Dashboard updated.`, type: 'success' });
         setToComplete(null);
@@ -173,7 +173,7 @@ export default function SalesEntry() {
 
   const handleConfirmCancel = (reason) => {
     if (!toCancel) return;
-    orderService.changeStatus(toCancel.id, 'Cancelled', reason)
+    orderService.changeOrderStatus(toCancel.id, 'Cancelled', reason)
       .then(() => {
         setToast({ message: `Sale PO ${toCancel.poNumber} cancelled successfully.`, type: 'success' });
         setToCancel(null);

@@ -6,36 +6,26 @@ class AreaValidator {
   }
 
   validateSave(area) {
-    const { id, name, code } = area;
+    const { id, name, city } = area;
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       throw new Error('Area Name cannot be empty.');
     }
 
-    if (!code || typeof code !== 'string' || code.trim().length === 0) {
-      throw new Error('Area Code cannot be empty.');
-    }
-
-    // Check duplicate name
+    // Check duplicate combination of Name + City
     const normalizedName = name.trim().toLowerCase();
-    const duplicateNameQuery = id
-      ? this.db.prepare('SELECT id FROM areas WHERE LOWER(name) = ? AND id != ?')
-      : this.db.prepare('SELECT id FROM areas WHERE LOWER(name) = ?');
+    const normalizedCity = (city || '').trim().toLowerCase();
 
-    const dupName = id ? duplicateNameQuery.get(normalizedName, id) : duplicateNameQuery.get(normalizedName);
-    if (dupName) {
-      throw new Error('Area already exists.');
-    }
+    const duplicateQuery = id
+      ? this.db.prepare("SELECT id FROM areas WHERE LOWER(name) = ? AND LOWER(COALESCE(city, '')) = ? AND id != ?")
+      : this.db.prepare("SELECT id FROM areas WHERE LOWER(name) = ? AND LOWER(COALESCE(city, '')) = ?");
 
-    // Check duplicate code
-    const normalizedCode = code.trim().toLowerCase();
-    const duplicateCodeQuery = id
-      ? this.db.prepare('SELECT id FROM areas WHERE LOWER(code) = ? AND id != ?')
-      : this.db.prepare('SELECT id FROM areas WHERE LOWER(code) = ?');
+    const dup = id 
+      ? duplicateQuery.get(normalizedName, normalizedCity, id) 
+      : duplicateQuery.get(normalizedName, normalizedCity);
 
-    const dupCode = id ? duplicateCodeQuery.get(normalizedCode, id) : duplicateCodeQuery.get(normalizedCode);
-    if (dupCode) {
-      throw new Error('Area Code must be unique.');
+    if (dup) {
+      throw new Error('Area with this Name and City already exists.');
     }
   }
 

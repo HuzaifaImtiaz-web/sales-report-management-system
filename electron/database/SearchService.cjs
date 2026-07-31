@@ -28,13 +28,14 @@ class SearchService {
       `).all(term, term, term);
 
       const doctors = db.prepare(`
-        SELECT id, name, specialty, hospital, phone, is_active
+        SELECT id, name, specialty, hospital, city, is_active
         FROM doctors
         WHERE LOWER(COALESCE(name, '')) LIKE ? 
            OR LOWER(COALESCE(specialty, '')) LIKE ? 
            OR LOWER(COALESCE(hospital, '')) LIKE ?
+           OR LOWER(COALESCE(city, '')) LIKE ?
         LIMIT 5
-      `).all(term, term, term);
+      `).all(term, term, term, term);
 
       const institutions = db.prepare(`
         SELECT id, name, type, code, is_active
@@ -46,21 +47,21 @@ class SearchService {
       `).all(term, term, term);
 
       const areas = db.prepare(`
-        SELECT id, name, code, is_active
+        SELECT id, name, city, region, is_active
         FROM areas
         WHERE LOWER(COALESCE(name, '')) LIKE ? 
-           OR LOWER(COALESCE(code, '')) LIKE ?
-        LIMIT 5
-      `).all(term, term);
-
-      const teamMembers = db.prepare(`
-        SELECT id, name, role, email, is_active
-        FROM team_members
-        WHERE LOWER(COALESCE(name, '')) LIKE ? 
-           OR LOWER(COALESCE(role, '')) LIKE ? 
-           OR LOWER(COALESCE(email, '')) LIKE ?
+           OR LOWER(COALESCE(city, '')) LIKE ?
+           OR LOWER(COALESCE(region, '')) LIKE ?
         LIMIT 5
       `).all(term, term, term);
+
+      const teamMembers = db.prepare(`
+        SELECT id, name, role, is_active
+        FROM team_members
+        WHERE LOWER(COALESCE(name, '')) LIKE ? 
+           OR LOWER(COALESCE(role, '')) LIKE ?
+        LIMIT 5
+      `).all(term, term);
 
       const orders = db.prepare(`
         SELECT o.id, o.order_number, o.order_date, o.status, o.total_amount,

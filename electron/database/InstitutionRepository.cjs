@@ -13,33 +13,31 @@ class InstitutionRepository {
       code: row.code || '',
       type: row.type || 'Other',
       city: row.city || '',
-      address: row.address || '',
-      contactPerson: row.contact_person || '',
-      contactNumber: row.contact_number || '',
       notes: row.notes || '',
       areaId: row.area_id,
       areaName: row.area_name || '',
+      area: row.area_name || '',
       status: row.is_active ? 'Active' : 'Inactive'
     };
   }
 
   findAll() {
-    logger.info('SQL Trace: SELECT i.*, a.name AS area_name FROM institutions i JOIN areas a ON i.area_id = a.id');
+    logger.info('SQL Trace: SELECT i.*, a.name AS area_name FROM institutions i LEFT JOIN areas a ON i.area_id = a.id');
     const rows = this.db.prepare(`
       SELECT i.*, a.name AS area_name 
       FROM institutions i 
-      JOIN areas a ON i.area_id = a.id
+      LEFT JOIN areas a ON i.area_id = a.id
       ORDER BY i.name ASC
     `).all();
     return rows.map(r => this._mapRow(r));
   }
 
   findById(id) {
-    logger.info(`SQL Trace: SELECT i.*, a.name AS area_name FROM institutions i JOIN areas a ON i.area_id = a.id WHERE i.id = ${id}`);
+    logger.info(`SQL Trace: SELECT i.*, a.name AS area_name FROM institutions i LEFT JOIN areas a ON i.area_id = a.id WHERE i.id = ${id}`);
     const row = this.db.prepare(`
       SELECT i.*, a.name AS area_name 
       FROM institutions i 
-      JOIN areas a ON i.area_id = a.id 
+      LEFT JOIN areas a ON i.area_id = a.id 
       WHERE i.id = ?
     `).get(id);
     return this._mapRow(row);
@@ -48,19 +46,19 @@ class InstitutionRepository {
   _resolveAreaId(inst) {
     if (inst.areaId) return inst.areaId;
     const areaName = inst.area || inst.areaName;
-    if (areaName && typeof areaName === 'string') {
+    if (areaName && typeof areaName === 'string' && areaName.trim().length > 0) {
       const row = this.db.prepare('SELECT id FROM areas WHERE LOWER(name) = ?').get(areaName.trim().toLowerCase());
       if (row) return row.id;
     }
-    throw new Error('Assigned Area does not exist.');
+    return null;
   }
 
   create(i) {
-    logger.info(`SQL Trace: INSERT INTO institutions (name, code, type, city, address, contact_person, contact_number, notes, area_id, is_active) VALUES ('${i.name}', '${i.code}')`);
+    logger.info(`SQL Trace: INSERT INTO institutions (name, code, type, city, notes, area_id, is_active) VALUES ('${i.name}', '${i.code}')`);
     const areaId = this._resolveAreaId(i);
     const stmt = this.db.prepare(`
-      INSERT INTO institutions (name, code, type, city, address, contact_person, contact_number, notes, area_id, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO institutions (name, code, type, city, notes, area_id, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
     const isActive = i.status === 'Inactive' ? 0 : 1;
     const res = stmt.run(
@@ -68,9 +66,6 @@ class InstitutionRepository {
       i.code || null,
       i.type || 'Other',
       i.city || null,
-      i.address || null,
-      i.contactPerson || null,
-      i.contactNumber || null,
       i.notes || null,
       areaId,
       isActive
@@ -83,7 +78,7 @@ class InstitutionRepository {
     const areaId = this._resolveAreaId(i);
     const stmt = this.db.prepare(`
       UPDATE institutions
-      SET name = ?, code = ?, type = ?, city = ?, address = ?, contact_person = ?, contact_number = ?, notes = ?, area_id = ?, is_active = ?
+      SET name = ?, code = ?, type = ?, city = ?, notes = ?, area_id = ?, is_active = ?
       WHERE id = ?
     `);
     const isActive = i.status === 'Inactive' ? 0 : 1;
@@ -92,9 +87,6 @@ class InstitutionRepository {
       i.code || null,
       i.type || 'Other',
       i.city || null,
-      i.address || null,
-      i.contactPerson || null,
-      i.contactNumber || null,
       i.notes || null,
       areaId,
       isActive,

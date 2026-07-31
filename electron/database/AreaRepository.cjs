@@ -10,7 +10,8 @@ class AreaRepository {
     return {
       id: row.id,
       name: row.name,
-      code: row.code,
+      city: row.city || '',
+      region: row.region || '',
       description: row.description || '',
       status: row.is_active ? 'Active' : 'Inactive'
     };
@@ -29,16 +30,16 @@ class AreaRepository {
   }
 
   create(a) {
-    logger.info(`SQL Trace: INSERT INTO areas (name, code, description, is_active) VALUES ('${a.name}', '${a.code}')`);
+    logger.info(`SQL Trace: INSERT INTO areas (name, city, region, description, is_active) VALUES ('${a.name}')`);
     const stmt = this.db.prepare(`
-      INSERT INTO areas (name, code, description, is_active)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO areas (name, city, region, description, is_active)
+      VALUES (?, ?, ?, ?, ?)
     `);
     const isActive = a.status === 'Inactive' ? 0 : 1;
-    const code = a.code && a.code.trim() ? a.code.trim() : (`AREA-${a.name ? a.name.slice(0, 3).toUpperCase() : 'Z'}-${Math.floor(100 + Math.random() * 900)}`);
     const res = stmt.run(
       a.name,
-      code,
+      a.city || null,
+      a.region || null,
       a.description || null,
       isActive
     );
@@ -49,13 +50,14 @@ class AreaRepository {
     logger.info(`SQL Trace: UPDATE areas WHERE id = ${id}`);
     const stmt = this.db.prepare(`
       UPDATE areas
-      SET name = ?, code = ?, description = ?, is_active = ?
+      SET name = ?, city = ?, region = ?, description = ?, is_active = ?
       WHERE id = ?
     `);
     const isActive = a.status === 'Inactive' ? 0 : 1;
     stmt.run(
       a.name,
-      a.code,
+      a.city || null,
+      a.region || null,
       a.description || null,
       isActive,
       id

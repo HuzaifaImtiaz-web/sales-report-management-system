@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiCheck, FiEdit2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
+import HybridComboBox from '../../components/common/HybridComboBox';
 import StatusSelector from '../../components/common/StatusSelector';
 
 const CITIES = [
@@ -47,7 +48,6 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
 
   const [form, setForm] = useState({
     name: '',
-    code: '',
     city: '',
     region: '',
     description: '',
@@ -57,7 +57,14 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
 
   useEffect(() => {
     if (item) {
-      setForm({ ...item });
+      setForm({
+        id: item.id,
+        name: item.name || '',
+        city: item.city || '',
+        region: item.region || '',
+        description: item.description || '',
+        status: item.status || 'Active'
+      });
     }
   }, [item]);
 
@@ -70,10 +77,20 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = 'Area Name is required.';
-    if (!form.city) e.city = 'City is required.';
-    if (!form.region) e.region = 'Region is required.';
+    if (!form.name || !form.name.trim()) e.name = 'Area Name is required.';
     return e;
+  };
+
+  const resetForm = () => {
+    setForm({
+      name: '',
+      city: '',
+      region: '',
+      description: '',
+      status: 'Active'
+    });
+    setErrors({});
+    setIsDirty(false);
   };
 
   const handleSave = () => {
@@ -82,7 +99,10 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
       setErrors(e);
       return;
     }
-    onSave({ ...form });
+    const res = onSave({ ...form });
+    if (res !== false && !isEdit) {
+      resetForm();
+    }
   };
 
   useEffect(() => {
@@ -93,7 +113,11 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
           setErrors(e);
           return false;
         }
-        return onSave({ ...form });
+        const res = onSave({ ...form });
+        if (res !== false && !isEdit) {
+          resetForm();
+        }
+        return res;
       });
     }
     return () => setOnSave(null);
@@ -101,7 +125,7 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
 
   return (
     <div className="space-y-5">
-      {/* Row 1: Name & Code */}
+      {/* Row 1: Name & City */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Field label="Area Name" required error={errors.name}>
           <input
@@ -112,40 +136,29 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
             className={inputCls(errors.name, isView)}
           />
         </Field>
-        <Field label="Area Code">
-          <input
-            disabled={isView}
-            value={form.code || ''}
-            onChange={(e) => set('code', e.target.value)}
-            placeholder="e.g. LHR-CENTRAL"
-            className={inputCls(false, isView) + ' font-mono'}
-          />
+        <Field label="City" error={errors.city}>
+          {isView ? (
+            <input
+              disabled
+              value={form.city}
+              className={inputCls(false, true)}
+            />
+          ) : (
+            <HybridComboBox
+              value={form.city}
+              options={CITIES}
+              onChange={(val) => set('city', val)}
+              placeholder="Select or type city..."
+              disabled={isView}
+              error={Boolean(errors.city)}
+            />
+          )}
         </Field>
       </div>
 
-      {/* Row 2: City & Region */}
+      {/* Row 2: Region */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="City" required error={errors.city}>
-          {isView ? (
-            <input
-              disabled
-              value={form.city}
-              className={inputCls(false, true)}
-            />
-          ) : (
-            <select
-              value={form.city}
-              onChange={(e) => set('city', e.target.value)}
-              className={inputCls(errors.city, isView) + ' appearance-none cursor-pointer'}
-            >
-              <option value="">Select City…</option>
-              {CITIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          )}
-        </Field>
-        <Field label="Region" required error={errors.region}>
+        <Field label="Region">
           {isView ? (
             <input
               disabled
@@ -153,16 +166,13 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
               className={inputCls(false, true)}
             />
           ) : (
-            <select
+            <HybridComboBox
               value={form.region}
-              onChange={(e) => set('region', e.target.value)}
-              className={inputCls(errors.region, isView) + ' appearance-none cursor-pointer'}
-            >
-              <option value="">Select Region…</option>
-              {REGIONS.map((r) => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
+              options={REGIONS}
+              onChange={(val) => set('region', val)}
+              placeholder="Select or type region..."
+              disabled={isView}
+            />
           )}
         </Field>
       </div>
@@ -174,7 +184,7 @@ export default function AreasForm({ mode, item, onSave, onCancel }) {
           rows={3}
           value={form.description || ''}
           onChange={(e) => set('description', e.target.value)}
-          placeholder="Optional area details or remarks…"
+          placeholder="Area details or remarks…"
           className={inputCls(false, isView) + ' resize-none'}
         />
       </Field>

@@ -10,11 +10,12 @@ class TeamMemberRepository {
     return {
       id: row.id,
       name: row.name,
-      email: row.email || '',
-      phone: row.phone || '',
-      role: row.role,
+      role: row.role || '',
+      designation: row.role || '',
       areaId: row.area_id || null,
-      areaName: row.area_name || 'Unassigned',
+      areaName: row.area_name || '',
+      area: row.area_name || '',
+      notes: row.notes || '',
       status: row.is_active ? 'Active' : 'Inactive'
     };
   }
@@ -44,7 +45,7 @@ class TeamMemberRepository {
   _resolveAreaId(tm) {
     if (tm.areaId) return tm.areaId;
     const areaName = tm.area || tm.areaName;
-    if (areaName && typeof areaName === 'string') {
+    if (areaName && typeof areaName === 'string' && areaName.trim().length > 0) {
       const row = this.db.prepare('SELECT id FROM areas WHERE LOWER(name) = ?').get(areaName.trim().toLowerCase());
       if (row) return row.id;
     }
@@ -52,19 +53,18 @@ class TeamMemberRepository {
   }
 
   create(tm) {
-    logger.info(`SQL Trace: INSERT INTO team_members (name, email, phone, role, area_id, is_active) VALUES ('${tm.name}', '${tm.email}')`);
+    logger.info(`SQL Trace: INSERT INTO team_members (name, role, area_id, notes, is_active) VALUES ('${tm.name}')`);
     const areaId = this._resolveAreaId(tm);
     const stmt = this.db.prepare(`
-      INSERT INTO team_members (name, email, phone, role, area_id, is_active)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO team_members (name, role, area_id, notes, is_active)
+      VALUES (?, ?, ?, ?, ?)
     `);
     const isActive = tm.status === 'Inactive' ? 0 : 1;
     const res = stmt.run(
       tm.name,
-      tm.email || null,
-      tm.phone || tm.mobile || null,
-      tm.role || tm.designation || 'Sales Representative',
+      tm.designation || tm.role || '',
       areaId,
+      tm.notes || null,
       isActive
     );
     return this.findById(res.lastInsertRowid);
@@ -75,16 +75,15 @@ class TeamMemberRepository {
     const areaId = this._resolveAreaId(tm);
     const stmt = this.db.prepare(`
       UPDATE team_members
-      SET name = ?, email = ?, phone = ?, role = ?, area_id = ?, is_active = ?
+      SET name = ?, role = ?, area_id = ?, notes = ?, is_active = ?
       WHERE id = ?
     `);
     const isActive = tm.status === 'Inactive' ? 0 : 1;
     stmt.run(
       tm.name,
-      tm.email || null,
-      tm.phone || tm.mobile || null,
-      tm.role || tm.designation || 'Sales Representative',
+      tm.designation || tm.role || '',
       areaId,
+      tm.notes || null,
       isActive,
       id
     );
