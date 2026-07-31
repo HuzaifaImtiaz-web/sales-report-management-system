@@ -1,5 +1,5 @@
 import React from 'react';
-import logoImg from '../../assets/logos/Himmel-sale-logo.png';
+import logoImg from '../../assets/logos/Himmel-Logo.png';
 
 const CompanyLogo = ({ className = 'h-10 w-auto', ...props }) => {
   return (

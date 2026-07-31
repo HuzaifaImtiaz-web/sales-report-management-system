@@ -7,7 +7,7 @@ function generateIconAssets() {
     fs.mkdirSync(buildDir, { recursive: true });
   }
 
-  const logoPath = path.join(__dirname, '..', '..', 'src', 'assets', 'logos', 'Himmel-sale-logo.png');
+  const logoPath = path.join(__dirname, '..', '..', 'src', 'assets', 'logos', 'Himmel-Logo.png');
   const iconPngPath = path.join(buildDir, 'icon.png');
   const iconIcoPath = path.join(buildDir, 'icon.ico');
 

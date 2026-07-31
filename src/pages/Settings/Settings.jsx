@@ -19,6 +19,9 @@ import {
   FiActivity, FiAlertTriangle, FiFolder, FiRefreshCw, FiKey, FiShield
 } from 'react-icons/fi';
 
+import CompanyLogo from '../../components/common/CompanyLogo';
+import logoImg from '../../assets/logos/Himmel-Logo.png';
+
 const Settings = () => {
   const navigate = useNavigate();
   const { mode, setThemeMode } = useTheme();
@@ -36,7 +39,7 @@ const Settings = () => {
   // Form States
   const [companyInfo, setCompanyInfo] = useState({
     name: 'Himmel Pharmaceutical',
-    logo: 'https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=150&auto=format&fit=crop&q=60',
+    logo: logoImg,
     email: 'info@himmelpharma.com',
     phone: '+92 (21) 111-HIMMEL',
     address: 'Plot 42, Sector 23, Korangi Industrial Area, Karachi, Pakistan'
