@@ -2,7 +2,9 @@
 
 ![Himmel Logo](src/assets/logos/Himmel-Logo.png)
 
-Enterprise Sales & Distribution Management System designed for Himmel Pharmaceutical Ltd. Built with Electron, Vite, React, Tailwind CSS, and SQLite (`better-sqlite3`).
+Enterprise Sales & Distribution Management System designed for Himmel Pharmaceutical Ltd. Built with Electron, Vite, React and Tailwind CSS, with a shared PostgreSQL database in the cloud behind a Node.js API server (`server/`).
+
+> **Cloud database:** all users share one company database; each person signs in with their own account and role. See [server/README.md](server/README.md) to run it locally, deploy it, and move existing SQLite data into it.
 
 ---
 
@@ -32,7 +34,7 @@ The Himmel Pharmaceutical Sales Management System provides complete end-to-end m
 - **Desktop Runtime**: [Electron 42](https://www.electronjs.org/)
 - **Frontend Framework**: [React 18](https://react.dev/) + [Vite 5](https://vitejs.dev/)
 - **Styling**: [Tailwind CSS 3](https://tailwindcss.com/)
-- **Database Engine**: [SQLite](https://sqlite.org/) via [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3)
+- **Database Engine**: [PostgreSQL](https://www.postgresql.org/) in the cloud, accessed through the API server in `server/` (Express + `pg`). `better-sqlite3` is only used to read old local backups.
 - **State & Context**: Custom React Providers (Auth, Theme, Toast, Unsaved Changes, Database Init)
 - **Packaging & Build**: [Electron Builder 26](https://www.electron-userland.github.io/electron-builder/) (NSIS Setup & Portable Windows Binaries)
 

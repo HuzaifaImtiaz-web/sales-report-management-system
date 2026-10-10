@@ -1,16 +1,16 @@
 const fs = require('fs');
 const path = require('path');
 const logger = require('../logger.cjs');
-const UserDatabaseService = require('../auth/UserDatabaseService.cjs');
+const { getStorageDirectory } = require('../paths.cjs');
 
 class StartupValidator {
   /**
-   * Get required runtime folder paths
+   * Get required runtime folder paths. Business data lives in the cloud database,
+   * so this computer only keeps backups, exports, logs and configuration.
    */
   static getRequiredFolders(baseDir = null) {
-    const storageDir = baseDir || UserDatabaseService.getStorageDirectory();
+    const storageDir = baseDir || getStorageDirectory();
     return [
-      { name: 'database', path: path.join(storageDir, 'database') },
       { name: 'backups', path: path.join(storageDir, 'backups') },
       { name: 'exports', path: path.join(storageDir, 'exports') },
       { name: 'logs', path: path.join(storageDir, 'logs') },
@@ -23,35 +23,24 @@ class StartupValidator {
    * Get path to configuration file
    */
   static getConfigFile(baseDir = null) {
-    const storageDir = baseDir || UserDatabaseService.getStorageDirectory();
+    const storageDir = baseDir || getStorageDirectory();
     return path.join(storageDir, 'config', 'config.json');
   }
 
   /**
-   * Detect whether this is a first run or missing critical components
+   * Detect whether this computer still needs its local folders/configuration.
+   * (There is no local database to create any more.)
    */
   static isFirstRun(baseDir = null) {
-    const storageDir = baseDir || UserDatabaseService.getStorageDirectory();
-    
-    // 1. Check folders
+    const storageDir = baseDir || getStorageDirectory();
+
     const folders = this.getRequiredFolders(storageDir);
     const missingFolders = folders.filter(f => !fs.existsSync(f.path));
+    const missingConfig = !fs.existsSync(this.getConfigFile(storageDir));
 
-    // 2. Check config file
-    const configFile = this.getConfigFile(storageDir);
-    const missingConfig = !fs.existsSync(configFile);
+    const isFirst = missingFolders.length > 0 || missingConfig;
+    logger.info(`[Startup] First run check performed. Result: ${isFirst ? 'FIRST_RUN_REQUIRED' : 'NORMAL_STARTUP'} (Missing Folders: ${missingFolders.map(f => f.name).join(', ') || 'None'}, Missing Config: ${missingConfig})`);
 
-    // 3. Check auth database
-    const authDbPath = path.join(storageDir, 'users.db');
-    const missingAuthDb = !fs.existsSync(authDbPath);
-
-    // 4. Check admin database
-    const adminDbPath = path.join(storageDir, 'database', 'admin.db');
-    const missingAdminDb = !fs.existsSync(adminDbPath);
-
-    const isFirst = missingFolders.length > 0 || missingConfig || missingAuthDb || missingAdminDb;
-    logger.info(`[Startup] First run check performed. Result: ${isFirst ? 'FIRST_RUN_REQUIRED' : 'NORMAL_STARTUP'} (Missing Folders: ${missingFolders.map(f => f.name).join(', ') || 'None'}, Missing Config: ${missingConfig}, Missing Auth DB: ${missingAuthDb}, Missing Admin DB: ${missingAdminDb})`);
-    
     return isFirst;
   }
 
@@ -73,7 +62,7 @@ class StartupValidator {
    * Recreates missing components idempotently without overwriting existing data.
    */
   static validateStartup(baseDir = null) {
-    const storageDir = baseDir || UserDatabaseService.getStorageDirectory();
+    const storageDir = baseDir || getStorageDirectory();
     logger.info('[Startup] App launched');
     logger.info('[Startup] Checking runtime folders');
 
@@ -106,36 +95,13 @@ class StartupValidator {
       };
       fs.mkdirSync(path.dirname(configFile), { recursive: true });
       fs.writeFileSync(configFile, JSON.stringify(defaultConfig, null, 2), 'utf-8');
-      logger.info('[Startup] Configuration loaded');
-    } else {
-      logger.info('[Startup] Configuration loaded');
     }
+    logger.info('[Startup] Configuration loaded');
 
-    // 3. Check databases
-    logger.info('[Startup] Checking databases');
-    const authDbPath = path.join(storageDir, 'users.db');
-    const adminDbPath = path.join(storageDir, 'database', 'admin.db');
-
-    if (fs.existsSync(authDbPath)) {
-      logger.info('[Startup] users.db found');
-    } else {
-      logger.info('[Startup] users.db missing');
-    }
-
-    if (fs.existsSync(adminDbPath)) {
-      logger.info('[Startup] admin.db found');
-    } else {
-      logger.info('[Startup] admin.db missing');
-    }
-
-    const isFirst = !fs.existsSync(authDbPath) || !fs.existsSync(adminDbPath);
-    if (isFirst) {
-      logger.info('[Startup] First Run = TRUE');
-    } else {
-      logger.info('[Startup] First Run = FALSE');
-      logger.info('[Startup] Initialization skipped');
-      logger.info('[Startup] Launching Login');
-    }
+    // 3. Data storage
+    const cloud = require('../cloud/CloudClient.cjs');
+    logger.info(`[Startup] Business data is stored in the cloud database (${cloud.getApiUrl()})`);
+    logger.info('[Startup] Launching Login');
 
     logger.info('[Startup] Startup validation completed successfully.');
     return true;

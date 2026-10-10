@@ -276,7 +276,7 @@ const Settings = () => {
       if (window.api && window.api.production) {
         const res = await window.api.production.createBackup();
         if (res && res.success) {
-          setToast({ message: `Database backup created successfully: ${res.fileName}`, type: 'success' });
+          setToast({ message: `Database backup created successfully: ${res.data?.fileName || ''}`, type: 'success' });
           // Reload history & diagnostics
           const histRes = await window.api.production.getBackupHistory();
           if (histRes && histRes.success) setBackupHistory(histRes.data);
@@ -345,8 +345,8 @@ const Settings = () => {
       if (window.api && window.api.production) {
         const res = await window.api.production.runIntegrityCheck();
         if (res && res.success) {
-          setIntegrityReport(res);
-          if (res.healthy) {
+          setIntegrityReport(res.data);
+          if (res.data?.healthy) {
             setToast({ message: 'Database integrity check passed successfully!', type: 'success' });
           } else {
             setToast({ message: 'Integrity check failed. Some issues were found.', type: 'error' });
@@ -1624,7 +1624,7 @@ const Settings = () => {
       <ConfirmDialog
         open={showRestoreConfirm}
         title="Restore Database Backup"
-        message="CRITICAL WARNING: Are you sure you want to restore the database from this backup? This will replace all current data, log you out, and restart the application immediately."
+        message="CRITICAL WARNING: Are you sure you want to restore the database from this backup? This will replace all current data in the shared cloud database for EVERY user, log you out, and restart the application immediately."
         confirmText="Restore & Relaunch"
         cancelText="Cancel"
         confirmVariant="danger"

@@ -86,10 +86,14 @@ const Login = () => {
         }
       } else {
         let errMsg = res.error || 'Incorrect username or password.';
-        if (errMsg.toLowerCase().includes('lock')) {
+        const lowerMsg = errMsg.toLowerCase();
+        if (lowerMsg.includes('lock')) {
           setError('Your account has been temporarily locked due to too many failed attempts. Please try again in 15 minutes.');
-        } else if (errMsg.toLowerCase().includes('disabled')) {
+        } else if (lowerMsg.includes('disabled')) {
           setError('Your account is disabled. Please contact your system administrator.');
+        } else if (lowerMsg.includes('cloud') || lowerMsg.includes('maintenance') || lowerMsg.includes('too many attempts') || lowerMsg.includes('https://')) {
+          // Connection problems, maintenance mode and rate limits come from the cloud server.
+          setError(errMsg);
         } else {
           setError('Incorrect username or password.');
         }

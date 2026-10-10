@@ -1,0 +1,137 @@
+class OrderValidator {
+  constructor(db) {
+    this.db = db;
+  }
+
+  async validateSave(order, currentRole = 'Admin') {
+    const { id, orderNumber, orderDate, teamMemberId, items } = order;
+
+    if (id) {
+      const existing = await this.db.get('SELECT status FROM orders WHERE id = ?', [id]);
+      if (existing && (existing.status === 'Completed' || existing.status === 'Cancelled')) {
+        throw new Error(`Orders in '${existing.status}' status are read-only and cannot be modified.`);
+      }
+    }
+
+    if (!orderNumber || typeof orderNumber !== 'string' || orderNumber.trim().length === 0) {
+      throw new Error('PO Number is required.');
+    }
+
+    if (!orderDate || typeof orderDate !== 'string' || orderDate.trim().length === 0) {
+      throw new Error('Order Date is required.');
+    }
+
+    if (!teamMemberId) {
+      throw new Error('Team Member is required.');
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw new Error('Order must contain at least one product.');
+    }
+
+    // Check duplicate PO Number
+    const dup = id
+      ? await this.db.get('SELECT id FROM orders WHERE order_number = ? AND id != ?', [orderNumber.trim(), id])
+      : await this.db.get('SELECT id FROM orders WHERE order_number = ?', [orderNumber.trim()]);
+
+    if (dup) {
+      throw new Error('PO Number already exists.');
+    }
+
+    // Verify Order Date belongs to active Business Year
+    const activeYear = await this.db.get(`
+      SELECT id, year_name, start_date, end_date FROM business_years
+      WHERE CURRENT_DATE BETWEEN himmel_date(start_date) AND himmel_date(end_date)
+      LIMIT 1
+    `);
+    if (!activeYear) {
+      // Fallback: use any business year as ordering may predate strict year boundaries
+      const fallbackYear = await this.db.get('SELECT id FROM business_years ORDER BY start_date DESC LIMIT 1');
+      if (!fallbackYear) {
+        throw new Error('No Business Year exists. Please create one before saving orders.');
+      }
+      // Allow the order if a business year exists — don't block on date range
+      return;
+    }
+
+    const orderTime = new Date(orderDate).getTime();
+    const startTime = new Date(activeYear.start_date).getTime();
+    const endTime = new Date(activeYear.end_date).getTime();
+
+    if (isNaN(orderTime)) {
+      throw new Error('Invalid Order Date format.');
+    }
+
+    if (orderTime < startTime || orderTime > endTime) {
+      throw new Error(`Order Date must belong to active Business Year: ${activeYear.year_name} (${activeYear.start_date} to ${activeYear.end_date}).`);
+    }
+
+    // Validate Items (a plain loop: forEach would not wait for the database lookups)
+    for (let idx = 0; idx < items.length; idx++) {
+      const item = items[idx];
+      if (!item.productId) {
+        throw new Error(`Product is required for item at row ${idx + 1}.`);
+      }
+
+      const qty = Number(item.quantity);
+      if (!Number.isInteger(qty) || qty <= 0) {
+        throw new Error(`Quantity must be a positive integer at row ${idx + 1}.`);
+      }
+
+      const price = Number(item.unitPrice);
+      if (isNaN(price) || price < 0) {
+        throw new Error(`Unit Price cannot be negative at row ${idx + 1}.`);
+      }
+
+      // Check product is active
+      const product = await this.db.get('SELECT id, status FROM products WHERE id = ?', [item.productId]);
+      if (!product) {
+        throw new Error(`Product at row ${idx + 1} does not exist.`);
+      }
+      if (product.status === 'Inactive' || product.status === 'Discontinued') {
+        throw new Error(`Product '${item.productName || item.productId}' is ${product.status.toLowerCase()} and cannot be ordered.`);
+      }
+    }
+  }
+
+  validateStatusTransition(currentStatus, newStatus, currentRole = 'Admin', reason = '') {
+    if (currentStatus === newStatus) return;
+
+    // Block transitions out of terminal states
+    if (currentStatus === 'Completed') {
+      throw new Error('Completed orders are finalized and cannot transition to any other status.');
+    }
+    if (currentStatus === 'Cancelled') {
+      throw new Error('Cancelled orders cannot transition to any other status.');
+    }
+
+    // Valid state transitions for simplified single-user workflow
+    const validTransitions = {
+      Pending: ['Completed', 'Cancelled']
+    };
+
+    const allowedNext = validTransitions[currentStatus] || [];
+    if (!allowedNext.includes(newStatus)) {
+      throw new Error(`Invalid status transition from '${currentStatus}' to '${newStatus}'.`);
+    }
+
+    if (newStatus === 'Cancelled' && (!reason || typeof reason !== 'string' || reason.trim().length === 0)) {
+      throw new Error('A cancellation reason must be provided when cancelling an order.');
+    }
+  }
+
+  async validateDelete(id, currentRole = 'Admin') {
+    if (!id) throw new Error('Order ID is required for deletion.');
+
+    const order = await this.db.get('SELECT status FROM orders WHERE id = ?', [id]);
+    if (!order) {
+      throw new Error('Order not found.');
+    }
+
+    if (order.status === 'Completed') {
+      throw new Error('Completed orders cannot be deleted because they affect financial reports and audit trails.');
+    }
+  }
+}
+
+module.exports = OrderValidator;

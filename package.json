@@ -15,7 +15,10 @@
     "electron:dev": "concurrently \"vite --port 5180\" \"wait-on http://localhost:5180 && electron .\"",
     "electron:build": "npm run build && electron-builder",
     "rebuild": "electron-builder install-app-deps",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "dev:server": "concurrently -n db,api \"npm --prefix server run local-db\" \"wait-on tcp:127.0.0.1:5433 && npm --prefix server run dev\"",
+    "server:start": "npm --prefix server start",
+    "server:test": "npm --prefix server test"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

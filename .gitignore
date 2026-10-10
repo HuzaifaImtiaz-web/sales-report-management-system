@@ -10,6 +10,8 @@ temp_test_init_env*
 
 # Databases and user data
 *.db
+*.db-wal
+*.db-shm
 UserData/
 Backups/
 

@@ -8,9 +8,10 @@ const fs = require('fs');
 app.commandLine.appendSwitch('disable-features', 'OutOfProcessNetworkService');
 app.commandLine.appendSwitch('no-sandbox');
 
-// Configure application name and custom user data directory
+// Configure application name and custom user data directory.
+// HIMMEL_USER_DATA_DIR (development) runs a separate profile, e.g. two users side by side on one PC.
 app.setName('Himmel Pharmaceutical');
-const userDataPath = path.join(app.getPath('appData'), 'Himmel Pharmaceutical');
+const userDataPath = process.env.HIMMEL_USER_DATA_DIR || path.join(app.getPath('appData'), 'Himmel Pharmaceutical');
 app.setPath('userData', userDataPath);
 
 // Ensure full data directory structure
@@ -29,8 +30,8 @@ ensureFolderStructure();
 const logger = require('./logger.cjs');
 const { createMainWindow } = require('./window.cjs');
 const { setCustomMenu } = require('./menu.cjs');
-const { initDatabase, closeDatabase } = require('./database/index.cjs');
 const { setupIpcHandlers } = require('./ipc.cjs');
+const cloud = require('./cloud/CloudClient.cjs');
 
 process.on('uncaughtException', (error) => {
   logger.error('CRITICAL: Uncaught Exception in Main Process:', error);
@@ -68,14 +69,14 @@ if (!gotTheLock) {
       const StartupValidator = require('./system/StartupValidator.cjs');
       StartupValidator.validateStartup();
 
-      const db = initDatabase();
-      setupIpcHandlers(db);
+      // Data lives in the shared cloud database; the IPC layer forwards requests to the API server.
+      setupIpcHandlers();
 
-      // Hourly automatic backup check
+      // Hourly automatic backup check (downloads a copy of the cloud database on administrator computers)
       setInterval(() => {
         try {
-          const BackupService = require('./database/BackupService.cjs');
-          BackupService.checkAndRunAutoBackup().catch(err => {
+          const BackupManager = require('./cloud/BackupManager.cjs');
+          BackupManager.checkAndRunAutoBackup().catch(err => {
             logger.error('Background automatic backup check failed:', err);
           });
         } catch (e) {
@@ -115,7 +116,7 @@ if (!gotTheLock) {
   });
 
   app.on('window-all-closed', () => {
-    closeDatabase();
+    cloud.clearSession();
     if (process.platform !== 'darwin') {
       logger.info('All windows closed. Quitting application.');
       app.quit();

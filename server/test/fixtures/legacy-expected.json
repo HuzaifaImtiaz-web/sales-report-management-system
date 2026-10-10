@@ -1,0 +1,133 @@
+{
+ "counts": {
+  "areas": 3,
+  "team_members": 3,
+  "doctors": 2,
+  "institutions": 2,
+  "products": 4,
+  "product_targets": 2,
+  "orders": 4,
+  "order_items": 5,
+  "settings": 13,
+  "audit_logs": 2,
+  "tasks": 2,
+  "reminders": 1,
+  "unit_types": 13,
+  "divisions": 2,
+  "groups": 9,
+  "business_years": 1
+ },
+ "totals": [
+  {
+   "order_number": "PO-2026-001",
+   "total_amount": 101500,
+   "status": "Completed",
+   "created_at": "2026-10-10 17:21:20"
+  },
+  {
+   "order_number": "PO-2026-002",
+   "total_amount": 61602,
+   "status": "Completed",
+   "created_at": "2026-10-10 17:21:20"
+  },
+  {
+   "order_number": "PO-2026-003",
+   "total_amount": 16800,
+   "status": "Pending",
+   "created_at": "2026-10-10 17:21:20"
+  },
+  {
+   "order_number": "PO-2026-004",
+   "total_amount": 4500,
+   "status": "Cancelled",
+   "created_at": "2026-10-10 17:21:20"
+  }
+ ],
+ "achievements": [
+  {
+   "team_member_name": "Ahmed Shah",
+   "product_name": "CardioVas 50mg",
+   "target_qty": 420,
+   "actual_qty": 20,
+   "actual_value": 90000,
+   "qty_achievement_percent": 4.76,
+   "value_achievement_percent": 4.76
+  },
+  {
+   "team_member_name": "Usman Ali",
+   "product_name": "CardioVas 50mg",
+   "target_qty": 180,
+   "actual_qty": 0,
+   "actual_value": 0,
+   "qty_achievement_percent": 0,
+   "value_achievement_percent": 0
+  },
+  {
+   "team_member_name": "Zainab Fatima",
+   "product_name": "CardioVas 50mg",
+   "target_qty": 400,
+   "actual_qty": 0,
+   "actual_value": 0,
+   "qty_achievement_percent": 0,
+   "value_achievement_percent": 0
+  },
+  {
+   "team_member_name": "Zainab Fatima",
+   "product_name": "OncoChemo 100mg",
+   "target_qty": 50,
+   "actual_qty": 4,
+   "actual_value": 61602,
+   "qty_achievement_percent": 8,
+   "value_achievement_percent": 8
+  }
+ ],
+ "monthly": [
+  {
+   "sales_month": "2026-07",
+   "total_orders": 1,
+   "total_sales": 101500
+  },
+  {
+   "sales_month": "2026-08",
+   "total_orders": 1,
+   "total_sales": 61602
+  }
+ ],
+ "team": [
+  {
+   "team_member_id": 1,
+   "team_member_name": "Ahmed Shah",
+   "role": "Rep",
+   "total_orders": 2,
+   "completed_orders": 1,
+   "total_sales_value": 101500,
+   "average_order_value": 101500
+  },
+  {
+   "team_member_id": 2,
+   "team_member_name": "Zainab Fatima",
+   "role": "Sales Representative",
+   "total_orders": 2,
+   "completed_orders": 1,
+   "total_sales_value": 61602,
+   "average_order_value": 61602
+  },
+  {
+   "team_member_id": 3,
+   "team_member_name": "Usman Ali",
+   "role": "Manager",
+   "total_orders": 0,
+   "completed_orders": 0,
+   "total_sales_value": 0,
+   "average_order_value": 0
+  }
+ ],
+ "generatedProductColumns": [
+  "name",
+  "code",
+  "pack_price",
+  "pack_size_qty",
+  "per_unit_price",
+  "is_active"
+ ]
+}
