@@ -1,3 +1,5 @@
+import { csvCell, downloadCsv } from '../utils/exportUtils';
+
 // Centralized audit service for fetching, calculating diffs, and exporting audit logs
 
 export const calculateDiff = (oldVal, newVal) => {
@@ -46,80 +48,36 @@ export const calculateDiff = (oldVal, newVal) => {
 
 export const auditService = {
   async getAll(filters = {}) {
-    if (window.api && window.api.auditLogs) {
-      const res = await window.api.auditLogs.getAll(filters);
-      if (res.success) return res.data;
-      throw new Error(res.error || 'Failed to fetch audit logs');
-    }
-
-    // Fallback for browser-only preview
-    return {
-      logs: [
-        {
-          id: 1,
-          module: 'Products',
-          entityType: 'Product',
-          entityId: 'PCM500',
-          action: 'Edit',
-          oldValue: { brandName: 'PCM 500mg', tp: 45, mrp: 60, status: 'Active' },
-          newValue: { brandName: 'PCM 500mg', tp: 48, mrp: 65, status: 'Inactive' },
-          performedBy: 'admin',
-          performedAt: new Date(Date.now() - 3600000).toISOString(),
-          ipOrDevice: 'Desktop App'
-        },
-        {
-          id: 2,
-          module: 'Orders',
-          entityType: 'Order',
-          entityId: 'PO-2026-001',
-          action: 'Approved',
-          oldValue: { status: 'Pending' },
-          newValue: { status: 'Approved', approvedBy: 'admin' },
-          performedBy: 'admin',
-          performedAt: new Date(Date.now() - 7200000).toISOString(),
-          ipOrDevice: 'Desktop App'
-        }
-      ],
-      total: 2
-    };
+    const res = await window.api.auditLogs.getAll(filters);
+    if (res.success) return res.data;
+    throw new Error(res.error || 'Failed to fetch audit logs');
   },
 
   async getById(id) {
-    if (window.api && window.api.auditLogs) {
-      const res = await window.api.auditLogs.getById(id);
-      if (res.success) return res.data;
-      throw new Error(res.error || 'Failed to fetch audit log detail');
-    }
-    return null;
+    const res = await window.api.auditLogs.getById(id);
+    if (res.success) return res.data;
+    throw new Error(res.error || 'Failed to fetch audit log detail');
   },
 
   exportToCSV(logs = []) {
     if (!logs.length) return;
 
-    const headers = ['ID', 'Timestamp', 'User', 'Module', 'Entity Type', 'Entity ID', 'Action', 'Device'];
-    const csvRows = [headers.join(',')];
-
-    logs.forEach(l => {
-      const row = [
+    const headers = ['ID', 'Timestamp', 'User', 'Module', 'Entity Type', 'Entity ID', 'Action', 'Device / IP'];
+    const lines = [headers.map(csvCell).join(',')];
+    logs.forEach((l) => {
+      lines.push([
         l.id,
-        `"${new Date(l.performedAt).toLocaleString()}"`,
-        `"${l.performedBy || ''}"`,
-        `"${l.module || ''}"`,
-        `"${l.entityType || ''}"`,
-        `"${l.entityId || ''}"`,
-        `"${l.action || ''}"`,
-        `"${l.ipOrDevice || ''}"`
-      ];
-      csvRows.push(row.join(','));
+        new Date(l.performedAt).toLocaleString(),
+        l.performedBy,
+        l.module,
+        l.entityType,
+        l.entityId,
+        l.action,
+        l.ipOrDevice
+      ].map(csvCell).join(','));
     });
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvRows.join('\n'));
-    const link = document.createElement('a');
-    link.setAttribute('href', csvContent);
-    link.setAttribute('download', `Audit_Logs_Export_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsv(`Audit_Logs_Export_${new Date().toISOString().split('T')[0]}.csv`, lines);
   }
 };
 

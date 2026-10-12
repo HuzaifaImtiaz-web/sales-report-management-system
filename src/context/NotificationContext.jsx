@@ -3,19 +3,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const NotificationContext = createContext(null);
 
 export const NotificationProvider = ({ children }) => {
+  // Kept for this browser tab only (sessionStorage) and cleared on sign-out, so a shared
+  // computer does not show one person's notifications to the next.
   const [notifications, setNotifications] = useState(() => {
     try {
-      const saved = localStorage.getItem('himmel_notifications');
-      return saved ? JSON.parse(saved) : [
-        {
-          id: 1,
-          title: 'System Initialized',
-          message: 'Himmel Sales Management System started successfully.',
-          type: 'info',
-          timestamp: new Date().toISOString(),
-          read: true
-        }
-      ];
+      const saved = sessionStorage.getItem('himmel_notifications');
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
       return [];
     }
@@ -25,11 +18,20 @@ export const NotificationProvider = ({ children }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('himmel_notifications', JSON.stringify(notifications.slice(0, 50)));
+      sessionStorage.setItem('himmel_notifications', JSON.stringify(notifications.slice(0, 50)));
     } catch (e) {
-      console.error('Failed to save notifications:', e);
+      // Storage unavailable (private mode): notifications simply are not kept across reloads.
     }
   }, [notifications]);
+
+  useEffect(() => {
+    const onSignedOut = () => {
+      setNotifications([]);
+      setActiveToast(null);
+    };
+    window.addEventListener('himmel-signed-out', onSignedOut);
+    return () => window.removeEventListener('himmel-signed-out', onSignedOut);
+  }, []);
 
   const addNotification = (notif) => {
     const newNotif = {

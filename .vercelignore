@@ -1,0 +1,18 @@
+# Never upload local data, build artifacts or secrets to Vercel (deploys from Git skip untracked
+# files anyway; this also covers `vercel` CLI deploys from this folder).
+.env
+.env.*
+server/.env
+server/.local-db/
+Backups/
+UserData/
+database/
+release/
+Client_Delivery/
+dist/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.json.gz
+*.log

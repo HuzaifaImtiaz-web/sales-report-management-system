@@ -31,3 +31,8 @@ Thumbs.db
 .idea/
 
 
+
+# Hosting / local development
+.vercel/
+server/.local-db/
+*.json.gz

@@ -28,15 +28,29 @@ function runImport(args) {
   });
 }
 
-async function call(channel, args = [], token) {
+// session: { cookie, csrf } from login() (the browser keeps the cookie, the page the CSRF token).
+async function call(channel, args = [], session) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (session) {
+    headers.Cookie = session.cookie;
+    headers['X-CSRF-Token'] = session.csrf;
+  }
   const res = await fetch(`${baseUrl}/api/rpc/${encodeURIComponent(channel)}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    headers,
     body: JSON.stringify({ args })
   });
   const body = await res.json();
   if (!body.success) throw new Error(`${channel}: ${body.error}`);
+  const cookie = res.headers.getSetCookie().map((c) => c.split(';')[0]).join('; ');
+  if (cookie && body.data && body.data.csrfToken) {
+    return { ...body.data, session: { cookie, csrf: body.data.csrfToken } };
+  }
   return body.data;
+}
+
+async function login(username, password) {
+  return (await call('auth:login', [{ username, password }])).session;
 }
 
 before(async () => {
@@ -47,7 +61,8 @@ before(async () => {
   env = {
     ...process.env,
     DATABASE_URL: `postgres://postgres:postgres@127.0.0.1:${socketServer.server.address().port}/postgres`,
-    JWT_SECRET: 'import-test-secret-that-is-long-enough-123',
+    HIMMEL_SKIP_ENV_FILE: '1',
+    NODE_ENV: 'test',
     ADMIN_USERNAME: 'admin',
     ADMIN_PASSWORD: 'Bootstrap#2026',
     TRUST_PROXY: '0'
@@ -88,7 +103,7 @@ test('old usernames and passwords work, disabled accounts stay disabled', async 
 });
 
 test('row counts, order totals and report figures match the SQLite version', async () => {
-  const admin = (await call('auth:login', [{ username: 'admin', password: 'Legacy#Admin1' }])).token;
+  const admin = await login('admin', 'Legacy#Admin1');
 
   const health = await call('integrity:check', [], admin);
   for (const [table, count] of Object.entries(expected.counts)) {
@@ -128,8 +143,8 @@ test('row counts, order totals and report figures match the SQLite version', asy
 });
 
 test('owner-less data goes to the account that owned the old database', async () => {
-  const admin = (await call('auth:login', [{ username: 'admin', password: 'Legacy#Admin1' }])).token;
-  const sara = (await call('auth:login', [{ username: 'sara', password: 'Legacy#Sara1' }])).token;
+  const admin = await login('admin', 'Legacy#Admin1');
+  const sara = await login('sara', 'Legacy#Sara1');
 
   assert.equal((await call('tasks:getAll', [], admin)).length, 2);
   assert.equal((await call('tasks:getAll', [], sara)).length, 0);
@@ -139,10 +154,10 @@ test('owner-less data goes to the account that owned the old database', async ()
 });
 
 test('recovery credentials are kept and new rows continue after the imported ids', async () => {
-  assert.ok((await call('auth:recoveryVerifyPassword', ['Legacy#Recovery1'])).recoveryToken);
-  assert.ok((await call('auth:verifyRecoveryPin', [{ pin: '7391' }])).recoveryToken);
+  assert.ok((await call('auth:recoveryVerifyPassword', ['Legacy#Recovery1'])).csrfToken);
+  assert.ok((await call('auth:verifyRecoveryPin', [{ pin: '7391' }])).csrfToken, 'PINs from the desktop app keep working');
 
-  const admin = (await call('auth:login', [{ username: 'admin', password: 'Legacy#Admin1' }])).token;
+  const admin = await login('admin', 'Legacy#Admin1');
   const area = await call('areas:save', [{ name: 'New Area After Import' }], admin);
   assert.equal(area.id, expected.counts.areas + 1);
 

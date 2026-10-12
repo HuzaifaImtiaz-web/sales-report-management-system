@@ -19,17 +19,20 @@ class ValidationService {
     this.target = new TargetValidator(db);
   }
 
+  // Text fields from forms. SQL injection is not a concern here (every query is parameterized) and
+  // the web app escapes everything it displays; this rejects markup outright so stored data can
+  // never carry a script into another tool (exports, e-mail, a future screen).
   sanitizeString(str) {
     if (typeof str !== 'string') return str;
     const clean = str.trim().replace(/\s+/g, ' ');
 
-    // HTML/Script tags
-    if (/<[^>]*>|javascript:|script/i.test(clean)) {
-      throw new Error('Validation Error: HTML or Script injection detected.');
+    if (clean.length > 5000) {
+      throw new Error('Validation Error: text is too long (5,000 characters at most).');
     }
-    // SQL Injection patterns
-    if (/(\bUNION\b|\bSELECT\b|\bDROP\s+TABLE\b|\bDELETE\s+FROM\b|'--|--)/i.test(clean)) {
-      throw new Error('Validation Error: SQL Injection attempt detected.');
+    // HTML tags/comments and script-running URLs. Plain text such as "prescription" or "Union
+    // Hospital" is fine (the old word filter rejected both).
+    if (/<\s*[a-z!/?]/i.test(clean) || /\b(?:javascript|vbscript)\s*:/i.test(clean) || /\bdata\s*:\s*text\/html/i.test(clean)) {
+      throw new Error('Validation Error: HTML or script content is not allowed.');
     }
     // Control and invisible characters
     if (/[\u0000-\u001F\u007F-\u009F­​-‏‪-‮]/g.test(clean)) {

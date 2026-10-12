@@ -7,17 +7,14 @@ import { FiLock, FiUser, FiAlertCircle, FiSun, FiMoon } from 'react-icons/fi';
 import { APP_VERSION_LABEL } from '../../utils/version';
 
 import EmergencyRecoveryModal from '../../components/auth/EmergencyRecoveryModal';
-import FirstLoginSecurityWizard from '../../components/auth/FirstLoginSecurityWizard';
 import EnterprisePasswordInput from '../../components/common/EnterprisePasswordInput';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   const { login, isAuthenticated, isLoading, sessionExpiredMsg, setSessionExpiredMsg } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -42,7 +39,7 @@ const Login = () => {
     };
   }, [setSessionExpiredMsg]);
 
-  if (isAuthenticated && !isLoading && !isWizardOpen) {
+  if (isAuthenticated && !isLoading) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -69,45 +66,19 @@ const Login = () => {
     try {
       const res = await login(username.trim(), password);
       if (res && res.success) {
-        let pendingWizard = false;
-        try {
-          if (window.api?.auth?.getSecurityStatus) {
-            const secStatus = await window.api.auth.getSecurityStatus();
-            if (secStatus && secStatus.isFirstLoginPending) {
-              pendingWizard = true;
-            }
-          }
-        } catch (sErr) {}
-
-        if (pendingWizard) {
-          setIsWizardOpen(true);
-        } else {
-          navigate('/dashboard', { replace: true });
-        }
+        // The security setup wizard (administrators) opens on top of the app from AuthContext.
+        navigate('/dashboard', { replace: true });
       } else {
-        let errMsg = res.error || 'Incorrect username or password.';
-        const lowerMsg = errMsg.toLowerCase();
-        if (lowerMsg.includes('lock')) {
-          setError('Your account has been temporarily locked due to too many failed attempts. Please try again in 15 minutes.');
-        } else if (lowerMsg.includes('disabled')) {
-          setError('Your account is disabled. Please contact your system administrator.');
-        } else if (lowerMsg.includes('cloud') || lowerMsg.includes('maintenance') || lowerMsg.includes('too many attempts') || lowerMsg.includes('https://')) {
-          // Connection problems, maintenance mode and rate limits come from the cloud server.
-          setError(errMsg);
-        } else {
-          setError('Incorrect username or password.');
-        }
+        // Server messages are written for users (wrong password, locked account, maintenance,
+        // too many attempts, connection problems), so show them as they are.
+        const errMsg = res.error || 'Incorrect username or password.';
+        setError(errMsg === 'Invalid username or password.' ? 'Incorrect username or password.' : errMsg);
       }
     } catch (err) {
       setError('An unexpected connection error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleWizardComplete = () => {
-    setIsWizardOpen(false);
-    navigate('/dashboard', { replace: true });
   };
 
   return (
@@ -161,7 +132,7 @@ const Login = () => {
           </h1>
           <div className="h-1 w-12 bg-white/40 rounded-full"></div>
           <p className="text-xs text-white/80 leading-relaxed font-medium">
-            Secure offline-first database platform built exclusively for commercial medicine records, analytical targets, and order compliance pipelines.
+            Secure cloud platform built exclusively for commercial medicine records, analytical targets, and order compliance pipelines.
           </p>
         </div>
 
@@ -241,6 +212,10 @@ const Login = () => {
                   <input
                     id="username"
                     type="text"
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    maxLength={100}
                     required
                     disabled={isSubmitting}
                     ref={usernameRef}
@@ -271,25 +246,13 @@ const Login = () => {
                 id="password"
                 name="password"
                 label="Password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required={true}
                 disabled={isSubmitting}
                 placeholder="••••••••"
               />
-            </div>
-
-            {/* Remember Me & Help */}
-            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider">
-              <label className="flex items-center gap-2 cursor-pointer text-gray-505 dark:text-slate-400 select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-gray-250 text-brand-primary focus:ring-brand-primary/20 w-3.5 h-3.5 cursor-pointer dark:border-[#2A375E] dark:bg-[#0B132B]"
-                />
-                Remember Me
-              </label>
             </div>
 
             {/* Sign In Button */}
@@ -327,11 +290,6 @@ const Login = () => {
           onClose={() => setIsRecoveryOpen(false)}
         />
 
-        {/* First Login Security Setup Wizard */}
-        <FirstLoginSecurityWizard
-          isOpen={isWizardOpen}
-          onComplete={handleWizardComplete}
-        />
 
         {/* Small version label for smaller screens */}
         <div className="lg:hidden text-center text-[10px] font-bold text-gray-450 dark:text-slate-500 tracking-widest uppercase">

@@ -1,4 +1,4 @@
-// Console logger with the same API and password masking as electron/logger.cjs.
+// Console logger with password and token masking.
 // Hosting platforms (Render, Railway, Fly.io...) collect stdout/stderr as the server log.
 
 function sanitize(text) {

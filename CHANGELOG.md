@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.0.0] - 2026-10-12 (Web App)
+### Changed
+- **Web app instead of desktop app**: runs in any browser (computer or phone); hosted on Vercel with
+  a shared Supabase PostgreSQL database. The Electron app, installer and auto-updater are removed
+  (the desktop v1.0.3 release is unchanged on `main`).
+- **Exports** (Excel, PDF, PowerPoint) are built on the server and downloaded; history comes from
+  the audit trail. **Backups** download as `.json.gz` and restore from a chosen file, both
+  confirmed with the administrator's password.
+- **Order rules** follow the permission matrix: only administrators complete or delete orders;
+  managers and administrators cancel them.
+- Phone-friendly lists (filters fold away, tables scroll), page titles in the top bar and browser
+  tab, self-hosted fonts, faster start-up (no simulated loading screen).
+
+### Security
+- Server-side sessions in HttpOnly/Secure/SameSite cookies, CSRF tokens, origin checks, security
+  headers (strict CSP), database-backed rate limiting, stronger password policy, 6–8 digit
+  recovery PINs, admin security setup on first sign-in, CSV-injection-safe exports, Supabase Data
+  API locked down. Full report: `docs/SECURITY_AUDIT.md`.
+- Removed browser-only fallbacks that accepted a hardcoded admin password and stored data in
+  localStorage.
+
+### Fixed
+- First-login security setup never appeared; "Unlock account" always failed; multi-page PDF
+  exports failed; the top bar always said "Dashboard".
+
 ## [1.0.3] - 2026-08-01 (Phase 20.6.3 Dynamic Branding & Icon Release)
 ### Added
 - **Single-Source Dynamic Version Architecture**: Connected `package.json` version directly to Electron main process, React frontend (`src/utils/version.js`), Update Center, and Settings UI. Updating `package.json` automatically updates all application screens.

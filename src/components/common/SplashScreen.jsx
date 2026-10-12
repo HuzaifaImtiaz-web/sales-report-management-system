@@ -10,57 +10,32 @@ const SplashScreen = ({ onComplete }) => {
   const { isLoading } = useAuth();
 
   useEffect(() => {
-    if (progress < 25) {
-      setStatus('Initializing application secure module...');
-    } else if (progress < 50) {
-      setStatus('Verifying local database connection...');
-    } else if (progress < 75) {
-      setStatus('Checking user session authorization...');
+    if (progress < 50) {
+      setStatus('Connecting securely...');
     } else if (progress < 100) {
-      setStatus('Loading user configurations...');
+      setStatus('Checking your session...');
     } else {
       setStatus('System Ready');
     }
   }, [progress]);
 
+  // The bar follows the real work (the session check): it creeps towards 90% while the server
+  // answers, then completes and fades out straight away, so the web app opens without a fixed delay.
   useEffect(() => {
-    let timer;
-    const startProgress = () => {
-      timer = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(timer);
-            // Wait until both simulated progress and actual auth loading have finished
-            if (!isLoading) {
-              setTimeout(() => {
-                setFadeOut(true);
-                setTimeout(() => {
-                  onComplete();
-                }, 600); // Wait for transition duration
-              }, 400);
-            }
-            return 100;
-          }
-          // Natural feeling progression increments
-          const increment = Math.floor(Math.random() * 10) + 5; 
-          return Math.min(prev + increment, 100);
-        });
-      }, 100 + Math.random() * 100);
-    };
-
-    startProgress();
-
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [onComplete, isLoading]);
-
-  // If progress is 100% but auth check is still pending, hold progress at 99% until loading is finished
-  useEffect(() => {
-    if (progress === 100 && isLoading) {
-      setProgress(99);
+    if (!isLoading) {
+      setProgress(100);
+      const fade = setTimeout(() => setFadeOut(true), 150);
+      const done = setTimeout(() => onComplete(), 450);
+      return () => {
+        clearTimeout(fade);
+        clearTimeout(done);
+      };
     }
-  }, [isLoading, progress]);
+    const timer = setInterval(() => {
+      setProgress((prev) => Math.min(prev + Math.floor(Math.random() * 8) + 4, 90));
+    }, 120);
+    return () => clearInterval(timer);
+  }, [onComplete, isLoading]);
 
   return (
     <div

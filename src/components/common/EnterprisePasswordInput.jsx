@@ -107,7 +107,7 @@ const EnterprisePasswordInput = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10.5px]">
             <div className={`flex items-center gap-1.5 font-semibold ${policy.length ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
               {policy.length ? <FiCheck className="w-3.5 h-3.5 shrink-0" /> : <FiX className="w-3.5 h-3.5 shrink-0" />}
-              <span>Minimum 8 characters</span>
+              <span>Minimum 10 characters</span>
             </div>
             <div className={`flex items-center gap-1.5 font-semibold ${policy.uppercase ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
               {policy.uppercase ? <FiCheck className="w-3.5 h-3.5 shrink-0" /> : <FiX className="w-3.5 h-3.5 shrink-0" />}

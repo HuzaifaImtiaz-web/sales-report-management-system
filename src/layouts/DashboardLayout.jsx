@@ -29,12 +29,13 @@ const DashboardLayoutContent = ({ pageTitle = 'Dashboard', children }) => {
   const parentContext = useContext(LayoutContext);
   const { setTitle } = useTitle();
 
-  // Sync child page's title up to the top-level context
+  // The page's title is shown in the top bar and the browser tab (every page passes pageTitle).
   useEffect(() => {
-    if (parentContext?.isNested && pageTitle) {
+    if (pageTitle) {
       setTitle(pageTitle);
+      document.title = `${pageTitle} · Himmel Sales Management`;
     }
-  }, [pageTitle, parentContext, setTitle]);
+  }, [pageTitle, setTitle]);
 
   // If this DashboardLayout is inside a parent layout, bypass wrapping and just render children
   if (parentContext?.isNested) {

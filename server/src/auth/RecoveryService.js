@@ -1,8 +1,9 @@
 const AuthService = require('./AuthService');
 const PasswordService = require('./PasswordService');
+const { assertStrongPassword } = require('./passwordPolicy');
 const logger = require('../logger');
 
-const { STRONG_PASSWORD } = AuthService;
+const { NEW_PIN } = AuthService;
 
 // The desktop app shipped these defaults. Over the internet they would let anyone in, so they are
 // only accepted from a signed-in administrator who is setting the real recovery password/PIN.
@@ -104,10 +105,7 @@ class RecoveryService {
       throw new Error('Current recovery password and new recovery password are required.');
     }
     await this.verifyRecoveryPassword(currentPassword, { allowDefault: true });
-
-    if (!STRONG_PASSWORD(newPassword)) {
-      throw new Error('New recovery password does not meet security requirements.');
-    }
+    assertStrongPassword(newPassword, { label: 'New recovery password' });
 
     await this.auth.setSecuritySetting('recovery_password_hash', await PasswordService.hashPassword(newPassword));
     logger.info('SUCCESS: Emergency recovery password updated.');
@@ -118,8 +116,8 @@ class RecoveryService {
     if (!currentAuth || !newPin) {
       throw new Error('Current authorization and new PIN are required.');
     }
-    if (!/^\d{4,8}$/.test(newPin)) {
-      throw new Error('New Recovery PIN must be 4 to 8 numeric digits.');
+    if (!NEW_PIN.test(String(newPin))) {
+      throw new Error('New Recovery PIN must be 6 to 8 numeric digits.');
     }
 
     // currentAuth can be the current PIN or the current recovery password
@@ -142,7 +140,7 @@ class RecoveryService {
       throw new Error('Current authorization (PIN or Recovery Password) is incorrect.');
     }
 
-    await this.auth.setSecuritySetting('recovery_pin_hash', await PasswordService.hashPassword(newPin, 4));
+    await this.auth.setSecuritySetting('recovery_pin_hash', await PasswordService.hashPassword(String(newPin), 6));
     logger.info('SUCCESS: Recovery PIN updated successfully.');
     return { success: true };
   }
@@ -152,10 +150,7 @@ class RecoveryService {
       throw new Error('Recovery PIN and new password are required.');
     }
     await this.verifyRecoveryPin(pin);
-
-    if (!STRONG_PASSWORD(newPassword)) {
-      throw new Error('New recovery password does not meet security requirements.');
-    }
+    assertStrongPassword(newPassword, { label: 'New recovery password' });
 
     await this.auth.setSecuritySetting('recovery_password_hash', await PasswordService.hashPassword(newPassword));
     logger.info('SUCCESS: Emergency recovery password reset via Recovery PIN.');
@@ -224,6 +219,7 @@ class RecoveryService {
     if (!user) {
       throw new Error(`User '${username}' not found.`);
     }
+    assertStrongPassword(newPassword, { label: 'New password', username: user.username });
 
     const passwordHash = await PasswordService.hashPassword(newPassword);
     await this.auth.users.update(user.id, { passwordHash, failedAttempts: 0, lockedUntil: null });

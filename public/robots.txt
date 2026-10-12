@@ -1,0 +1,3 @@
+# Private business application
+User-agent: *
+Disallow: /

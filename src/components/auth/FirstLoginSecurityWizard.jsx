@@ -28,9 +28,9 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
       setError('Username must be at least 3 characters long.');
       return false;
     }
-    const policy = validatePassword(newPassword);
+    const policy = validatePassword(newPassword, { username: newUsername });
     if (!policy.isValid) {
-      setError('New password does not meet security requirements.');
+      setError(`New password: ${policy.errors[0]}`);
       return false;
     }
     if (newPassword !== confirmPassword) {
@@ -44,7 +44,11 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
     setError('');
     const policy = validatePassword(recoveryPassword);
     if (!policy.isValid) {
-      setError('Recovery password does not meet security requirements.');
+      setError(`Recovery password: ${policy.errors[0]}`);
+      return false;
+    }
+    if (recoveryPassword === newPassword) {
+      setError('The recovery password must be different from your login password.');
       return false;
     }
     if (recoveryPassword !== confirmRecoveryPassword) {
@@ -56,8 +60,8 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
 
   const validateStep4 = () => {
     setError('');
-    if (!/^\d{4,8}$/.test(recoveryPin)) {
-      setError('Recovery PIN must be 4 to 8 numeric digits.');
+    if (!/^\d{6,8}$/.test(recoveryPin)) {
+      setError('Recovery PIN must be 6 to 8 numeric digits.');
       return false;
     }
     if (recoveryPin !== confirmRecoveryPin) {
@@ -83,20 +87,16 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
     setIsSubmitting(true);
     setError('');
     try {
-      if (window.api?.auth?.completeFirstLoginWizard) {
-        const res = await window.api.auth.completeFirstLoginWizard({
-          newUsername: newUsername.trim(),
-          newPassword,
-          recoveryPassword,
-          recoveryPin
-        });
-        if (res && res.success) {
-          setStep(5);
-        } else {
-          setError(res?.error || 'Failed to complete security setup.');
-        }
-      } else {
+      const res = await window.api.auth.completeFirstLoginWizard({
+        newUsername: newUsername.trim(),
+        newPassword,
+        recoveryPassword,
+        recoveryPin
+      });
+      if (res && res.success) {
         setStep(5);
+      } else {
+        setError(res?.error || 'Failed to complete security setup.');
       }
     } catch (err) {
       setError(err.message || 'An unexpected error occurred during security setup.');
@@ -151,16 +151,18 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
             <div className="space-y-4">
               <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 rounded-xl space-y-2">
                 <div className="text-xs font-black uppercase text-amber-700 dark:text-amber-400 tracking-wider">
-                  ⚠️ Default Credentials Detected
+                  ⚠️ Security Setup Required
                 </div>
                 <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
-                  You are currently logged in with default administrator credentials:
+                  Before using the system, secure this administrator account:
                 </p>
-                <div className="text-xs font-mono bg-white dark:bg-gray-800 p-2.5 rounded-lg border border-amber-200 dark:border-amber-900/40 text-gray-800 dark:text-gray-200">
-                  Username: <span className="font-bold text-amber-600">admin</span> | Password: <span className="font-bold text-amber-600">Password123!</span>
-                </div>
+                <ul className="text-xs text-gray-700 dark:text-gray-300 list-disc pl-5 space-y-1">
+                  <li>choose a new strong password</li>
+                  <li>set an emergency recovery password</li>
+                  <li>set a 6–8 digit recovery PIN</li>
+                </ul>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                  For corporate data compliance, you must update your login credentials and establish recovery parameters before accessing the system.
+                  The recovery password and PIN let an administrator regain access if every administrator password is lost. Keep them somewhere safe and separate from your login password.
                 </p>
               </div>
             </div>
@@ -216,7 +218,7 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
               </div>
 
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                The Recovery Password authorizes offline administrative unlock and password resets in emergency scenarios.
+                The Recovery Password authorizes emergency account unlocks and password resets in emergency scenarios.
               </p>
 
               <EnterprisePasswordInput
@@ -248,17 +250,17 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
               </div>
 
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                The Recovery PIN is a 4-to-8 digit numeric code used to authorize resetting the Recovery Password if forgotten.
+                The Recovery PIN is a 6-to-8 digit numeric code used to authorize resetting the Recovery Password if forgotten.
               </p>
 
               <EnterprisePasswordInput
                 id="wizard-recovery-pin"
-                label="New Recovery PIN (4–8 Digits) *"
+                label="New Recovery PIN (6–8 Digits) *"
                 value={recoveryPin}
                 onChange={(e) => setRecoveryPin(e.target.value.replace(/\D/g, ''))}
                 isPin={true}
                 maxLength={8}
-                placeholder="e.g. 8492"
+                placeholder="e.g. 849217"
               />
 
               <EnterprisePasswordInput

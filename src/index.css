@@ -70,6 +70,27 @@ button:focus-visible {
   @apply px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-soft transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
 }
 
+/* Phones: wide data tables scroll sideways inside their own box instead of squeezing every
+   column (only tables that already sit in a horizontal scroll container). */
+@media (max-width: 767px) {
+  .overflow-x-auto > table {
+    min-width: 760px;
+  }
+  .overflow-x-auto > table td,
+  .overflow-x-auto > table th {
+    white-space: nowrap;
+  }
+}
+
+/* Comfortable tap targets on touch screens. */
+@media (pointer: coarse) {
+  button,
+  [role="button"],
+  select {
+    min-height: 32px;
+  }
+}
+
 /* Sticky Header Table Utility */
 .table-sticky-header th {
   position: sticky;

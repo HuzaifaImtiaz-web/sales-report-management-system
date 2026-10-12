@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const config = require('../config');
 const logger = require('../logger');
+const { assertStrongPassword } = require('../auth/passwordPolicy');
 
 const UNIT_TYPES = [
   'Tablet', 'Capsule', 'Vial', 'Ampoule', 'Injection',
@@ -21,7 +22,7 @@ const GROUPS = [
   { division: 'Oncology', name: 'Supportive Care', description: 'Oncology supportive care' }
 ];
 
-// Defaults from electron/database/seed.cjs and SystemInitializer (machine-specific folders left out).
+// Defaults from the desktop app's seed data (machine-specific folders left out).
 const SETTINGS = {
   company_name: 'Himmel Pharmaceutical',
   app_name: 'Himmel Sales Management',
@@ -86,7 +87,8 @@ async function seedReferenceData(db) {
 
 /**
  * Creates the first administrator when there are no users at all.
- * The password comes from ADMIN_PASSWORD; if it is missing a random one is generated and printed once.
+ * The password comes from ADMIN_PASSWORD. Outside production a random one is generated and
+ * printed once when it is missing; in production it is required (server logs are often shared).
  */
 async function ensureAdministrator(db) {
   const users = await db.get('SELECT COUNT(*) AS count FROM users');
@@ -95,12 +97,13 @@ async function ensureAdministrator(db) {
   let password = config.adminPassword;
   let generated = false;
   if (!password) {
-    password = `${crypto.randomBytes(9).toString('base64url')}A1!`;
+    if (config.isProduction) {
+      throw new Error('ADMIN_PASSWORD must be set to create the first administrator account.');
+    }
+    password = `${crypto.randomBytes(12).toString('base64url')}aA1!`;
     generated = true;
   }
-  if (password.length < 8) {
-    throw new Error('ADMIN_PASSWORD must be at least 8 characters long.');
-  }
+  assertStrongPassword(password, { label: 'ADMIN_PASSWORD', username: config.adminUsername });
 
   const passwordHash = await bcrypt.hash(password, 12);
   await db.run(

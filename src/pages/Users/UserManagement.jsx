@@ -9,6 +9,7 @@ import {
   FiTrash2, FiAlertTriangle
 } from 'react-icons/fi';
 import EnterprisePasswordInput from '../../components/common/EnterprisePasswordInput';
+import { validatePassword } from '../../utils/passwordPolicy';
 
 const UserManagement = () => {
   const { user, hasPermission } = useAuth();
@@ -56,64 +57,27 @@ const UserManagement = () => {
     }
 
     try {
-      if (window.api && window.api.auth) {
-        const res = await window.api.auth.deleteUser(deleteTargetUser.username);
-        if (res && res.success !== false) {
-          setToast({ message: `User account '${deleteTargetUser.username}' deleted successfully.`, type: 'success' });
-          addNotification({ title: 'User Deleted', message: `Account '${deleteTargetUser.username}' was permanently removed.`, type: 'warning' });
-          setDeleteTargetUser(null);
-          loadUsers();
-        } else {
-          setToast({ message: res?.error || 'Failed to delete user.', type: 'error' });
-        }
-      } else {
-        // Web fallback
-        const storedWebUsers = JSON.parse(localStorage.getItem('himmel_web_users') || '[]');
-        const updated = storedWebUsers.filter(u => u.username.toLowerCase() !== deleteTargetUser.username.toLowerCase());
-        localStorage.setItem('himmel_web_users', JSON.stringify(updated));
+      const res = await window.api.auth.deleteUser(deleteTargetUser.username);
+      if (res && res.success) {
         setToast({ message: `User account '${deleteTargetUser.username}' deleted successfully.`, type: 'success' });
+        addNotification({ title: 'User Deleted', message: `Account '${deleteTargetUser.username}' was permanently removed.`, type: 'warning' });
         setDeleteTargetUser(null);
         loadUsers();
+      } else {
+        setToast({ message: res?.error || 'Failed to delete user.', type: 'error' });
       }
     } catch (err) {
       setToast({ message: err.message, type: 'error' });
     }
   };
 
-  const checkPasswordPolicy = (password) => {
-    return {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      number: /\d/.test(password),
-      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
-    };
-  };
-
   const loadUsers = async () => {
     try {
-      if (window.api && window.api.auth) {
-        const res = await window.api.auth.getAllUsers();
-        if (res && res.success) {
-          setUsers(res.data || []);
-        } else {
-          setToast({ message: res?.error || 'Failed to load users.', type: 'error' });
-        }
+      const res = await window.api.auth.getAllUsers();
+      if (res && res.success) {
+        setUsers(res.data || []);
       } else {
-        // Web mode fallback
-        const storedWebUsers = JSON.parse(localStorage.getItem('himmel_web_users') || '[]');
-        const defaultAdmin = {
-          id: 1,
-          username: 'admin',
-          fullName: 'System Administrator',
-          role: 'Admin',
-          isActive: true,
-          failedAttempts: 0,
-          lockedUntil: null,
-          lastLogin: new Date().toISOString()
-        };
-        const existingAdmin = storedWebUsers.find(u => u.username.toLowerCase() === 'admin');
-        setUsers(existingAdmin ? storedWebUsers : [defaultAdmin, ...storedWebUsers]);
+        setToast({ message: res?.error || 'Failed to load users.', type: 'error' });
       }
     } catch (err) {
       setToast({ message: err.message, type: 'error' });
@@ -157,31 +121,29 @@ const UserManagement = () => {
       return;
     }
 
-    const policy = checkPasswordPolicy(newUser.password);
-    if (!Object.values(policy).every(Boolean)) {
-      setToast({ message: 'Password does not meet policy requirements.', type: 'error' });
+    const policy = validatePassword(newUser.password, { username: newUser.username });
+    if (!policy.isValid) {
+      setToast({ message: `Password: ${policy.errors[0]}`, type: 'error' });
       return;
     }
 
     try {
-      if (window.api && window.api.auth) {
-        const backendRole = newUser.role === 'Administrator' ? 'Admin' : newUser.role;
-        const res = await window.api.auth.createUser({
-          username: newUser.username.trim(),
-          password: newUser.password,
-          fullName: newUser.fullName.trim(),
-          role: backendRole
-        });
+      const backendRole = newUser.role === 'Administrator' ? 'Admin' : newUser.role;
+      const res = await window.api.auth.createUser({
+        username: newUser.username.trim(),
+        password: newUser.password,
+        fullName: newUser.fullName.trim(),
+        role: backendRole
+      });
 
-        if (res && res.success) {
-          setToast({ message: `User account '${newUser.username}' created successfully.`, type: 'success' });
-          addNotification({ title: 'User Created', message: `Account '${newUser.username}' created by admin.`, type: 'info' });
-          setShowCreateModal(false);
-          setNewUser({ fullName: '', username: '', password: '', confirmPassword: '', role: 'Sales Representative' });
-          loadUsers();
-        } else {
-          setToast({ message: res?.error || 'Failed to create user.', type: 'error' });
-        }
+      if (res && res.success) {
+        setToast({ message: `User account '${newUser.username}' created successfully.`, type: 'success' });
+        addNotification({ title: 'User Created', message: `Account '${newUser.username}' created by admin.`, type: 'info' });
+        setShowCreateModal(false);
+        setNewUser({ fullName: '', username: '', password: '', confirmPassword: '', role: 'Sales Representative' });
+        loadUsers();
+      } else {
+        setToast({ message: res?.error || 'Failed to create user.', type: 'error' });
       }
     } catch (err) {
       setToast({ message: err.message, type: 'error' });
@@ -201,16 +163,14 @@ const UserManagement = () => {
     if (!editForm.fullName.trim()) return;
 
     try {
-      if (window.api && window.api.auth) {
-        const backendRole = editForm.role === 'Administrator' ? 'Admin' : editForm.role;
-        const res = await window.api.auth.changeRole(editTargetUser.username, backendRole);
-        if (res && res.success) {
-          setToast({ message: `Updated details for '${editTargetUser.username}'.`, type: 'success' });
-          setEditTargetUser(null);
-          loadUsers();
-        } else {
-          setToast({ message: res?.error || 'Failed to update user details.', type: 'error' });
-        }
+      const backendRole = editForm.role === 'Administrator' ? 'Admin' : editForm.role;
+      const res = await window.api.auth.changeRole(editTargetUser.username, backendRole);
+      if (res && res.success) {
+        setToast({ message: `Updated details for '${editTargetUser.username}'.`, type: 'success' });
+        setEditTargetUser(null);
+        loadUsers();
+      } else {
+        setToast({ message: res?.error || 'Failed to update user details.', type: 'error' });
       }
     } catch (err) {
       setToast({ message: err.message, type: 'error' });
@@ -219,22 +179,17 @@ const UserManagement = () => {
 
   const handleToggleActive = async (targetUser) => {
     try {
-      if (window.api && window.api.auth) {
-        let res;
-        if (targetUser.isActive) {
-          res = await window.api.auth.disableUser(targetUser.username);
-        } else {
-          res = await window.api.auth.activateUser(targetUser.username);
-        }
+      const res = targetUser.isActive
+        ? await window.api.auth.disableUser(targetUser.username)
+        : await window.api.auth.activateUser(targetUser.username);
 
-        if (res && res.success) {
-          const statusText = targetUser.isActive ? 'disabled' : 'activated';
-          setToast({ message: `User '${targetUser.username}' has been ${statusText}.`, type: 'success' });
-          addNotification({ title: 'User Status Updated', message: `User '${targetUser.username}' was ${statusText}.`, type: 'warning' });
-          loadUsers();
-        } else {
-          setToast({ message: res?.error || 'Operation failed.', type: 'error' });
-        }
+      if (res && res.success) {
+        const statusText = targetUser.isActive ? 'disabled' : 'activated';
+        setToast({ message: `User '${targetUser.username}' has been ${statusText}.`, type: 'success' });
+        addNotification({ title: 'User Status Updated', message: `User '${targetUser.username}' was ${statusText}.`, type: 'warning' });
+        loadUsers();
+      } else {
+        setToast({ message: res?.error || 'Operation failed.', type: 'error' });
       }
     } catch (err) {
       setToast({ message: err.message, type: 'error' });
@@ -243,14 +198,12 @@ const UserManagement = () => {
 
   const handleUnlockAccount = async (targetUser) => {
     try {
-      if (window.api && window.api.recovery) {
-        const res = await window.api.recovery.toggleStatus({ username: targetUser.username, targetStatus: true });
-        if (res && res.success !== false) {
-          setToast({ message: `Account '${targetUser.username}' unlocked successfully.`, type: 'success' });
-          loadUsers();
-        } else {
-          setToast({ message: res?.error || 'Failed to unlock account.', type: 'error' });
-        }
+      const res = await window.api.auth.unlockUser(targetUser.username);
+      if (res && res.success) {
+        setToast({ message: `Account '${targetUser.username}' unlocked successfully.`, type: 'success' });
+        loadUsers();
+      } else {
+        setToast({ message: res?.error || 'Failed to unlock account.', type: 'error' });
       }
     } catch (err) {
       setToast({ message: err.message, type: 'error' });
@@ -264,28 +217,27 @@ const UserManagement = () => {
       return;
     }
 
-    const policy = checkPasswordPolicy(resetPasswordVal);
-    if (!Object.values(policy).every(Boolean)) {
-      setToast({ message: 'Password does not meet policy requirements.', type: 'error' });
+    const policy = validatePassword(resetPasswordVal, { username: resetTargetUser.username });
+    if (!policy.isValid) {
+      setToast({ message: `Password: ${policy.errors[0]}`, type: 'error' });
       return;
     }
 
     try {
-      if (window.api && window.api.auth) {
-        const res = await window.api.auth.resetPassword({
-          username: resetTargetUser.username,
-          newPassword: resetPasswordVal
-        });
+      const res = await window.api.auth.resetPassword({
+        username: resetTargetUser.username,
+        newPassword: resetPasswordVal
+      });
 
-        if (res && res.success) {
-          setToast({ message: `Password reset successfully for '${resetTargetUser.username}'.`, type: 'success' });
-          addNotification({ title: 'Password Reset', message: `Password reset for user '${resetTargetUser.username}'.`, type: 'info' });
-          setResetTargetUser(null);
-          setResetPasswordVal('');
-          setResetConfirmPasswordVal('');
-        } else {
-          setToast({ message: res?.error || 'Failed to reset password.', type: 'error' });
-        }
+      if (res && res.success) {
+        setToast({ message: `Password reset successfully for '${resetTargetUser.username}'.`, type: 'success' });
+        addNotification({ title: 'Password Reset', message: `Password reset for user '${resetTargetUser.username}'.`, type: 'info' });
+        setResetTargetUser(null);
+        setResetPasswordVal('');
+        setResetConfirmPasswordVal('');
+        loadUsers();
+      } else {
+        setToast({ message: res?.error || 'Failed to reset password.', type: 'error' });
       }
     } catch (err) {
       setToast({ message: err.message, type: 'error' });
@@ -309,9 +261,6 @@ const UserManagement = () => {
 
     return matchesSearch && matchesRole && matchesStatus;
   });
-
-  const createPolicy = checkPasswordPolicy(newUser.password);
-  const resetPolicy = checkPasswordPolicy(resetPasswordVal);
 
   return (
     <DashboardLayout pageTitle="User Management">

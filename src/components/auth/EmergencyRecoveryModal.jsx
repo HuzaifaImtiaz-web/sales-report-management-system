@@ -3,9 +3,6 @@ import { FiLock, FiShield, FiUserCheck, FiUserX, FiKey, FiX, FiCheckCircle, FiAl
 import EnterprisePasswordInput from '../common/EnterprisePasswordInput';
 import { validatePassword } from '../../utils/passwordPolicy';
 
-const RECOVERY_PASSWORD_DEFAULT = 'Recovery@123';
-const RECOVERY_PIN_DEFAULT = '1234';
-
 const EmergencyRecoveryModal = ({ isOpen, onClose }) => {
   const [step, setStep] = useState(1); // 1 = Auth Check, 2 = Users List
   const [authMode, setAuthMode] = useState('password'); // 'password' | 'pin'
@@ -49,61 +46,32 @@ const EmergencyRecoveryModal = ({ isOpen, onClose }) => {
     }, 4000);
   };
 
+  // Every check happens on the server; a successful one opens a short recovery session there.
   const handleVerifyAuth = async (e) => {
     e.preventDefault();
     setPasswordError('');
 
+    if (authMode === 'password' && !recoveryPassword) {
+      setPasswordError('Emergency recovery password is required.');
+      return;
+    }
+    if (authMode === 'pin' && !/^\d{4,8}$/.test(recoveryPin)) {
+      setPasswordError('Recovery PIN must be 4 to 8 numeric digits.');
+      return;
+    }
+
     setIsVerifying(true);
     try {
-      const api = window.api || window.electronAPI;
-
-      if (authMode === 'password') {
-        if (!recoveryPassword) {
-          setPasswordError('Emergency recovery password is required.');
-          setIsVerifying(false);
-          return;
-        }
-
-        if (api && api.recovery) {
-          const res = await api.recovery.verifyPassword(recoveryPassword);
-          if (res && res.success !== false) {
-            setStep(2);
-            fetchUsers();
-          } else {
-            setPasswordError(res?.error || 'Invalid emergency recovery password.');
-          }
-        } else {
-          if (recoveryPassword === RECOVERY_PASSWORD_DEFAULT) {
-            setStep(2);
-            fetchUsers();
-          } else {
-            setPasswordError('Invalid emergency recovery password.');
-          }
-        }
+      const res = authMode === 'password'
+        ? await window.api.recovery.verifyPassword(recoveryPassword)
+        : await window.api.auth.verifyRecoveryPin(recoveryPin);
+      if (res && res.success) {
+        setRecoveryPassword('');
+        setRecoveryPin('');
+        setStep(2);
+        fetchUsers();
       } else {
-        // PIN Mode
-        if (!/^\d{4,8}$/.test(recoveryPin)) {
-          setPasswordError('Recovery PIN must be 4 to 8 numeric digits.');
-          setIsVerifying(false);
-          return;
-        }
-
-        if (api && api.auth && api.auth.verifyRecoveryPin) {
-          const res = await api.auth.verifyRecoveryPin(recoveryPin);
-          if (res && res.success !== false) {
-            setStep(2);
-            fetchUsers();
-          } else {
-            setPasswordError(res?.error || 'Invalid recovery PIN.');
-          }
-        } else {
-          if (recoveryPin === RECOVERY_PIN_DEFAULT) {
-            setStep(2);
-            fetchUsers();
-          } else {
-            setPasswordError('Invalid recovery PIN.');
-          }
-        }
+        setPasswordError(res?.error || (authMode === 'password' ? 'Invalid emergency recovery password.' : 'Invalid recovery PIN.'));
       }
     } catch (err) {
       setPasswordError(err.message || 'Verification failed.');
@@ -115,34 +83,12 @@ const EmergencyRecoveryModal = ({ isOpen, onClose }) => {
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      const api = window.api || window.electronAPI;
-      if (api && api.recovery) {
-        const res = await api.recovery.getUsers();
-        if (res && res.success !== false) {
-          setUsers(res.data || res || []);
-        } else {
-          showToast(res?.error || 'Failed to load user list', 'error');
-        }
+      const res = await window.api.recovery.getUsers();
+      if (res && res.success) {
+        setUsers(res.data || []);
       } else {
-        const storedWebUsers = JSON.parse(localStorage.getItem('himmel_web_users') || '[]');
-        const defaultAdmin = {
-          id: 1,
-          username: 'admin',
-          fullName: 'System Administrator',
-          role: 'Admin',
-          isActive: true,
-          status: 'Enabled'
-        };
-
-        const existingAdmin = storedWebUsers.find((u) => u.username.toLowerCase() === 'admin');
-        const list = existingAdmin ? storedWebUsers : [defaultAdmin, ...storedWebUsers];
-        setUsers(
-          list.map((u) => ({
-            ...u,
-            isActive: u.isActive !== false,
-            status: u.isActive !== false ? 'Enabled' : 'Disabled'
-          }))
-        );
+        showToast(res?.error || 'Failed to load user list', 'error');
+        if (/expired/i.test(res?.error || '')) setStep(1);
       }
     } catch (err) {
       showToast(err.message || 'Failed to load user list', 'error');
@@ -153,28 +99,14 @@ const EmergencyRecoveryModal = ({ isOpen, onClose }) => {
 
   const handleToggleStatus = async (user) => {
     try {
-      const api = window.api || window.electronAPI;
       const targetStatus = !user.isActive;
-
-      if (api && api.recovery) {
-        const res = await api.recovery.toggleStatus({ username: user.username, targetStatus });
-        if (res && res.success !== false) {
-          const actionLabel = targetStatus ? 'enabled' : 'disabled';
-          showToast(`User '${user.username}' successfully ${actionLabel}.`, 'success');
-          fetchUsers();
-        } else {
-          showToast(res?.error || 'Failed to update user status.', 'error');
-        }
-      } else {
-        const storedWebUsers = JSON.parse(localStorage.getItem('himmel_web_users') || '[]');
-        const updatedList = users.map((u) =>
-          u.username.toLowerCase() === user.username.toLowerCase()
-            ? { ...u, isActive: targetStatus, status: targetStatus ? 'Enabled' : 'Disabled' }
-            : u
-        );
-        setUsers(updatedList);
-        localStorage.setItem('himmel_web_users', JSON.stringify(updatedList));
+      const res = await window.api.recovery.toggleStatus({ username: user.username, targetStatus });
+      if (res && res.success) {
         showToast(`User '${user.username}' successfully ${targetStatus ? 'enabled' : 'disabled'}.`, 'success');
+        fetchUsers();
+      } else {
+        showToast(res?.error || 'Failed to update user status.', 'error');
+        if (/expired/i.test(res?.error || '')) setStep(1);
       }
     } catch (err) {
       showToast(err.message || 'Failed to update user status.', 'error');
@@ -192,9 +124,9 @@ const EmergencyRecoveryModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     setResetError('');
 
-    const policy = validatePassword(newPassword);
+    const policy = validatePassword(newPassword, { username: resetModalUser.username });
     if (!policy.isValid) {
-      setResetError('New password does not meet security requirements.');
+      setResetError(policy.errors[0] || 'New password does not meet security requirements.');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -204,23 +136,18 @@ const EmergencyRecoveryModal = ({ isOpen, onClose }) => {
 
     setIsResetting(true);
     try {
-      const api = window.api || window.electronAPI;
-      if (api && api.recovery) {
-        const res = await api.recovery.resetPassword({
-          username: resetModalUser.username,
-          newPassword,
-          confirmPassword
-        });
-
-        if (res && res.success !== false) {
-          showToast(`Password for user '${resetModalUser.username}' successfully reset.`, 'success');
-          setResetModalUser(null);
-        } else {
-          setResetError(res?.error || 'Failed to reset password.');
-        }
-      } else {
+      const res = await window.api.recovery.resetPassword({
+        username: resetModalUser.username,
+        newPassword,
+        confirmPassword
+      });
+      if (res && res.success) {
         showToast(`Password for user '${resetModalUser.username}' successfully reset.`, 'success');
         setResetModalUser(null);
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setResetError(res?.error || 'Failed to reset password.');
       }
     } catch (err) {
       setResetError(err.message || 'Failed to reset password.');

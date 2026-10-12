@@ -1,41 +1,30 @@
 import logoImg from '../assets/logos/Himmel-Logo.png';
 
 const getVal = async (key, fallback) => {
-  if (window.api && window.api.settings) {
-    const res = await window.api.settings.getByKey(key);
-    if (res.success && res.data) {
-      try {
-        return JSON.parse(res.data.value);
-      } catch (e) {
-        return res.data.value;
-      }
-    }
-  }
-  const saved = localStorage.getItem(key);
-  if (saved) {
+  const res = await window.api.settings.getByKey(key);
+  if (res.success && res.data) {
     try {
-      return JSON.parse(saved);
+      return JSON.parse(res.data.value);
     } catch (e) {
-      return saved;
+      return res.data.value;
     }
   }
   return fallback;
 };
 
 const setVal = async (key, value, group = 'General') => {
-  if (window.api && window.api.settings) {
-    const strVal = typeof value === 'string' ? value : JSON.stringify(value);
-    const res = await window.api.settings.save(key, strVal, group);
-    if (res.success) {
-      window.dispatchEvent(new CustomEvent('himmel-db-change'));
-      return value;
-    }
-    throw new Error(res.error || `Failed to save setting ${key}`);
+  const strVal = typeof value === 'string' ? value : JSON.stringify(value);
+  const res = await window.api.settings.save(key, strVal, group);
+  if (res.success) {
+    window.dispatchEvent(new CustomEvent('himmel-db-change'));
+    return value;
   }
-  localStorage.setItem(key, JSON.stringify(value));
-  window.dispatchEvent(new CustomEvent('himmel-db-change'));
-  return value;
+  throw new Error(res.error || `Failed to save setting ${key}`);
 };
+
+// Only images may be used as the company logo (shown with <img>, and allowed by the
+// Content-Security-Policy as data: URLs).
+const isSafeLogo = (logo) => typeof logo === 'string' && /^(data:image\/(png|jpe?g|gif|webp|svg\+xml);base64,|\/|\.\/|assets\/|blob:)/i.test(logo);
 
 export const settingsService = {
   getCompanyInfo: async () => {
@@ -46,13 +35,16 @@ export const settingsService = {
       phone: '+92 (21) 111-HIMMEL',
       address: 'Plot 42, Sector 23, Korangi Industrial Area, Karachi, Pakistan'
     });
-    if (company && typeof company === 'object' && (!company.logo || company.logo.includes('unsplash'))) {
+    if (company && typeof company === 'object' && !isSafeLogo(company.logo)) {
       company.logo = logoImg;
     }
     return company;
   },
 
   saveCompanyInfo: async (info) => {
+    if (info && info.logo && !isSafeLogo(info.logo)) {
+      throw new Error('The logo must be an image file (PNG, JPG, GIF, WebP or SVG).');
+    }
     return setVal('himmel_company_info', info, 'Company');
   },
 
@@ -95,18 +87,13 @@ export const settingsService = {
 
   getAccountInfo: async () => {
     return getVal('himmel_account_info', {
-      username: 'admin_himmel',
-      email: 'admin@himmelpharma.com',
-      fullName: 'System Administrator'
+      username: '',
+      email: '',
+      fullName: ''
     });
   },
 
   saveAccountInfo: async (info) => {
     return setVal('himmel_account_info', info, 'Account');
-  },
-
-  changePassword: async (currentPassword, newPassword) => {
-    // Mock changing password
-    return true;
   }
 };

@@ -83,6 +83,7 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(location.state?.toast || null);
   const [search, setSearch] = useState('');
+  const [moreFilters, setMoreFilters] = useState(false); // phones only
   const [statusFilter, setStatus] = useState('All');
   const [divisionFilter, setDivisionFilter] = useState('All');
   const [groupFilter, setGroupFilter] = useState('');
@@ -139,14 +140,14 @@ const Products = () => {
     const q = search.toLowerCase();
     return products.filter((p) => {
       // 1. Search query
-      const matchQ = !q || 
-        (p.brandName && p.brandName.toLowerCase().includes(q)) || 
-        (p.name && p.name.toLowerCase().includes(q)) || 
-        (p.productCode && p.productCode.toLowerCase().includes(q)) || 
-        (p.code && p.code.toLowerCase().includes(q)) || 
-        (p.genericName && p.genericName.toLowerCase().includes(q)) || 
+      const matchQ = !q ||
+        (p.brandName && p.brandName.toLowerCase().includes(q)) ||
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.productCode && p.productCode.toLowerCase().includes(q)) ||
+        (p.code && p.code.toLowerCase().includes(q)) ||
+        (p.genericName && p.genericName.toLowerCase().includes(q)) ||
         (p.registrationNo && p.registrationNo.toLowerCase().includes(q)) ||
-        (p.divisionName && p.divisionName.toLowerCase().includes(q)) || 
+        (p.divisionName && p.divisionName.toLowerCase().includes(q)) ||
         (p.groupName && p.groupName.toLowerCase().includes(q)) ||
         (p.manufacturer && p.manufacturer.toLowerCase().includes(q));
 
@@ -329,9 +330,9 @@ const Products = () => {
           </div>
         </div>
 
-        {/* ── Search & Filter ── */}
+        {/* ── Search & Filter (phones: search first, other filters folded) ── */}
         <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 space-y-3">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-800 pb-3">
+          <div className={`${moreFilters ? 'flex' : 'hidden md:flex'} flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-800 pb-3`}>
             <FilterPresetBar
               moduleName="products"
               currentFilters={{ search, statusFilter, divisionFilter, groupFilter }}
@@ -371,8 +372,18 @@ const Products = () => {
               )}
             </div>
 
+
+            <button
+              type="button"
+              onClick={() => setMoreFilters((open) => !open)}
+              aria-expanded={moreFilters}
+              className="md:hidden self-start text-[11px] font-bold text-brand-primary hover:underline"
+            >
+              {moreFilters ? 'Fewer filters' : 'More filters (division, group, status)'}
+            </button>
+
             {/* Row 2: Advanced Filters (Division, Product Group, Status) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+            <div className={`${moreFilters ? 'grid' : 'hidden md:grid'} grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100 dark:border-gray-800`}>
               {/* Division Filter */}
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Division</label>
@@ -476,16 +487,16 @@ const Products = () => {
               <thead className="sticky top-0 z-10 bg-gray-55 dark:bg-[#0f172a] shadow-xs">
                 <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                   {[
-                    'Product Code', 
-                    'Brand Name', 
-                    'Generic Name', 
+                    'Product Code',
+                    'Brand Name',
+                    'Generic Name',
                     'Registration No.',
-                    'Division', 
-                    'Product Group', 
-                    'Pack Size', 
-                    'TP', 
-                    'MRP', 
-                    'Status', 
+                    'Division',
+                    'Product Group',
+                    'Pack Size',
+                    'TP',
+                    'MRP',
+                    'Status',
                     'Actions'
                   ].map((h) => {
                     const field = SORTABLE_COLUMNS[h];

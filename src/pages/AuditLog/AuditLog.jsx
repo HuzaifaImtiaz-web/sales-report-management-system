@@ -73,19 +73,15 @@ export default function AuditLog() {
 
   const handleExport = async () => {
     try {
-      if (window.api && window.api.export) {
-        const res = await window.api.export.generate({
-          reportType: 'Audit Trail',
-          format: 'excel',
-          filters: { search, startDate, endDate, status: moduleFilter }
-        });
-        if (res && res.success) {
-          alert(`Audit Trail exported to Excel successfully: ${res.fileName}`);
-        } else {
-          alert(res?.error || 'Export failed.');
-        }
+      const res = await window.api.export.generate({
+        reportType: 'Audit Trail',
+        format: 'excel',
+        filters: { search, startDate, endDate, status: moduleFilter }
+      });
+      if (res && res.success) {
+        alert(`Audit Trail downloaded: ${res.data.fileName}`);
       } else {
-        auditService.exportToCSV(logs);
+        alert(res?.error || 'Export failed.');
       }
     } catch (err) {
       alert(err.message || 'Export error');

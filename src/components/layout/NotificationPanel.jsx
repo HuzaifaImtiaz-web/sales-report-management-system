@@ -13,82 +13,36 @@ const NotificationPanel = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all data from DB
+  // Tasks and reminders are private to the signed-in user (stored on the server).
   const fetchAllData = async () => {
     try {
-      // 1. Fetch Tasks
-      let dbTasks = [];
-      if (window.api && window.api.tasks) {
-        const res = await window.api.tasks.getAll().catch(() => null);
-        if (res && res.success) {
-          dbTasks = res.data || [];
-        }
-      } else {
-        const saved = localStorage.getItem('himmel_tasks');
-        if (saved) {
-          try {
-            dbTasks = JSON.parse(saved);
-          } catch (e) {}
-        }
-      }
-      setTasks(dbTasks);
+      const [tasksRes, remindersRes, doctorsRes, ordersRes] = await Promise.all([
+        window.api.tasks.getAll(),
+        window.api.reminders.getAll(),
+        window.api.doctors.getAll(),
+        window.api.analytics.getRecentOrders()
+      ]);
+      setTasks(tasksRes.success ? tasksRes.data || [] : []);
+      setReminders(remindersRes.success ? remindersRes.data || [] : []);
 
-      // 2. Fetch Reminders
-      let dbReminders = [];
-      if (window.api && window.api.reminders) {
-        const res = await window.api.reminders.getAll().catch(() => null);
-        if (res && res.success) {
-          dbReminders = res.data || [];
-        }
-      } else {
-        const saved = localStorage.getItem('himmel_reminders');
-        if (saved) {
-          try {
-            dbReminders = JSON.parse(saved);
-          } catch (e) {}
-        }
-      }
-      setReminders(dbReminders);
-
-      // 3. Fetch Live Database Events for Notifications
+      // Latest activity: newest doctors and orders first.
       const dbNotifications = [];
-      let doctors = [];
-      if (window.api && window.api.doctors) {
-        const res = await window.api.doctors.getAll().catch(() => null);
-        if (res && res.success) {
-          doctors = res.data || [];
-        }
-      }
-      let orders = [];
-      if (window.api && window.api.orders) {
-        const res = await window.api.orders.getAll().catch(() => null);
-        if (res && res.success) {
-          orders = res.data || [];
-        }
-      }
-
-      if (doctors && doctors.length > 0) {
-        doctors.forEach((doc) => {
-          dbNotifications.push({
-            id: `doc-${doc.id}`,
-            text: `Dr. ${doc.name} registered in ${doc.area || 'system'}`,
-            time: 'Doctor Signup',
-            rawId: doc.id
-          });
+      (doctorsRes.success ? doctorsRes.data || [] : []).forEach((doc) => {
+        dbNotifications.push({
+          id: `doc-${doc.id}`,
+          text: `Dr. ${doc.name} registered in ${doc.areaName || doc.area || 'system'}`,
+          time: 'Doctor Signup',
+          rawId: doc.id
         });
-      }
-      if (orders && orders.length > 0) {
-        orders.forEach((ord) => {
-          dbNotifications.push({
-            id: `ord-${ord.id}`,
-            text: `Order ${ord.orderNumber || ord.order_number} submitted for Rs ${(ord.totalAmount || ord.total_amount || 0).toLocaleString()}`,
-            time: 'Sales entry',
-            rawId: ord.id
-          });
+      });
+      (ordersRes.success ? ordersRes.data || [] : []).forEach((ord) => {
+        dbNotifications.push({
+          id: `ord-${ord.id}`,
+          text: `Order ${ord.orderNumber} submitted for Rs ${Number(ord.total ?? ord.totalAmount ?? 0).toLocaleString()}`,
+          time: 'Sales entry',
+          rawId: ord.id
         });
-      }
-
-      // Sort notifications to show latest events first (largest rawId first)
+      });
       dbNotifications.sort((a, b) => b.rawId - a.rawId);
       setNotifications(dbNotifications.slice(0, 8));
     } catch (err) {
@@ -102,83 +56,38 @@ const NotificationPanel = () => {
     fetchAllData();
   }, []);
 
-  // Handlers for tasks list
   const handleToggleTask = async (id) => {
-    const taskToToggle = tasks.find(t => t.id === id);
+    const taskToToggle = tasks.find((t) => t.id === id);
     if (!taskToToggle) return;
-    const updatedTask = { ...taskToToggle, done: !taskToToggle.done };
-
-    if (window.api && window.api.tasks) {
-      await window.api.tasks.save(updatedTask).catch(() => {});
-      fetchAllData();
-    } else {
-      const updated = tasks.map(t => t.id === id ? updatedTask : t);
-      setTasks(updated);
-      localStorage.setItem('himmel_tasks', JSON.stringify(updated));
-    }
+    await window.api.tasks.save({ ...taskToToggle, done: !taskToToggle.done });
+    fetchAllData();
   };
 
   const handleDeleteTask = async (id) => {
-    if (window.api && window.api.tasks) {
-      await window.api.tasks.delete(id).catch(() => {});
-      fetchAllData();
-    } else {
-      const updated = tasks.filter(t => t.id !== id);
-      setTasks(updated);
-      localStorage.setItem('himmel_tasks', JSON.stringify(updated));
-    }
+    await window.api.tasks.delete(id);
+    fetchAllData();
   };
 
   const handleAddTask = async (e) => {
     e.preventDefault();
     if (!newTaskText.trim()) return;
-    const newTask = {
-      text: newTaskText.trim(),
-      done: false
-    };
-
-    if (window.api && window.api.tasks) {
-      await window.api.tasks.save(newTask).catch(() => {});
-      fetchAllData();
-    } else {
-      const updated = [...tasks, { ...newTask, id: Date.now() }];
-      setTasks(updated);
-      localStorage.setItem('himmel_tasks', JSON.stringify(updated));
-    }
+    await window.api.tasks.save({ text: newTaskText.trim().slice(0, 500), done: false });
     setNewTaskText('');
+    fetchAllData();
   };
 
-  // Handlers for reminders
   const handleAddReminder = async (e) => {
     e.preventDefault();
     if (!newReminderTitle.trim()) return;
-    const newReminder = {
-      title: newReminderTitle.trim(),
-      time: 'Just now',
-      type: newReminderType
-    };
-
-    if (window.api && window.api.reminders) {
-      await window.api.reminders.save(newReminder).catch(() => {});
-      fetchAllData();
-    } else {
-      const updated = [...reminders, { ...newReminder, id: Date.now() }];
-      setReminders(updated);
-      localStorage.setItem('himmel_reminders', JSON.stringify(updated));
-    }
+    await window.api.reminders.save({ title: newReminderTitle.trim().slice(0, 200), time: 'Just now', type: newReminderType });
     setNewReminderTitle('');
     setIsAddingReminder(false);
+    fetchAllData();
   };
 
   const handleDeleteReminder = async (id) => {
-    if (window.api && window.api.reminders) {
-      await window.api.reminders.delete(id).catch(() => {});
-      fetchAllData();
-    } else {
-      const updated = reminders.filter(r => r.id !== id);
-      setReminders(updated);
-      localStorage.setItem('himmel_reminders', JSON.stringify(updated));
-    }
+    await window.api.reminders.delete(id);
+    fetchAllData();
   };
 
   if (loading) {

@@ -1,0 +1,17 @@
+{
+  "name": "Himmel Sales Management",
+  "short_name": "Himmel Sales",
+  "description": "Himmel Pharmaceutical Sales Management System",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0B132B",
+  "theme_color": "#A91D22",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ]
+}

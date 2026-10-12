@@ -2,121 +2,154 @@
 
 ![Himmel Logo](src/assets/logos/Himmel-Logo.png)
 
-Enterprise Sales & Distribution Management System designed for Himmel Pharmaceutical Ltd. Built with Electron, Vite, React and Tailwind CSS, with a shared PostgreSQL database in the cloud behind a Node.js API server (`server/`).
+Sales and distribution management for Himmel Pharmaceutical Ltd, as a web app: open it in any
+browser, on a computer or a phone. Everyone works on one shared company database, and each person
+signs in with their own account and role (Admin, Manager, Sales Representative).
 
-> **Cloud database:** all users share one company database; each person signs in with their own account and role. See [server/README.md](server/README.md) to run it locally, deploy it, and move existing SQLite data into it.
+- **Web app**: React 18 + Vite 7 + Tailwind CSS (`src/`)
+- **API server**: Node.js + Express 5 (`server/`), the only part that talks to the database
+- **Database**: PostgreSQL (Supabase in production, PGlite on your PC for development)
+- **Hosting**: Vercel (static site + one serverless function), portable to any Node.js host
 
----
-
-## 🚀 System Overview
-
-The Himmel Pharmaceutical Sales Management System provides complete end-to-end management for pharmaceutical operations, team members, doctor interactions, institution contracts, territory areas, target allocations, order processing, and analytics reporting.
-
-### Core Modules
-
-- **Dashboard**: High-level sales overview, KPI metrics, monthly target progress, and top-performing products.
-- **Sales Entry & Invoicing**: Order completion, status tracking, invoicing, and sales performance tracking.
-- **Customer Orders**: Complete order processing lifecycle (Pending → Complete / Cancel / Edit / Delete) with reason logging and stock validation.
-- **Products Master**: Product catalog management with pricing, target allocation, and status controls.
-- **Doctors Directory**: Managed database of healthcare practitioners and target institution affiliations.
-- **Institutions**: Health centers, hospitals, and clinical institution records.
-- **Territories & Areas**: Geographic area, district, and region mapping.
-- **Team Members**: Sales representative management and hierarchy assignment.
-- **Annual Targets**: Annual sales target setting and distribution across team members and territories.
-- **Audit Logs**: Enterprise-grade audit trail capturing system events, user actions, and system modifications.
-- **Backup & Recovery**: Automated SQLite database backup, manual backup creation, and point-in-time recovery.
-- **Settings & About**: Dynamic application configuration, runtime metrics, system initialization, and developer attribution.
+Security design and the full audit: [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md).
 
 ---
 
-## 🛠️ Technology Stack
+## Modules
 
-- **Desktop Runtime**: [Electron 42](https://www.electronjs.org/)
-- **Frontend Framework**: [React 18](https://react.dev/) + [Vite 5](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS 3](https://tailwindcss.com/)
-- **Database Engine**: [PostgreSQL](https://www.postgresql.org/) in the cloud, accessed through the API server in `server/` (Express + `pg`). `better-sqlite3` is only used to read old local backups.
-- **State & Context**: Custom React Providers (Auth, Theme, Toast, Unsaved Changes, Database Init)
-- **Packaging & Build**: [Electron Builder 26](https://www.electron-userland.github.io/electron-builder/) (NSIS Setup & Portable Windows Binaries)
+- **Dashboard**: sales KPIs, monthly trend, target progress, top products.
+- **Sales & Orders**: purchase orders from entry to completion or cancellation, with history.
+- **Products, Doctors, Institutions, Areas, Team Members, Product Groups**: master data.
+- **Targets**: annual targets distributed across areas and team members.
+- **Reports & Export Center**: Excel, PDF and PowerPoint reports, built on the server and downloaded.
+- **Audit Trail**: who did what, when and from where (administrators).
+- **Users**: accounts, roles, password resets, unlocking (administrators).
+- **Settings**: company details and logo, business year, backups, diagnostics, security.
+
+Roles are enforced by the server (see `server/src/rpc/handlers.js`) and mirrored by the screens
+(`src/services/permissionService.js`): representatives enter and edit orders, managers also
+maintain master data and cancel orders, only administrators complete or delete orders, delete
+master data, manage users, read the audit trail and handle backups.
 
 ---
 
-## 📋 Prerequisites & Setup
+## Local development
 
-### Prerequisites
-
-- **Node.js**: `v20.11.0` or higher
-- **npm**: `v10.0.0` or higher
-- **OS**: Windows 10 / 11 (x64)
-
-### Installation
-
-Clone the repository and install dependencies:
+Requirements: Node.js 20.12 or newer (22 LTS recommended), npm 10.
 
 ```bash
-git clone https://github.com/HuzaifaImtiaz-web/sales-report-management-system.git
-cd sales-report-management-system
 npm install
+npm --prefix server install
+npm run dev
+```
+
+`npm run dev` starts a local PostgreSQL (PGlite, data in `server/.local-db/`), the API on
+http://127.0.0.1:4000 and the web app on http://localhost:5180. Sign in as `admin` /
+`Local#Dev2026!` (development data only). It never reads `server/.env`, so it cannot touch the
+real database.
+
+Other commands:
+
+| Command | What it does |
+|---|---|
+| `npm test` | API tests (real server + PostgreSQL in memory): auth, roles, CSRF, exports, backups... |
+| `npm run build` | Production build of the web app into `dist/` |
+| `npm start` | Runs the API and serves `dist/` (any Node.js host) |
+| `npm run migrate` | Creates/updates the database tables (uses `server/.env`) |
+| `npm run dev:cloud` | Development against the database in `server/.env` (careful: real data) |
+
+---
+
+## Deploying: Supabase + Vercel
+
+### 1. Database (Supabase)
+
+1. Create a project at supabase.com (pick the region closest to your users).
+2. **Lock down the Data API** (the app does not use it): in the SQL editor run
+
+   ```sql
+   revoke all on all tables in schema public from anon, authenticated;
+   revoke all on all sequences in schema public from anon, authenticated;
+   revoke all on all functions in schema public from anon, authenticated;
+   alter default privileges for role postgres in schema public revoke all on tables from anon, authenticated;
+   alter default privileges for role postgres in schema public revoke all on sequences from anon, authenticated;
+   alter default privileges for role postgres in schema public revoke all on functions from anon, authenticated;
+   ```
+3. Download the CA certificate: **Database settings → SSL Configuration → Download Certificate**.
+4. Copy two connection strings from **Connect → Direct**: the **Session pooler** (port 5432) for
+   running migrations from your PC, and the **Transaction pooler** (port 6543) for Vercel.
+5. Create the tables from your PC: put the session pooler URL in `server/.env` (see
+   `server/.env.example`), then run `npm run migrate`. Run it again after updates that change
+   `server/src/db/schema.sql`.
+
+### 2. Web app + API (Vercel)
+
+1. Import the GitHub repository in Vercel. `vercel.json` already sets the build, the API
+   function (region `sin1`, Singapore) and the security headers.
+2. Add these **Environment Variables** (Production):
+
+   | Name | Value |
+   |---|---|
+   | `NODE_ENV` | `production` |
+   | `DATABASE_URL` | the **Transaction pooler** URL (port 6543), with your database password |
+   | `DATABASE_SSL_CA` | the full text of the downloaded certificate (`-----BEGIN CERTIFICATE-----...`) |
+   | `ADMIN_PASSWORD` | strong password, only used if the database has no users yet |
+   | `APP_ORIGIN` | your site's address, e.g. `https://sales.example.com` |
+
+3. Deploy. Sign in as the administrator; the first sign-in asks you to choose a new password and
+   set the emergency recovery password and PIN.
+4. Recommended: attach your own domain (Vercel → Domains), so the address stays the same if you
+   ever move to another host, and turn on Vercel's Firewall rate limiting for `/api/*`.
+
+Vercel's free Hobby plan is for non-commercial use only; a company app needs the Pro plan.
+
+### Moving to another host later
+
+The app is a normal Node.js server plus a static build, so any host works (Render, Railway, a
+VPS, Azure...):
+
+```bash
+npm ci && npm --prefix server ci --omit=dev
+npm run build
+npm start          # serves the web app and the API on $PORT
+```
+
+Set the same environment variables (`DATABASE_URL` can then use the session pooler), point your
+domain's DNS to the new host, and you are done; the database does not move.
+
+---
+
+## Moving data from the desktop app
+
+The desktop app (v1.0.x) kept data in SQLite files. Import them once, when you switch over:
+
+```bash
+cd server
+node scripts/import-from-sqlite.js --data "<folder>/database/admin.db" --users "<folder>/users.db"        # preview
+node scripts/import-from-sqlite.js --data "<folder>/database/admin.db" --users "<folder>/users.db" --yes  # import
+```
+
+The files are in `%APPDATA%\Himmel Pharmaceutical\` on the computer that ran the desktop app.
+Close the desktop app first. The import replaces the business data (and, with `--users`, the
+accounts) in the cloud database. Details: [server/README.md](server/README.md).
+
+---
+
+## Project layout
+
+```
+api/index.js        Vercel serverless entry (wraps the Express app)
+server/             API server: auth, roles, sessions, exports, backups, database
+  src/app.js        HTTP pipeline (headers, CSRF/origin checks, sessions, RPC endpoint)
+  src/rpc/          one handler per operation (window.api.* in the web app)
+  src/export/       Excel / PDF / PowerPoint generation
+  src/db/schema.sql PostgreSQL schema
+  test/             API and security tests
+src/                web app (React)
+  api/webApi.js     the browser's connection to the API
+vercel.json         Vercel build, function and security headers
 ```
 
 ---
 
-## 💻 Development & Build Scripts
-
-| Script | Command | Description |
-|--------|---------|-------------|
-| **Vite Dev Server** | `npm run dev` | Starts Vite development server at `http://localhost:5180`. |
-| **Electron Dev** | `npm run electron:dev` | Launches Electron connected to local Vite dev server. |
-| **Vite Build** | `npm run build` | Compiles production assets into `dist/`. |
-| **Electron Packaging** | `npm run electron:build` | Generates NSIS installer (`.exe`) and Portable executable in `dist/`. |
-
----
-
-## 📁 Repository Structure
-
-```
-.
-├── build/                      # Build icons (icon.ico, icon.png)
-├── Client_Delivery/            # Production client delivery package
-│   ├── Documentation/          # Complete PDF & Markdown user manuals & guides
-│   ├── Installer/              # Production Setup & Portable executables
-│   └── Sample_Backups/         # Initial database backup seeds
-├── electron/                   # Main process, IPC handlers, database migrations
-│   ├── database/               # SQLite connection, repositories & migrations
-│   ├── scripts/                # White badge icon generator scripts
-│   ├── config.cjs              # Electron dynamic runtime configuration
-│   ├── ipc.cjs                 # Main process IPC channel handlers
-│   └── main.cjs                # Electron entry point
-├── src/                        # React renderer application
-│   ├── assets/                 # Brand assets and logo images
-│   ├── components/             # Reusable UI components & dialogs
-│   ├── context/                # Global React context providers
-│   ├── pages/                  # Page views (Dashboard, Orders, Products, etc.)
-│   ├── utils/                  # Version resolution & format helpers
-│   └── main.jsx                # React application entry point
-├── CHANGELOG.md                # Release version history & changelog
-├── RELEASE_NOTES.md            # Detailed notes for latest release
-├── VERSION_HISTORY.md          # Multi-version audit tracking
-└── package.json                # Source of truth for version & dependencies
-```
-
----
-
-## 📚 Documentation & User Manuals
-
-Complete user documentation is available in `Client_Delivery/Documentation/`:
-
-- **User Guide**: `Client_Delivery/Documentation/USER_GUIDE.pdf` (`USER_GUIDE.md`)
-- **Installation Guide**: `Client_Delivery/Documentation/INSTALLATION_GUIDE.pdf` (`INSTALLATION_GUIDE.md`)
-- **Administrator Guide**: `Client_Delivery/Documentation/ADMIN_GUIDE.pdf` (`ADMIN_GUIDE.md`)
-- **Backup & Recovery Guide**: `Client_Delivery/Documentation/BACKUP_RESTORE_GUIDE.pdf` (`BACKUP_RESTORE_GUIDE.md`)
-- **Troubleshooting Guide**: `Client_Delivery/Documentation/TROUBLESHOOTING.pdf` (`TROUBLESHOOTING.md`)
-- **System Architecture**: `Client_Delivery/Documentation/SYSTEM_ARCHITECTURE.md`
-- **Database Schema**: `Client_Delivery/Documentation/DATABASE_SCHEMA.md`
-
----
-
-## 🏷️ Versioning & Releases
-
-This project follows [Semantic Versioning](https://semver.org/). `package.json` serves as the single source of truth for version resolution across the entire system.
-
-Latest Release: [`v1.0.3`](https://github.com/HuzaifaImtiaz-web/sales-report-management-system/releases/tag/v1.0.3)
+© 2026 Himmel Pharmaceutical Ltd. All rights reserved.

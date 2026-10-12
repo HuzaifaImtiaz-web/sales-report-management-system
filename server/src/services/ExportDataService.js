@@ -1,5 +1,5 @@
-// Data half of electron/database/ExportRepository.cjs. The desktop app still builds the
-// Excel/PDF/PowerPoint files; it asks the server for { title, columns, rows, summary } here.
+// Data half of the Export Center: { title, columns, rows, summary } for each report type.
+// The preview screen shows it directly; server/src/export/ExportService.js turns it into files.
 // SQLite's LIKE ignored case, so the search filters use ILIKE.
 
 class ExportDataService {

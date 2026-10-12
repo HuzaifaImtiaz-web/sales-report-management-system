@@ -36,8 +36,7 @@ const ROLE_PERMISSIONS = {
     'groups.view', 'groups.create', 'groups.edit',
     'orders.view', 'orders.create', 'orders.edit', 'orders.approve', 'orders.cancel',
     'targets.view', 'targets.create', 'targets.edit',
-    'reports.view', 'reports.export',
-    'audit.view'
+    'reports.view', 'reports.export'
   ],
 
   'Sales Representative': [

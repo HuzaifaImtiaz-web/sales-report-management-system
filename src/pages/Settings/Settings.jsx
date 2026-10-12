@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import Toast from '../../components/common/Toast';
@@ -7,8 +7,6 @@ import { useAuth } from '../../context/AuthContext';
 import { settingsService } from '../../services/settingsService';
 import { CreateBusinessYearModal } from '../Targets/Targets';
 import ConfirmDialog from '../../components/common/dialogs/ConfirmDialog';
-import PromptDialog from '../../components/common/dialogs/PromptDialog';
-import UpdateCenter from '../../components/common/UpdateCenter';
 import EnterprisePasswordInput from '../../components/common/EnterprisePasswordInput';
 import { validatePassword } from '../../utils/passwordPolicy';
 import {
@@ -152,8 +150,8 @@ const Settings = () => {
 
   const handleUpdateRecoveryPin = async (e) => {
     e.preventDefault();
-    if (!/^\d{4,8}$/.test(recoveryPinForm.newPin)) {
-      setToast({ message: 'Recovery PIN must be 4 to 8 numeric digits.', type: 'error' });
+    if (!/^\d{6,8}$/.test(recoveryPinForm.newPin)) {
+      setToast({ message: 'Recovery PIN must be 6 to 8 numeric digits.', type: 'error' });
       return;
     }
     if (recoveryPinForm.newPin !== recoveryPinForm.confirmPin) {
@@ -185,8 +183,11 @@ const Settings = () => {
   const [diagnostics, setDiagnostics] = useState(null);
   const [integrityReport, setIntegrityReport] = useState(null);
   const [backupHistory, setBackupHistory] = useState([]);
-  const [backupSchedule, setBackupSchedule] = useState('daily');
-  const [backupLocation, setBackupLocation] = useState('');
+  // Backup download / restore: { mode: 'download' | 'restore', file } while the password box is open.
+  const [backupAuth, setBackupAuth] = useState(null);
+  const [backupPassword, setBackupPassword] = useState('');
+  const restoreInputRef = useRef(null);
+  const logoInputRef = useRef(null);
   const [runningHealthCheck, setRunningHealthCheck] = useState(false);
   const [creatingBackup, setCreatingBackup] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState(false);
@@ -198,30 +199,21 @@ const Settings = () => {
       if (configRes && configRes.success) {
         setAppConfig(configRes.data);
       }
-      
+
       const mainRes = await window.api.settings.getByKey('maintenance_mode');
       if (mainRes && mainRes.success && mainRes.data) {
         setMaintenanceMode(mainRes.data.value === 'true');
       }
-      
+
       const diagRes = await window.api.production.getDiagnostics();
       if (diagRes && diagRes.success && diagRes.data) {
         const diagData = diagRes.data.diagnostics || diagRes.data;
         setDiagnostics(diagData);
       }
-      
+
       const histRes = await window.api.production.getBackupHistory();
       if (histRes && histRes.success) {
-        setBackupHistory(histRes.data);
-      }
-      
-      const scheduleRes = await window.api.settings.getByKey('backup_schedule');
-      if (scheduleRes && scheduleRes.success && scheduleRes.data) {
-        setBackupSchedule(scheduleRes.data.value);
-      }
-      const locationRes = await window.api.settings.getByKey('backup_location');
-      if (locationRes && locationRes.success && locationRes.data) {
-        setBackupLocation(locationRes.data.value);
+        setBackupHistory(histRes.data || []);
       }
     } catch (err) {
       console.error('Failed to load production configuration:', err);
@@ -234,108 +226,74 @@ const Settings = () => {
     }
   }, [user]);
 
-  const handleScheduleChange = async (e) => {
-    const newValue = e.target.value;
-    setBackupSchedule(newValue);
-    try {
-      if (window.api && window.api.settings) {
-        const res = await window.api.settings.save('backup_schedule', newValue, 'general');
-        if (res && res.success) {
-          setToast({ message: `Backup schedule updated to: ${newValue}`, type: 'success' });
-        } else {
-          setToast({ message: res?.error || 'Failed to update schedule.', type: 'error' });
-        }
-      }
-    } catch (err) {
-      setToast({ message: err.message, type: 'error' });
-    }
+  const reloadBackupHistory = async () => {
+    const histRes = await window.api.production.getBackupHistory();
+    if (histRes && histRes.success) setBackupHistory(histRes.data || []);
   };
 
-  const handleSelectFolder = async () => {
-    try {
-      if (window.api && window.api.production) {
-        const selected = await window.api.production.selectFolder();
-        if (selected) {
-          setBackupLocation(selected);
-          const res = await window.api.settings.save('backup_location', selected, 'general');
-          if (res && res.success) {
-            setToast({ message: 'Backup location updated.', type: 'success' });
-          } else {
-            setToast({ message: res?.error || 'Failed to save location.', type: 'error' });
-          }
-        }
-      }
-    } catch (err) {
-      setToast({ message: err.message, type: 'error' });
-    }
+  // A backup holds every business record, so the server asks for the administrator's password again.
+  const handleCreateBackup = () => {
+    setBackupPassword('');
+    setBackupAuth({ mode: 'download' });
   };
 
-  const handleCreateBackup = async () => {
-    setCreatingBackup(true);
-    try {
-      if (window.api && window.api.production) {
-        const res = await window.api.production.createBackup();
-        if (res && res.success) {
-          setToast({ message: `Database backup created successfully: ${res.data?.fileName || ''}`, type: 'success' });
-          // Reload history & diagnostics
-          const histRes = await window.api.production.getBackupHistory();
-          if (histRes && histRes.success) setBackupHistory(histRes.data);
-          const diagRes = await window.api.production.getDiagnostics();
-          if (diagRes && diagRes.success) setDiagnostics(diagRes.data);
-        } else {
-          setToast({ message: res?.error || 'Backup failed.', type: 'error' });
-        }
-      }
-    } catch (err) {
-      setToast({ message: err.message, type: 'error' });
-    } finally {
-      setCreatingBackup(false);
-    }
-  };
-
-  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
-  const [restoreFilePath, setRestoreFilePath] = useState(null);
-  const [showLogoPrompt, setShowLogoPrompt] = useState(false);
   const [showYearSwitchConfirm, setShowYearSwitchConfirm] = useState(false);
   const [targetYearSwitch, setTargetYearSwitch] = useState(null);
 
-  const handleRestoreBackup = (filePath) => {
-    setRestoreFilePath(filePath);
-    setShowRestoreConfirm(true);
+  const handleBrowseRestore = () => {
+    if (restoreInputRef.current) {
+      restoreInputRef.current.value = '';
+      restoreInputRef.current.click();
+    }
   };
 
-  const handleConfirmRestoreBackup = async () => {
-    setShowRestoreConfirm(false);
-    if (!restoreFilePath) return;
+  const handleRestoreFileChosen = (e) => {
+    const chosen = e.target.files && e.target.files[0];
+    if (!chosen) return;
+    setBackupPassword('');
+    setBackupAuth({ mode: 'restore', file: chosen });
+  };
+
+  const handleBackupAuthSubmit = async (e) => {
+    e.preventDefault();
+    if (!backupAuth || !backupPassword) return;
+    const password = backupPassword;
+    setBackupPassword('');
+
+    if (backupAuth.mode === 'download') {
+      setCreatingBackup(true);
+      try {
+        const res = await window.api.production.downloadBackup(password);
+        if (res && res.success) {
+          setBackupAuth(null);
+          setToast({ message: `Backup downloaded: ${res.data?.fileName || ''}`, type: 'success' });
+          reloadBackupHistory();
+        } else {
+          setToast({ message: res?.error || 'Backup failed.', type: 'error' });
+        }
+      } catch (err) {
+        setToast({ message: err.message, type: 'error' });
+      } finally {
+        setCreatingBackup(false);
+      }
+      return;
+    }
 
     setRestoringBackup(true);
     setToast({ message: 'Restoring database backup, please wait...', type: 'info' });
     try {
-      if (window.api && window.api.production) {
-        const res = await window.api.production.restoreBackup(restoreFilePath);
-        if (res && res.success) {
-          setToast({ message: 'Restore successful! Relaunching application...', type: 'success' });
-        } else {
-          setToast({ message: res?.error || 'Restore failed.', type: 'error' });
-          setRestoringBackup(false);
-        }
+      const res = await window.api.production.restoreBackup(backupAuth.file, password);
+      if (res && res.success) {
+        setBackupAuth(null);
+        setToast({ message: 'Restore successful! Reloading the app...', type: 'success' });
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        setToast({ message: res?.error || 'Restore failed.', type: 'error' });
+        setRestoringBackup(false);
       }
     } catch (err) {
       setToast({ message: err.message, type: 'error' });
       setRestoringBackup(false);
-    }
-  };
-
-  const handleBrowseRestore = async () => {
-    try {
-      if (window.api && window.api.production) {
-        const selected = await window.api.production.selectFile();
-        if (selected) {
-          handleRestoreBackup(selected);
-        }
-      }
-    } catch (err) {
-      setToast({ message: err.message, type: 'error' });
     }
   };
 
@@ -375,19 +333,25 @@ const Settings = () => {
 
         const company = await settingsService.getCompanyInfo();
         setCompanyInfo(company);
-        
+
         const by = await settingsService.getBusinessYear();
         setBusinessYear(by);
-        
+
         const years = await settingsService.getExistingYears();
         setExistingYears(years);
-        
+
         const prefs = await settingsService.getExportPreferences();
         setExportPreferences(prefs);
-        
+
         const account = await settingsService.getAccountInfo();
-        setAccountInfo(account);
-        setProfileForm(account);
+        const merged = {
+          ...account,
+          username: user?.username || account.username,
+          fullName: account.fullName || user?.fullName || '',
+          role: user?.role || account.role
+        };
+        setAccountInfo(merged);
+        setProfileForm(merged);
       } catch (err) {
         console.error('Failed to load settings data:', err);
       }
@@ -411,7 +375,28 @@ const Settings = () => {
   };
 
   const handleLogoChange = () => {
-    setShowLogoPrompt(true);
+    if (logoInputRef.current) {
+      logoInputRef.current.value = '';
+      logoInputRef.current.click();
+    }
+  };
+
+  // The logo is stored as an image data URL (no third-party image hosts, nothing that can run code).
+  const handleLogoFileChosen = (e) => {
+    const chosen = e.target.files && e.target.files[0];
+    if (!chosen) return;
+    if (!/^image\/(png|jpeg|webp)$/.test(chosen.type)) {
+      setToast({ message: 'Choose a PNG, JPG or WebP image.', type: 'error' });
+      return;
+    }
+    if (chosen.size > 1024 * 1024) {
+      setToast({ message: 'The logo must be 1 MB or smaller.', type: 'error' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => handleConfirmLogoChange(String(reader.result || ''));
+    reader.onerror = () => setToast({ message: 'Could not read that image.', type: 'error' });
+    reader.readAsDataURL(chosen);
   };
 
   const handleConfirmLogoChange = async (newLogo) => {
@@ -421,7 +406,7 @@ const Settings = () => {
       try {
         await settingsService.saveCompanyInfo(updatedCompany);
         setCompanyInfo(updatedCompany);
-        setToast({ message: 'Logo URL updated successfully.', type: 'success' });
+        setToast({ message: 'Company logo updated successfully.', type: 'success' });
       } catch (err) {
         setToast({ message: err.message || 'Failed to update logo.', type: 'error' });
       }
@@ -502,16 +487,6 @@ const Settings = () => {
     }
   };
 
-  const checkPasswordPolicy = (password) => {
-    return {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      number: /\d/.test(password),
-      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
-    };
-  };
-
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -519,9 +494,9 @@ const Settings = () => {
       return;
     }
 
-    const policy = checkPasswordPolicy(passwordForm.newPassword);
-    if (!Object.values(policy).every(Boolean)) {
-      setToast({ message: 'New password does not meet the policy requirements.', type: 'error' });
+    const policy = validatePassword(passwordForm.newPassword, { username: user?.username });
+    if (!policy.isValid) {
+      setToast({ message: `New password: ${policy.errors[0]}`, type: 'error' });
       return;
     }
 
@@ -587,7 +562,7 @@ const Settings = () => {
 
                 <div className="flex items-center gap-4 py-2">
                   <div className="w-16 h-16 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 overflow-hidden flex items-center justify-center relative group">
-                    <img src={companyInfo.logo} alt="Company Logo" className="object-cover w-full h-full" />
+                    <img src={companyInfo.logo} alt="Company Logo" className="object-contain w-full h-full bg-white p-1" />
                   </div>
                   <div>
                     <button
@@ -598,7 +573,7 @@ const Settings = () => {
                       <FiImage className="w-3.5 h-3.5" />
                       Change Logo
                     </button>
-                    <p className="text-[9px] text-gray-400 dark:text-gray-500 mt-1">Accepts PNG, JPG or Unsplash image links.</p>
+                    <p className="text-[9px] text-gray-400 dark:text-gray-500 mt-1">Upload a PNG, JPG or WebP image (1 MB at most).</p>
                   </div>
                 </div>
 
@@ -959,7 +934,7 @@ const Settings = () => {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-white uppercase">
                       <FiLock className="w-4 h-4 text-brand-primary" />
-                      <span>Recovery PIN (4–8 Digits)</span>
+                      <span>Recovery PIN (6–8 Digits)</span>
                     </div>
                     <EnterprisePasswordInput
                       id="sec-current-pin-auth"
@@ -1027,11 +1002,6 @@ const Settings = () => {
               </div>
             </div>
 
-            {/* 7. Auto Update & Version Lifecycle */}
-            <div className="md:col-span-2">
-              <UpdateCenter isInline={true} />
-            </div>
-
             {/* 8. Production Settings & Diagnostics (Admin Only) */}
             {user?.role === 'Admin' && (
               <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 md:col-span-2 space-y-6">
@@ -1047,11 +1017,12 @@ const Settings = () => {
                       type="button"
                       onClick={async () => {
                         const targetVal = !maintenanceMode;
-                        setMaintenanceMode(targetVal);
-                        localStorage.setItem('himmel_maintenance_mode', targetVal ? 'true' : 'false');
-                        if (window.api && window.api.settings) {
-                          await window.api.settings.save('maintenance_mode', targetVal ? 'true' : 'false', 'general');
+                        const res = await window.api.settings.save('maintenance_mode', targetVal ? 'true' : 'false', 'general');
+                        if (!res || !res.success) {
+                          setToast({ message: res?.error || 'Failed to change maintenance mode.', type: 'error' });
+                          return;
                         }
+                        setMaintenanceMode(targetVal);
                         setToast({
                           message: `Maintenance mode ${targetVal ? 'ENABLED' : 'DISABLED'}.`,
                           type: targetVal ? 'warning' : 'success'
@@ -1066,8 +1037,8 @@ const Settings = () => {
                       {maintenanceMode ? 'Maintenance Mode: ON' : 'Maintenance Mode: OFF'}
                     </button>
                     <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md ${
-                      appConfig.mode === 'production' 
-                        ? 'text-emerald-500 bg-emerald-500/10' 
+                      appConfig.mode === 'production'
+                        ? 'text-emerald-500 bg-emerald-500/10'
                         : 'text-amber-500 bg-amber-500/10'
                     }`}>
                       {appConfig.mode} Mode
@@ -1082,44 +1053,12 @@ const Settings = () => {
                       <FiDownloadCloud className="w-3.5 h-3.5" />
                       Backup & Restore
                     </h4>
-                    
-                    <div className="bg-gray-55/50 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-4">
-                      <div>
-                        <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">
-                          Backup Schedule
-                        </label>
-                        <select
-                          value={backupSchedule}
-                          onChange={handleScheduleChange}
-                          className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-250 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-1 focus:ring-brand-primary"
-                        >
-                          <option value="none">None (Disabled)</option>
-                          <option value="daily">Daily (Every 24 Hours)</option>
-                          <option value="weekly">Weekly (Every 7 Days)</option>
-                          <option value="monthly">Monthly (Every 30 Days)</option>
-                        </select>
-                      </div>
 
-                      <div>
-                        <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">
-                          Backup Folder Location
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            readOnly
-                            value={backupLocation || 'Default UserData Directory'}
-                            className="w-full px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-lg outline-none overflow-x-auto"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleSelectFolder}
-                            className="px-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors inline-flex items-center justify-center border border-gray-200 dark:border-gray-700 shrink-0"
-                          >
-                            <FiFolder className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
+                    <div className="bg-gray-55/50 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-4">
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                        A backup is a compressed copy of all business data, downloaded to this device. Keep backups somewhere safe.
+                        Restoring one replaces the business data for every user. Login accounts are not part of backups.
+                      </p>
 
                       <div className="flex gap-2 pt-2">
                         <button
@@ -1135,7 +1074,7 @@ const Settings = () => {
                           )}
                           Backup Now
                         </button>
-                        
+
                         <button
                           type="button"
                           onClick={handleBrowseRestore}
@@ -1144,47 +1083,41 @@ const Settings = () => {
                           <FiRefreshCw className="w-3.5 h-3.5" />
                           Restore from File
                         </button>
+                        <input
+                          ref={restoreInputRef}
+                          type="file"
+                          accept=".json,.gz,application/json,application/gzip"
+                          className="hidden"
+                          onChange={handleRestoreFileChosen}
+                        />
                       </div>
                     </div>
 
-                    {/* Local Backup History */}
+                    {/* Backup history (from the audit trail) */}
                     <div>
                       <span className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-2">
-                        Recent Local Backups
+                        Recent Backups & Restores
                       </span>
-                      <div className="border border-gray-150 dark:border-gray-800 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                      <div className="border border-gray-150 dark:border-gray-800 rounded-xl overflow-hidden max-h-48 overflow-y-auto overflow-x-auto">
                         {backupHistory.length === 0 ? (
                           <div className="p-4 text-center text-xs text-gray-400 dark:text-gray-500 font-medium italic">
-                            No backup files found.
+                            No backups yet.
                           </div>
                         ) : (
                           <table className="w-full text-left border-collapse text-xs">
                             <thead>
                               <tr className="bg-gray-50 dark:bg-gray-800/40 border-b border-gray-100 dark:border-gray-800 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                <th className="px-4 py-2.5">Filename</th>
-                                <th className="px-4 py-2.5">Size</th>
-                                <th className="px-4 py-2.5 text-right">Actions</th>
+                                <th className="px-4 py-2.5">When</th>
+                                <th className="px-4 py-2.5">Action</th>
+                                <th className="px-4 py-2.5">By</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800 font-medium text-gray-600 dark:text-gray-300">
-                              {backupHistory.map((b, idx) => (
-                                <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20">
-                                  <td className="px-4 py-2 truncate max-w-xs" title={b.fileName}>
-                                    {b.fileName}
-                                  </td>
-                                  <td className="px-4 py-2 shrink-0">
-                                    {(b.sizeBytes / 1024 / 1024).toFixed(2)} MB
-                                  </td>
-                                  <td className="px-4 py-2 text-right">
-                                    <button
-                                      type="button"
-                                      disabled={restoringBackup}
-                                      onClick={() => handleRestoreBackup(b.filePath)}
-                                      className="px-2.5 py-1 text-[10px] font-bold bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded transition-colors"
-                                    >
-                                      Restore
-                                    </button>
-                                  </td>
+                              {backupHistory.map((b) => (
+                                <tr key={b.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20">
+                                  <td className="px-4 py-2 whitespace-nowrap">{b.performedAt}</td>
+                                  <td className="px-4 py-2">{b.action}</td>
+                                  <td className="px-4 py-2">{b.performedBy}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -1200,8 +1133,8 @@ const Settings = () => {
                       <FiActivity className="w-3.5 h-3.5" />
                       Diagnostics & System Health
                     </h4>
-                    
-                    {diagnostics && diagnostics.memoryUsage ? (
+
+                    {diagnostics && diagnostics.server ? (
                       <div className="grid grid-cols-2 gap-3">
                         <div className="p-3 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-800 rounded-xl space-y-1">
                           <span className="text-[9px] font-bold text-gray-400 uppercase">Database Status</span>
@@ -1214,31 +1147,21 @@ const Settings = () => {
                         </div>
 
                         <div className="p-3 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-800 rounded-xl space-y-1">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Disk Write Status</span>
-                          <div className="flex items-center gap-1.5">
-                            <span className={`w-2 h-2 rounded-full ${diagnostics.diskWrite === 'OK' ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
-                              {diagnostics.diskWrite === 'OK' ? 'WRITE OK' : 'FAILED'}
-                            </span>
-                          </div>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">Database Size</span>
+                          <p className="text-xs font-bold text-gray-700 dark:text-gray-200">{diagnostics.databaseSize}</p>
                         </div>
 
                         <div className="p-3 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-800 rounded-xl space-y-1">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Memory Heap Usage</span>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
-                              {diagnostics.memoryUsage.heapUsed} / {diagnostics.memoryUsage.heapTotal}
-                            </span>
-                            {diagnostics.memoryUsage.warning && (
-                              <FiAlertTriangle className="w-3.5 h-3.5 text-amber-500" title="High memory usage warning" />
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="p-3 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-800 rounded-xl space-y-1">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Uptime</span>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">Records</span>
                           <p className="text-xs font-bold text-gray-700 dark:text-gray-200">
-                            {Math.floor(parseInt(diagnostics.uptime) / 3600)}h {Math.floor((parseInt(diagnostics.uptime) % 3600) / 60)}m
+                            {diagnostics.counts ? `${diagnostics.counts.orders} orders · ${diagnostics.counts.products} products · ${diagnostics.counts.users} users` : '—'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-800 rounded-xl space-y-1">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">Engine</span>
+                          <p className="text-xs font-bold text-gray-700 dark:text-gray-200 truncate" title={diagnostics.databaseEngine}>
+                            {diagnostics.databaseEngine}
                           </p>
                         </div>
                       </div>
@@ -1274,8 +1197,8 @@ const Settings = () => {
                           <div className="flex justify-between items-center text-xs">
                             <span className="font-bold text-gray-500 dark:text-gray-455">Overall Health</span>
                             <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
-                              integrityReport.healthy 
-                                ? 'bg-emerald-500/15 text-emerald-500' 
+                              integrityReport.healthy
+                                ? 'bg-emerald-500/15 text-emerald-500'
                                 : 'bg-red-500/15 text-red-500'
                             }`}>
                               {integrityReport.healthy ? 'HEALTHY' : 'ISSUES DETECTED'}
@@ -1347,7 +1270,7 @@ const Settings = () => {
 
             {/* 7. About Application & Developer Information */}
             <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-6 md:col-span-2 space-y-6 select-none">
-              
+
               {/* Header with Himmel Logo & Main App Info */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-4">
@@ -1390,7 +1313,7 @@ const Settings = () => {
                     <p className="font-bold text-gray-800 dark:text-white mt-0.5">Himmel Pharmaceutical Sales Management System</p>
                   </div>
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Installed Version</span>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Version</span>
                     <p className="font-bold text-gray-800 dark:text-white mt-0.5">v{appConfig.version || APP_VERSION}</p>
                   </div>
                   <div>
@@ -1411,7 +1334,7 @@ const Settings = () => {
 
               {/* Developer & System Information Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                
+
                 {/* Developer Information Card */}
                 <div className="bg-gray-50/60 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3 flex flex-col justify-between">
                   <div>
@@ -1456,32 +1379,20 @@ const Settings = () => {
                       <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.version || APP_VERSION}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Electron</span>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.electronVersion || '42.0.1'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Node.js</span>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.nodeVersion || '20.11.0'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Chromium</span>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.chromeVersion || '124.0.0'}</span>
-                    </div>
-                    <div>
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">React</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.reactVersion || '18.3.1'}</span>
                     </div>
                     <div>
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Database Engine</span>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.dbEngine || 'SQLite (better-sqlite3)'}</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.dbEngine || 'PostgreSQL (Cloud)'}</span>
                     </div>
                     <div>
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Platform</span>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.platform || 'Windows (win32)'}</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.platform || 'Web'}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Architecture</span>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.arch || 'x64'}</span>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Server</span>
+                      <span className="font-semibold text-gray-800 dark:text-gray-200 break-all">{appConfig.cloudServer || window.location.origin}</span>
                     </div>
                   </div>
                 </div>
@@ -1620,30 +1531,68 @@ const Settings = () => {
         </div>
       )}
 
-      {/* Database Restore Confirm Dialog */}
-      <ConfirmDialog
-        open={showRestoreConfirm}
-        title="Restore Database Backup"
-        message="CRITICAL WARNING: Are you sure you want to restore the database from this backup? This will replace all current data in the shared cloud database for EVERY user, log you out, and restart the application immediately."
-        confirmText="Restore & Relaunch"
-        cancelText="Cancel"
-        confirmVariant="danger"
-        onConfirm={handleConfirmRestoreBackup}
-        onCancel={() => setShowRestoreConfirm(false)}
-      />
+      {/* Backup download / restore: confirm with the administrator's password */}
+      {backupAuth && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <form
+            onSubmit={handleBackupAuthSubmit}
+            className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4"
+          >
+            <div className="flex items-center gap-2">
+              <FiShield className="w-5 h-5 text-brand-primary" />
+              <h3 className="text-sm font-black text-gray-800 dark:text-white uppercase tracking-wide">
+                {backupAuth.mode === 'download' ? 'Download Backup' : 'Restore Backup'}
+              </h3>
+            </div>
+            {backupAuth.mode === 'restore' ? (
+              <p className="text-xs text-red-600 dark:text-red-400 font-semibold leading-relaxed">
+                CRITICAL WARNING: restoring "{backupAuth.file?.name}" replaces all business data in the shared database for
+                EVERY user. This cannot be undone. Download a fresh backup first if you are unsure.
+              </p>
+            ) : (
+              <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                The backup contains every business record. It will be saved to this device as a compressed file.
+              </p>
+            )}
+            <EnterprisePasswordInput
+              id="backup-password"
+              name="backup-password"
+              label="Your Password"
+              autoComplete="current-password"
+              value={backupPassword}
+              onChange={(e) => setBackupPassword(e.target.value)}
+              required={true}
+              disabled={creatingBackup || restoringBackup}
+            />
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => { setBackupAuth(null); setBackupPassword(''); }}
+                disabled={creatingBackup || restoringBackup}
+                className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-slate-300 text-xs font-bold uppercase rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!backupPassword || creatingBackup || restoringBackup}
+                className={`flex-1 py-2.5 text-white text-xs font-bold uppercase rounded-xl transition-all shadow-md disabled:opacity-60 ${
+                  backupAuth.mode === 'restore' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-brand-primary hover:bg-brand-primaryDark'
+                }`}
+              >
+                {creatingBackup || restoringBackup ? 'Please wait...' : backupAuth.mode === 'restore' ? 'Restore' : 'Download'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
-      {/* Logo URL Prompt Dialog */}
-      <PromptDialog
-        open={showLogoPrompt}
-        title="Update Company Logo"
-        message="Enter the image URL for the Company Logo:"
-        placeholder="https://example.com/logo.png"
-        defaultValue={companyInfo.logo}
-        confirmText="Update Logo"
-        cancelText="Cancel"
-        confirmVariant="primary"
-        onConfirm={handleConfirmLogoChange}
-        onCancel={() => setShowLogoPrompt(false)}
+      <input
+        ref={logoInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="hidden"
+        onChange={handleLogoFileChosen}
       />
 
       {/* Switch Business Year Confirm Dialog */}

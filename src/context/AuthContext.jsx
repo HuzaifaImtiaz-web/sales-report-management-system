@@ -1,16 +1,42 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { hasPermission as checkHasPermission } from '../services/permissionService';
+import FirstLoginSecurityWizard from '../components/auth/FirstLoginSecurityWizard';
 
 const AuthContext = createContext(null);
 
+// Per-user data kept in this browser tab (notifications). Cleared on sign-out so the next person
+// using a shared computer does not see it.
+function clearLocalUserData() {
+  try {
+    sessionStorage.removeItem('himmel_notifications');
+    localStorage.removeItem('himmel_notifications');
+  } catch (e) {
+    // Storage can be unavailable (private mode); nothing to clear then.
+  }
+  window.dispatchEvent(new CustomEvent('himmel-signed-out'));
+}
+
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // Default 15 minutes
 const WARNING_WINDOW_MS = 60 * 1000; // 60 seconds warning window
+
+async function isSecuritySetupPending(user) {
+  if (!user || user.role !== 'Admin') return false;
+  try {
+    const res = await window.api.auth.getSecurityStatus();
+    return Boolean(res && res.success && res.data && res.data.isFirstLoginPending);
+  } catch (e) {
+    return false;
+  }
+}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [sessionExpiredMsg, setSessionExpiredMsg] = useState(null);
+  // Administrators must finish the security setup (strong password, recovery password and PIN)
+  // before using the app. Kept here, not in the login page: signing in remounts the screens.
+  const [securitySetupPending, setSecuritySetupPending] = useState(false);
 
   // Session Telemetry & Inactivity States
   const [loginTime, setLoginTime] = useState(null);
@@ -96,6 +122,7 @@ export const AuthProvider = ({ children }) => {
     const handleSessionExpired = (msg) => {
       setUser(null);
       setIsAuthenticated(false);
+      clearLocalUserData();
       setSessionExpiredMsg(msg || 'Your session has expired. Please log in again.');
     };
 
@@ -106,36 +133,18 @@ export const AuthProvider = ({ children }) => {
 
     window.addEventListener('session-expired', handleSessionExpiredEvent);
 
+    // The session cookie is HttpOnly, so the server says who (if anyone) is signed in.
     const checkSession = async () => {
       try {
-        if (window.api && window.api.auth) {
-          const res = await window.api.auth.getCurrentUser();
-          if (res && res.success && res.data) {
-            setUser(res.data.user);
-            setIsAuthenticated(true);
-            setLoginTime(res.data.loginTimestamp || new Date().toISOString());
-          } else {
-            setUser(null);
-            setIsAuthenticated(false);
-          }
+        const res = await window.api.auth.getCurrentUser();
+        if (res && res.success && res.data) {
+          setSecuritySetupPending(await isSecuritySetupPending(res.data.user));
+          setUser(res.data.user);
+          setIsAuthenticated(true);
+          setLoginTime(res.data.loginTimestamp || new Date().toISOString());
         } else {
-          // Web Mode Fallback
-          const webSession = localStorage.getItem('himmel_web_session');
-          if (webSession) {
-            try {
-              const parsed = JSON.parse(webSession);
-              setUser(parsed);
-              setIsAuthenticated(true);
-              setLoginTime(new Date().toISOString());
-            } catch (e) {
-              localStorage.removeItem('himmel_web_session');
-              setUser(null);
-              setIsAuthenticated(false);
-            }
-          } else {
-            setUser(null);
-            setIsAuthenticated(false);
-          }
+          setUser(null);
+          setIsAuthenticated(false);
         }
       } catch (err) {
         console.error('Session verification failed:', err);
@@ -156,73 +165,17 @@ export const AuthProvider = ({ children }) => {
   const loginUser = async (username, password) => {
     setIsLoading(true);
     try {
-      if (window.api && window.api.auth) {
-        const res = await window.api.auth.login({ username, password });
-        if (res && res.success && res.data) {
-          setUser(res.data.user);
-          setIsAuthenticated(true);
-          setLoginTime(new Date().toISOString());
-          setLastActivity(Date.now());
-          setShowInactivityWarning(false);
-          return { success: true };
-        } else {
-          return { success: false, error: res?.error || 'Authentication failed.' };
-        }
-      } else {
-        // Web / Browser mode authentication
-        const cleanUser = (username || '').trim();
-
-        // Check maintenance mode in web mode
-        const isMaintenance = localStorage.getItem('himmel_maintenance_mode') === 'true';
-        if (isMaintenance && cleanUser.toLowerCase() !== 'admin') {
-          return { success: false, error: 'System is under maintenance. Please contact Administrator.' };
-        }
-
-        if (cleanUser.toLowerCase() === 'admin' && password === 'Password123!') {
-          const userObj = {
-            id: 1,
-            username: 'admin',
-            fullName: 'System Administrator',
-            role: 'Admin',
-            isActive: true
-          };
-          localStorage.setItem('himmel_web_session', JSON.stringify(userObj));
-          setUser(userObj);
-          setIsAuthenticated(true);
-          setLoginTime(new Date().toISOString());
-          setLastActivity(Date.now());
-          setShowInactivityWarning(false);
-          return { success: true };
-        }
-
-        // Check saved web users
-        const webUsers = JSON.parse(localStorage.getItem('himmel_web_users') || '[]');
-        const found = webUsers.find(
-          (u) => u.username.toLowerCase() === cleanUser.toLowerCase() && u.password === password
-        );
-
-        if (found) {
-          if (found.isActive === false) {
-            return { success: false, error: 'Your account is disabled. Please contact your system administrator.' };
-          }
-          const userObj = {
-            id: found.id || 2,
-            username: found.username,
-            fullName: found.fullName || found.username,
-            role: found.role || 'Sales Representative',
-            isActive: true
-          };
-          localStorage.setItem('himmel_web_session', JSON.stringify(userObj));
-          setUser(userObj);
-          setIsAuthenticated(true);
-          setLoginTime(new Date().toISOString());
-          setLastActivity(Date.now());
-          setShowInactivityWarning(false);
-          return { success: true };
-        }
-
-        return { success: false, error: 'Incorrect username or password.' };
+      const res = await window.api.auth.login({ username, password });
+      if (res && res.success && res.data) {
+        setSecuritySetupPending(await isSecuritySetupPending(res.data.user));
+        setUser(res.data.user);
+        setIsAuthenticated(true);
+        setLoginTime(res.data.loginTimestamp || new Date().toISOString());
+        setLastActivity(Date.now());
+        setShowInactivityWarning(false);
+        return { success: true };
       }
+      return { success: false, error: res?.error || 'Authentication failed.' };
     } catch (err) {
       return { success: false, error: err.message };
     } finally {
@@ -233,14 +186,12 @@ export const AuthProvider = ({ children }) => {
   const logoutUser = async (msg) => {
     setIsLoading(true);
     try {
-      if (window.api && window.api.auth) {
-        await window.api.auth.logout();
-      } else {
-        localStorage.removeItem('himmel_web_session');
-      }
+      await window.api.auth.logout();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
+      clearLocalUserData();
+      setSecuritySetupPending(false);
       setUser(null);
       setIsAuthenticated(false);
       setIsLoading(false);
@@ -249,6 +200,13 @@ export const AuthProvider = ({ children }) => {
         setSessionExpiredMsg(msg);
       }
     }
+  };
+
+  // The wizard changed the password (the server started a new session) and maybe the username.
+  const handleSecuritySetupComplete = async () => {
+    setSecuritySetupPending(false);
+    const res = await window.api.auth.getCurrentUser();
+    if (res && res.success && res.data) setUser(res.data.user);
   };
 
   const hasPermission = (permissionKey) => {
@@ -271,12 +229,19 @@ export const AuthProvider = ({ children }) => {
     lastActivity,
     showInactivityWarning,
     secondsRemaining,
-    handleStayLoggedIn
+    handleStayLoggedIn,
+    securitySetupPending
   };
 
   return (
     <AuthContext.Provider value={value}>
       {children}
+
+      {/* FIRST-LOGIN SECURITY SETUP (administrators, until completed) */}
+      <FirstLoginSecurityWizard
+        isOpen={isAuthenticated && securitySetupPending}
+        onComplete={handleSecuritySetupComplete}
+      />
 
       {/* INACTIVITY WARNING DIALOG */}
       {showInactivityWarning && (

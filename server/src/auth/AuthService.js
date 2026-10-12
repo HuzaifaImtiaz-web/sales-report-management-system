@@ -1,13 +1,12 @@
 const UserRepository = require('./UserRepository');
 const PasswordService = require('./PasswordService');
-const { signAccessToken } = require('./tokens');
+const { assertStrongPassword, isStrongPassword } = require('./passwordPolicy');
 const logger = require('../logger');
 
 const ALLOWED_ROLES = ['Admin', 'Manager', 'Rep', 'Sales Representative'];
-const LEGACY_DEFAULT_ADMIN_PASSWORD = 'Password123!';
-const STRONG_PASSWORD = (value) =>
-  value.length >= 8 && /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value) &&
-  /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value);
+const INVALID_LOGIN = 'Invalid username or password.';
+// New emergency recovery PINs: 6 to 8 digits (4-digit PINs set earlier still verify).
+const NEW_PIN = /^\d{6,8}$/;
 
 function toSessionUser(user) {
   return {
@@ -57,23 +56,26 @@ class AuthService {
     }
   }
 
+  /**
+   * Verifies the credentials and returns the user record (the caller starts the session).
+   * The disabled-account and maintenance messages only appear after a correct password, so
+   * they do not tell a stranger which usernames exist.
+   */
   async login(username, password) {
-    if (!username || !password) {
+    if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
       throw new Error('Username and password are required.');
     }
+    if (username.length > 100 || password.length > 200) {
+      throw new Error(INVALID_LOGIN);
+    }
 
-    const cleanUsername = String(username).trim();
+    const cleanUsername = username.trim();
     const user = await this.users.findByUsername(cleanUsername);
 
     if (!user) {
       await PasswordService.spendComparisonTime(password);
       logger.warn(`Login failure: User not found: ${cleanUsername}`);
-      throw new Error('Invalid username or password.');
-    }
-
-    if (!user.isActive) {
-      logger.warn(`Login failure: Disabled account access attempt: ${cleanUsername}`);
-      throw new Error('Your account is disabled. Please contact your administrator.');
+      throw new Error(INVALID_LOGIN);
     }
 
     if (user.lockedUntil) {
@@ -96,10 +98,13 @@ class AuthService {
         logger.warn(`Account locked: User ${cleanUsername} locked for 15 minutes due to 5 failed attempts.`);
         throw new Error('Account locked due to too many failed attempts. Please try again in 15 minutes.');
       }
-      throw new Error('Invalid username or password.');
+      throw new Error(INVALID_LOGIN);
     }
 
-    await this.users.recordSuccessfulLogin(user.id);
+    if (!user.isActive) {
+      logger.warn(`Login failure: Disabled account access attempt: ${cleanUsername}`);
+      throw new Error('Your account is disabled. Please contact your administrator.');
+    }
 
     // Maintenance Mode: only Administrators may log in.
     if (user.role !== 'Admin') {
@@ -110,23 +115,16 @@ class AuthService {
       }
     }
 
+    await this.users.recordSuccessfulLogin(user.id);
     logger.info(`SUCCESS: User logged in: ${user.username}`);
-    return {
-      token: signAccessToken(user),
-      session: {
-        user: toSessionUser(user),
-        loginTimestamp: new Date().toISOString()
-      }
-    };
+    return this.users.findById(user.id);
   }
 
   async createUser({ username, password, fullName, role } = {}) {
     if (!username || typeof username !== 'string' || username.trim().length < 3) {
       throw new Error('Username must be at least 3 characters long.');
     }
-    if (!password || typeof password !== 'string' || password.length < 8) {
-      throw new Error('Password must be at least 8 characters long.');
-    }
+    assertStrongPassword(password, { username });
     if (!fullName || typeof fullName !== 'string' || fullName.trim().length < 2) {
       throw new Error('Full name must be at least 2 characters long.');
     }
@@ -173,6 +171,10 @@ class AuthService {
     if (!(await PasswordService.verifyPassword(oldPassword, user.passwordHash))) {
       throw new Error('Incorrect current password.');
     }
+    assertStrongPassword(newPassword, { label: 'New password', username: user.username });
+    if (await PasswordService.verifyPassword(newPassword, user.passwordHash)) {
+      throw new Error('The new password must be different from the current password.');
+    }
 
     const passwordHash = await PasswordService.hashPassword(newPassword);
     const updated = await this.users.update(userId, { passwordHash });
@@ -190,8 +192,11 @@ class AuthService {
       throw new Error('User not found.');
     }
 
+    assertStrongPassword(newPassword, { label: 'New password', username: user.username });
+
     const passwordHash = await PasswordService.hashPassword(newPassword);
-    const updated = await this.users.update(user.id, { passwordHash });
+    // Also clears a lockout, so the user can sign in with the new password straight away.
+    const updated = await this.users.update(user.id, { passwordHash, failedAttempts: 0, lockedUntil: null });
     logger.info(`SUCCESS: Password reset by administrator for user: ${user.username}`);
     return updated;
   }
@@ -215,7 +220,18 @@ class AuthService {
     // Disabling bumps the session version, so that user is signed out on every computer.
     await this.users.update(user.id, { isActive: false });
     logger.info(`SUCCESS: User disabled: ${username}`);
-    return true;
+    return user;
+  }
+
+  /** Clears a lockout after too many wrong passwords (administrators, from User Management). */
+  async unlockUser(username) {
+    const user = await this.users.findByUsername(username);
+    if (!user) {
+      throw new Error('User not found.');
+    }
+    await this.users.unlockAccount(user.id);
+    logger.info(`SUCCESS: Account unlocked by administrator: ${user.username}`);
+    return user;
   }
 
   async getAllUsers() {
@@ -285,16 +301,17 @@ class AuthService {
     return { success: true, username: cleanUsername };
   }
 
-  async getSecurityStatus() {
-    const firstLoginDone = (await this.getSecuritySetting('first_login_completed')) === 'true';
-    const adminUser = await this.users.findByUsername('admin');
-    let isDefaultPassword = false;
-    if (adminUser) {
-      isDefaultPassword = await PasswordService.verifyPassword(LEGACY_DEFAULT_ADMIN_PASSWORD, adminUser.passwordHash);
+  /**
+   * Security setup state for the signed-in user. Administrators are asked to complete the
+   * first-login security setup (strong password, recovery password and PIN) until it is done.
+   */
+  async getSecurityStatus(currentUser) {
+    if (!currentUser || currentUser.role !== 'Admin') {
+      return { isFirstLoginPending: false };
     }
-
+    const firstLoginDone = (await this.getSecuritySetting('first_login_completed')) === 'true';
     return {
-      isFirstLoginPending: !firstLoginDone && isDefaultPassword,
+      isFirstLoginPending: !firstLoginDone,
       firstLoginCompleted: firstLoginDone,
       hasRecoveryPassword: Boolean(await this.getSecuritySetting('recovery_password_hash')),
       hasRecoveryPin: Boolean(await this.getSecuritySetting('recovery_pin_hash'))
@@ -318,14 +335,13 @@ class AuthService {
     if (cleanUsername.length < 3) {
       throw new Error('Username must be at least 3 characters long.');
     }
-    if (!STRONG_PASSWORD(newPassword)) {
-      throw new Error('New password does not meet security policy requirements.');
+    assertStrongPassword(newPassword, { label: 'New password', username: cleanUsername });
+    assertStrongPassword(recoveryPassword, { label: 'Recovery password' });
+    if (recoveryPassword === newPassword) {
+      throw new Error('The recovery password must be different from your login password.');
     }
-    if (!STRONG_PASSWORD(recoveryPassword)) {
-      throw new Error('Recovery password does not meet security policy requirements.');
-    }
-    if (!/^\d{4,8}$/.test(recoveryPin)) {
-      throw new Error('Recovery PIN must be 4 to 8 numeric digits.');
+    if (!NEW_PIN.test(String(recoveryPin))) {
+      throw new Error('Recovery PIN must be 6 to 8 numeric digits.');
     }
 
     const adminUser = await this.users.findById(currentUserId);
@@ -342,7 +358,7 @@ class AuthService {
     const updated = await this.users.update(adminUser.id, { username: cleanUsername, passwordHash });
 
     await this.setSecuritySetting('recovery_password_hash', await PasswordService.hashPassword(recoveryPassword));
-    await this.setSecuritySetting('recovery_pin_hash', await PasswordService.hashPassword(recoveryPin, 4));
+    await this.setSecuritySetting('recovery_pin_hash', await PasswordService.hashPassword(String(recoveryPin), 6));
     await this.setSecuritySetting('first_login_completed', 'true');
 
     logger.info(`SUCCESS: First Login Security Wizard completed for '${cleanUsername}'`);
@@ -351,5 +367,6 @@ class AuthService {
 }
 
 module.exports = AuthService;
-module.exports.STRONG_PASSWORD = STRONG_PASSWORD;
+module.exports.isStrongPassword = isStrongPassword;
+module.exports.NEW_PIN = NEW_PIN;
 module.exports.toSessionUser = toSessionUser;

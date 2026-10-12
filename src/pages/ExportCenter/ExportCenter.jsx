@@ -151,11 +151,22 @@ const ExportCenter = () => {
   const loadExportHistory = async () => {
     setHistoryLoading(true);
     try {
-      if (window.api && window.api.export) {
-        const res = await window.api.export.getHistory();
-        const historyArray = extractArray(res);
-        setExportHistory(historyArray);
-      }
+      // Past exports come from the audit trail (files are downloaded, not stored on the server).
+      const res = await window.api.export.getHistory();
+      setExportHistory(extractArray(res).map((entry) => {
+        const info = entry.newValue || {};
+        const size = Number(info.sizeBytes) || 0;
+        return {
+          id: entry.id,
+          fileName: info.fileName || entry.entityId,
+          format: String(info.format || '').toUpperCase(),
+          formattedSize: size ? `${(size / 1024).toFixed(1)} KB` : '—',
+          createdDate: entry.performedAt,
+          performedBy: entry.performedBy,
+          reportType: info.reportType,
+          filters: info.filters || {}
+        };
+      }));
     } catch (err) {
       console.error('Failed to load export history:', err);
       setExportHistory([]);
@@ -199,28 +210,20 @@ const ExportCenter = () => {
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      if (window.api && window.api.export) {
-        const res = await window.api.export.generate({
-          reportType,
-          format: exportFormat,
-          filters
+      // The server builds the file; the browser saves it to the Downloads folder.
+      const res = await window.api.export.generate({
+        reportType,
+        format: exportFormat,
+        filters
+      });
+      if (res && res.success) {
+        setToast({
+          message: `Report downloaded: ${res.data.fileName}`,
+          type: 'success'
         });
-
-        const exportResult = res?.data || res;
-
-        if (exportResult && exportResult.success) {
-          setToast({
-            message: `Report exported successfully as ${exportResult.fileName}!`,
-            type: 'success'
-          });
-          loadExportHistory();
-        } else if (exportResult && exportResult.canceled) {
-          setToast({ message: 'Export canceled by user.', type: 'info' });
-        } else {
-          setToast({ message: exportResult?.error || 'Export failed.', type: 'error' });
-        }
+        loadExportHistory();
       } else {
-        setToast({ message: 'Desktop Export API unavailable in browser mode.', type: 'error' });
+        setToast({ message: res?.error || 'Export failed.', type: 'error' });
       }
     } catch (err) {
       setToast({ message: err.message || 'Export error occurred.', type: 'error' });
@@ -229,13 +232,23 @@ const ExportCenter = () => {
     }
   };
 
-  const handleOpenFile = async (filePath) => {
+  // Builds the same report again (same type, format and filters) and downloads it.
+  const handleDownloadAgain = async (entry) => {
+    if (!entry.reportType) return;
+    setIsExporting(true);
     try {
-      if (window.api && window.api.export) {
-        await window.api.export.openFile(filePath);
+      const format = entry.format === 'XLSX' ? 'excel' : entry.format.toLowerCase();
+      const res = await window.api.export.generate({ reportType: entry.reportType, format, filters: entry.filters });
+      if (res && res.success) {
+        setToast({ message: `Report downloaded: ${res.data.fileName}`, type: 'success' });
+        loadExportHistory();
+      } else {
+        setToast({ message: res?.error || 'Export failed.', type: 'error' });
       }
     } catch (err) {
-      setToast({ message: err.message || 'Unable to open file.', type: 'error' });
+      setToast({ message: err.message || 'Export error occurred.', type: 'error' });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -616,7 +629,7 @@ const ExportCenter = () => {
                   <th className="px-4 py-3">File Name</th>
                   <th className="px-4 py-3">Format</th>
                   <th className="px-4 py-3">File Size</th>
-                  <th className="px-4 py-3">Created Date</th>
+                  <th className="px-4 py-3">Exported</th>
                   <th className="px-4 py-3 text-right">Action</th>
                 </tr>
               </thead>
@@ -624,13 +637,13 @@ const ExportCenter = () => {
                 {historyLoading ? (
                   <tr>
                     <td colSpan={5} className="text-center py-6 text-gray-400 uppercase tracking-wider">
-                      Loading export directory log...
+                      Loading export history...
                     </td>
                   </tr>
                 ) : paginatedHistory.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-6 text-gray-400 uppercase tracking-wider">
-                      No exported files found in directory.
+                      No exports yet.
                     </td>
                   </tr>
                 ) : (
@@ -643,14 +656,18 @@ const ExportCenter = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500 font-semibold">{h.formattedSize}</td>
-                      <td className="px-4 py-3 text-gray-500 font-semibold">{new Date(h.createdDate).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-gray-500 font-semibold whitespace-nowrap">
+                        {h.createdDate}
+                        {h.performedBy && <span className="block text-[10px] text-gray-400">by {h.performedBy}</span>}
+                      </td>
                       <td className="px-4 py-3 text-right">
                         <button
-                          onClick={() => handleOpenFile(h.filePath)}
-                          className="px-3 py-1.5 bg-brand-primary hover:bg-[#8F161A] text-white text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                          onClick={() => handleDownloadAgain(h)}
+                          disabled={isExporting || !h.reportType}
+                          className="px-3 py-1.5 bg-brand-primary hover:bg-[#8F161A] disabled:opacity-60 text-white text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
                         >
-                          <FiExternalLink className="w-3 h-3" />
-                          Open File
+                          <FiDownload className="w-3 h-3" />
+                          Download Again
                         </button>
                       </td>
                     </tr>

@@ -1,5 +1,5 @@
 -- Himmel Pharmaceutical Sales Management System: shared PostgreSQL schema.
--- Ported from electron/database/schema.cjs (SQLite). Safe to run on every server start:
+-- Ported from the desktop app's SQLite schema. Safe to run on every migration:
 -- tables/indexes use IF NOT EXISTS, functions use CREATE OR REPLACE, views and triggers are recreated.
 --
 -- Column types deliberately mirror the SQLite version so the desktop UI receives identical values:
@@ -77,6 +77,34 @@ CREATE TABLE IF NOT EXISTS system_security (
   value TEXT NOT NULL,
   updated_at TEXT NOT NULL DEFAULT himmel_now_text()
 );
+
+-- Browser sessions. The cookie holds a random token; only its SHA-256 hash is stored, so a
+-- leaked copy of this table cannot be used to sign in. kind 'recovery' is the short-lived
+-- emergency recovery session (no user).
+CREATE TABLE IF NOT EXISTS sessions (
+  id_hash TEXT PRIMARY KEY,
+  kind TEXT NOT NULL DEFAULT 'user' CHECK (kind IN ('user', 'recovery')),
+  user_id INTEGER REFERENCES users (id) ON DELETE CASCADE,
+  -- Copy of users.session_version at sign-in: a password change or disabled account ends the session.
+  session_version INTEGER NOT NULL DEFAULT 0,
+  csrf_token TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  ip TEXT,
+  user_agent TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions (expires_at);
+
+-- Attempt counters for sign-in and emergency recovery, shared by every server instance
+-- (serverless hosting runs many short-lived copies, so in-memory counters are not enough).
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key TEXT PRIMARY KEY,
+  count INTEGER NOT NULL,
+  reset_at TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_reset ON rate_limits (reset_at);
 
 -- ─── Business data (was database/<username>.db, now shared by everyone) ────
 

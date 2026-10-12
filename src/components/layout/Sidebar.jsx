@@ -25,7 +25,8 @@ const getNavItems = (user, hasPermission) => {
     { label: 'Orders', icon: FiClipboard, path: '/orders' },
     { label: 'Targets', icon: FiTarget, path: '/targets' },
     { label: 'Reports', icon: FiBarChart2, path: '/reports' },
-    { label: 'Export Center', icon: FiDownloadCloud, path: '/export' },
+    // Exporting is limited to roles with reports.export (the server checks it as well).
+    ...(hasPermission && hasPermission('reports.export') ? [{ label: 'Export Center', icon: FiDownloadCloud, path: '/export' }] : []),
     { label: 'Settings', icon: FiSettings, path: '/settings' },
   ];
   if (role === 'Admin' || (hasPermission && hasPermission('audit.view'))) {

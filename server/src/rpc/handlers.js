@@ -1,10 +1,12 @@
-// Server version of electron/ipc.cjs. Channel names, arguments and return values are unchanged,
-// so the React screens keep calling window.api.* exactly as before.
+// Operations behind POST /api/rpc/<channel>. The web app's window.api.* methods map to these
+// channel names one to one (src/api/webApi.js).
 //
-// Each entry: { handler(ctx, ...args), public?, recovery?, roles?, rateLimit? }
-//   public    - no login needed
-//   recovery  - needs the short-lived token from the emergency recovery password/PIN
-//   roles     - allowed roles (default: any signed-in user)
+// Each entry: { handler(ctx, ...args), public?, optionalSession?, recovery?, roles?, rateLimit? }
+//   public          - no sign-in needed
+//   optionalSession - public, but the signed-in user is loaded when there is one
+//   recovery        - needs the short-lived session opened by the emergency recovery password/PIN
+//   roles           - allowed roles (default: any signed-in user)
+//   rateLimit       - attempt limit stored in the database (failuresOnly: only failed attempts count)
 
 const ProductRepository = require('../repositories/ProductRepository');
 const AreaRepository = require('../repositories/AreaRepository');
@@ -26,17 +28,24 @@ const HealthService = require('../services/HealthService');
 const SnapshotService = require('../services/SnapshotService');
 const AuthService = require('../auth/AuthService');
 const RecoveryService = require('../auth/RecoveryService');
-const { signAccessToken, signRecoveryToken } = require('../auth/tokens');
+const { deleteUserSessions } = require('../auth/sessions');
 const { ForbiddenError } = require('../errors');
 
 const ADMIN = ['Admin'];
 // Mirrors src/services/permissionService.js: Managers may create/edit master data, only Admins delete.
 const MANAGERS = ['Admin', 'Manager'];
 
-// Per IP address. Only failed logins count, so a whole office behind one internet connection can
+// Who may move an order to each final status (permissionService.js: orders.complete is Admin only,
+// orders.cancel is Admin and Manager). Sales representatives create and edit pending orders.
+const ORDER_STATUS_ROLES = { Completed: ADMIN, Cancelled: MANAGERS };
+
+const FIFTEEN_MINUTES = 15 * 60 * 1000;
+// Per IP address. Only failed sign-ins count, so a whole office behind one internet connection can
 // still sign in at 9 a.m.; each account also locks for 15 minutes after 5 wrong passwords.
-const LOGIN_LIMIT = { max: 50, windowMs: 15 * 60 * 1000, failuresOnly: true, key: (ctx) => `login:${ctx.ip}` };
-const RECOVERY_LIMIT = { max: 10, windowMs: 15 * 60 * 1000, key: (ctx) => `recovery:${ctx.ip}` };
+const LOGIN_LIMIT = { max: 30, windowMs: FIFTEEN_MINUTES, failuresOnly: true, key: (ctx) => `login:${ctx.ip}` };
+const RECOVERY_LIMIT = { max: 10, windowMs: FIFTEEN_MINUTES, key: (ctx) => `recovery:${ctx.ip}` };
+// Operations that re-check the user's own password: a stolen session cannot guess it quickly.
+const REAUTH_LIMIT = { max: 10, windowMs: FIFTEEN_MINUTES, failuresOnly: true, key: (ctx) => `reauth:${ctx.user.id}` };
 
 function createServices(db) {
   return {
@@ -218,6 +227,10 @@ const handlers = {
   'orders:changeStatus': {
     handler: async (ctx, id, newStatus, reason = '') => {
       const { s } = ctx;
+      const allowedRoles = ORDER_STATUS_ROLES[newStatus];
+      if (allowedRoles && !allowedRoles.includes(ctx.user.role)) {
+        throw new ForbiddenError(`Permission denied: the ${ctx.user.role} role cannot mark orders as ${newStatus}.`);
+      }
       const currentOrder = await s.orders.findById(id);
       if (!currentOrder) {
         throw new Error(`Order with ID ${id} not found.`);
@@ -238,6 +251,7 @@ const handlers = {
     }
   },
   'orders:delete': {
+    roles: ADMIN,
     handler: async (ctx, id) => {
       const { s } = ctx;
       const oldVal = await s.orders.findById(id);
@@ -308,6 +322,7 @@ const handlers = {
   'reminders:save': { handler: (ctx, reminder) => ctx.s.reminders.save(reminder || {}, ctx.user.id) },
   'reminders:delete': { handler: (ctx, id) => ctx.s.reminders.delete(id, ctx.user.id) },
 
+
   // --- Emergency recovery (from the login screen) ---
   'auth:recoveryVerifyPassword': {
     public: true,
@@ -318,7 +333,7 @@ const handlers = {
         module: 'Authentication', entityType: 'Emergency Recovery', entityId: 'SYSTEM',
         action: 'Emergency Recovery Login', oldValue: null, newValue: { access: 'Granted' }, performedBy: 'Emergency Recovery'
       });
-      return { verified: true, recoveryToken: signRecoveryToken() };
+      return { verified: true, csrfToken: await ctx.startRecovery() };
     }
   },
   'auth:verifyRecoveryPin': {
@@ -330,13 +345,20 @@ const handlers = {
         module: 'Authentication', entityType: 'Emergency Recovery', entityId: 'SYSTEM',
         action: 'Emergency Recovery Login (PIN)', oldValue: null, newValue: { access: 'Granted' }, performedBy: 'Emergency Recovery'
       });
-      return { verified: true, recoveryToken: signRecoveryToken() };
+      return { verified: true, csrfToken: await ctx.startRecovery() };
     }
   },
   'auth:resetRecoveryPasswordWithPin': {
     public: true,
     rateLimit: RECOVERY_LIMIT,
-    handler: (ctx, { pin, newPassword } = {}) => ctx.s.recovery.resetRecoveryPasswordWithPin(pin, newPassword)
+    handler: async (ctx, { pin, newPassword } = {}) => {
+      const res = await ctx.s.recovery.resetRecoveryPasswordWithPin(pin, newPassword);
+      await ctx.audit({
+        module: 'Authentication', entityType: 'Emergency Recovery', entityId: 'SYSTEM',
+        action: 'Recovery Password Reset (PIN)', performedBy: 'Emergency Recovery'
+      });
+      return res;
+    }
   },
   'auth:recoveryGetUsers': {
     public: true,
@@ -348,6 +370,7 @@ const handlers = {
     recovery: true,
     handler: async (ctx, data) => {
       const { user, updatedUser, result } = await ctx.s.recovery.toggleUserStatus(data || {});
+      if (!updatedUser.isActive) await deleteUserSessions(ctx.db, user.id);
       const action = updatedUser.isActive ? 'User Enabled' : 'User Disabled';
       await ctx.audit({
         module: 'Authentication', entityType: 'User', entityId: String(user.id), action,
@@ -363,6 +386,7 @@ const handlers = {
     recovery: true,
     handler: async (ctx, data) => {
       const { user, result } = await ctx.s.recovery.resetUserPassword(data || {});
+      await deleteUserSessions(ctx.db, user.id);
       await ctx.audit({
         module: 'Authentication', entityType: 'User', entityId: String(user.id), action: 'Password Reset',
         oldValue: { username: user.username, passwordReset: false },
@@ -374,55 +398,86 @@ const handlers = {
   },
 
   // --- Authentication ---
-  'auth:getSecurityStatus': {
-    public: true,
-    handler: (ctx) => ctx.s.auth.getSecurityStatus()
-  },
-  'auth:completeFirstLoginWizard': {
-    roles: ADMIN,
-    handler: async (ctx, data) => {
-      const { result, user } = await ctx.s.auth.completeFirstLoginWizard(ctx.user.id, data || {});
-      ctx.refreshedToken = signAccessToken(user);
-      return result;
-    }
-  },
-  'auth:changeUsername': {
-    handler: async (ctx, { currentPassword, newUsername } = {}) =>
-      ctx.s.auth.changeUsername(ctx.user.id, currentPassword, newUsername)
-  },
-  'auth:changeRecoveryPassword': {
-    roles: ADMIN,
-    handler: (ctx, { currentPassword, newPassword } = {}) => ctx.s.recovery.changeRecoveryPassword(currentPassword, newPassword)
-  },
-  'auth:changeRecoveryPin': {
-    roles: ADMIN,
-    handler: (ctx, { currentAuth, newPin } = {}) => ctx.s.recovery.changeRecoveryPin(currentAuth, newPin)
-  },
   'auth:login': {
     public: true,
     rateLimit: LOGIN_LIMIT,
     handler: async (ctx, { username: loginName, password } = {}) => {
+      const attempted = typeof loginName === 'string' ? loginName.trim().slice(0, 100) : '';
       try {
-        const res = await ctx.s.auth.login(loginName, password);
+        const user = await ctx.s.auth.login(loginName, password);
+        const { csrfToken } = await ctx.signIn(user);
+        const sessionUser = AuthService.toSessionUser(user);
         await ctx.audit({
-          module: 'Authentication', entityType: 'User', entityId: res.session.user.username, action: 'Login',
-          newValue: { username: res.session.user.username, role: res.session.user.role },
-          performedBy: res.session.user.username
+          module: 'Authentication', entityType: 'User', entityId: sessionUser.username, action: 'Login',
+          newValue: { username: sessionUser.username, role: sessionUser.role },
+          performedBy: sessionUser.username
         });
-        return res;
+        return { user: sessionUser, loginTimestamp: new Date().toISOString(), csrfToken };
       } catch (err) {
         await ctx.audit({
-          module: 'Authentication', entityType: 'User', entityId: loginName, action: 'Failed Login',
-          oldValue: { username: loginName, error: err.message }, performedBy: loginName || 'Guest'
+          module: 'Authentication', entityType: 'User', entityId: attempted, action: 'Failed Login',
+          oldValue: { username: attempted, error: err.message }, performedBy: attempted || 'Guest'
         });
         throw err;
       }
     }
   },
+  // Called when the web app loads: who is signed in in this browser (null when nobody).
+  'auth:getCurrentUser': {
+    public: true,
+    optionalSession: true,
+    handler: (ctx) => (ctx.user
+      ? { user: ctx.user, loginTimestamp: ctx.session.createdAt, csrfToken: ctx.session.csrfToken }
+      : null)
+  },
   'auth:logout': {
     handler: async (ctx) => {
       await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: username(ctx), action: 'Logout' });
+      await ctx.signOut();
       return true;
+    }
+  },
+  'auth:getSecurityStatus': {
+    handler: (ctx) => ctx.s.auth.getSecurityStatus(ctx.user)
+  },
+  'auth:completeFirstLoginWizard': {
+    roles: ADMIN,
+    rateLimit: REAUTH_LIMIT,
+    handler: async (ctx, data) => {
+      const { result, user } = await ctx.s.auth.completeFirstLoginWizard(ctx.user.id, data || {});
+      // New credentials: start a fresh session (the old one ended with the password change).
+      await ctx.signIn(user);
+      await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: user.username, action: 'First Login Security Setup' });
+      return result;
+    }
+  },
+  'auth:changeUsername': {
+    rateLimit: REAUTH_LIMIT,
+    handler: async (ctx, { currentPassword, newUsername } = {}) => {
+      const res = await ctx.s.auth.changeUsername(ctx.user.id, currentPassword, newUsername);
+      await ctx.audit({
+        module: 'Authentication', entityType: 'User', entityId: String(ctx.user.id), action: 'Username Change',
+        oldValue: { username: ctx.user.username }, newValue: { username: res.username }
+      });
+      return res;
+    }
+  },
+  'auth:changeRecoveryPassword': {
+    roles: ADMIN,
+    rateLimit: REAUTH_LIMIT,
+    handler: async (ctx, { currentPassword, newPassword } = {}) => {
+      const res = await ctx.s.recovery.changeRecoveryPassword(currentPassword, newPassword);
+      await ctx.audit({ module: 'Authentication', entityType: 'Emergency Recovery', entityId: 'SYSTEM', action: 'Recovery Password Change' });
+      return res;
+    }
+  },
+  'auth:changeRecoveryPin': {
+    roles: ADMIN,
+    rateLimit: REAUTH_LIMIT,
+    handler: async (ctx, { currentAuth, newPin } = {}) => {
+      const res = await ctx.s.recovery.changeRecoveryPin(currentAuth, newPin);
+      await ctx.audit({ module: 'Authentication', entityType: 'Emergency Recovery', entityId: 'SYSTEM', action: 'Recovery PIN Change' });
+      return res;
     }
   },
   'auth:createUser': {
@@ -430,17 +485,18 @@ const handlers = {
     handler: async (ctx, payload) => {
       const res = await ctx.s.auth.createUser(payload || {});
       await ctx.audit({
-        module: 'Authentication', entityType: 'User', entityId: payload.username, action: 'Create User',
-        newValue: { username: payload.username, role: payload.role }
+        module: 'Authentication', entityType: 'User', entityId: res.username, action: 'Create User',
+        newValue: { username: res.username, role: res.role }
       });
       return res;
     }
   },
   'auth:changePassword': {
+    rateLimit: REAUTH_LIMIT,
     handler: async (ctx, { oldPassword, newPassword } = {}) => {
       const updated = await ctx.s.auth.changePassword(ctx.user.id, oldPassword, newPassword);
-      // Other computers signed in as this user are logged out; this one gets a new token.
-      ctx.refreshedToken = signAccessToken(updated);
+      // Every other browser signed in as this user is signed out; this one gets a new session.
+      await ctx.signIn(updated);
       await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: username(ctx), action: 'Password Change' });
       return true;
     }
@@ -449,18 +505,39 @@ const handlers = {
     roles: ADMIN,
     handler: async (ctx, { username: target, newPassword } = {}) => {
       const updated = await ctx.s.auth.resetPassword(target, newPassword);
-      if (updated.id === ctx.user.id) ctx.refreshedToken = signAccessToken(updated);
-      await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: target, action: 'Password Change' });
+      if (updated.id === ctx.user.id) {
+        await ctx.signIn(updated);
+      } else {
+        await deleteUserSessions(ctx.db, updated.id);
+      }
+      await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: updated.username, action: 'Password Reset by Administrator' });
       return true;
     }
   },
   'auth:activateUser': {
     roles: ADMIN,
-    handler: (ctx, { username: target } = {}) => ctx.s.auth.activateUser(target)
+    handler: async (ctx, { username: target } = {}) => {
+      const res = await ctx.s.auth.activateUser(target);
+      await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: String(target), action: 'User Enabled' });
+      return res;
+    }
   },
   'auth:disableUser': {
     roles: ADMIN,
-    handler: (ctx, { username: target } = {}) => ctx.s.auth.disableUser(target)
+    handler: async (ctx, { username: target } = {}) => {
+      const user = await ctx.s.auth.disableUser(target);
+      await deleteUserSessions(ctx.db, user.id);
+      await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: user.username, action: 'User Disabled' });
+      return true;
+    }
+  },
+  'auth:unlockUser': {
+    roles: ADMIN,
+    handler: async (ctx, { username: target } = {}) => {
+      const user = await ctx.s.auth.unlockUser(target);
+      await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: user.username, action: 'Account Unlocked' });
+      return true;
+    }
   },
   'auth:getAllUsers': {
     roles: ADMIN,
@@ -468,43 +545,26 @@ const handlers = {
   },
   'auth:changeRole': {
     roles: ADMIN,
-    handler: (ctx, { username: target, role } = {}) => ctx.s.auth.changeRole(target, role)
+    handler: async (ctx, { username: target, role } = {}) => {
+      const res = await ctx.s.auth.changeRole(target, role);
+      await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: String(target), action: 'Role Change', newValue: { role } });
+      return res;
+    }
   },
   'auth:deleteUser': {
     roles: ADMIN,
     handler: async (ctx, target) => {
       const targetUsername = target && typeof target === 'object' ? target.username : target;
       const res = await ctx.s.auth.deleteUser(targetUsername);
-      await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: targetUsername, action: 'Delete' });
+      await ctx.audit({ module: 'Authentication', entityType: 'User', entityId: String(targetUsername), action: 'Delete' });
       return res;
     }
   },
 
-  // --- Backup & Restore (the desktop app saves/reads the backup file) ---
-  'backup:export': {
+  // --- Backup history (the files themselves go through /api/backup, see http/backupRoutes.js) ---
+  'backup:getHistory': {
     roles: ADMIN,
-    handler: async (ctx) => {
-      const snapshot = await SnapshotService.exportSnapshot(ctx.db, { createdBy: username(ctx) });
-      await ctx.audit({
-        module: 'Settings', entityType: 'Backup', entityId: snapshot.createdAt, action: 'Backup',
-        newValue: { createdAt: snapshot.createdAt, tables: Object.keys(snapshot.tables).length }
-      });
-      return snapshot;
-    }
-  },
-  'backup:restore': {
-    roles: ADMIN,
-    handler: async (ctx, snapshot, meta = {}) => {
-      const counts = await SnapshotService.restoreSnapshot(ctx.db, snapshot, {
-        fallbackUserId: ctx.user.id,
-        personalUserId: ctx.user.id
-      });
-      await ctx.audit({
-        module: 'Settings', entityType: 'Backup', entityId: (meta && meta.fileName) || 'backup', action: 'Restore',
-        newValue: { fileName: meta && meta.fileName, success: true, counts }
-      });
-      return { success: true, counts };
-    }
+    handler: (ctx) => ctx.s.audit.findRecent({ module: 'Settings', entityType: 'Backup', limit: 50 })
   },
 
   // --- Audit Logs ---
@@ -527,35 +587,15 @@ const handlers = {
   'analytics:getTargetProgress': { handler: (ctx) => ctx.s.analytics.getTargetProgress() },
   'analytics:getRecentOrders': { handler: (ctx) => ctx.s.analytics.getRecentOrders() },
 
-  // --- Export Center data (the desktop app builds the Excel/PDF/PowerPoint file) ---
+  // --- Export Center (the files themselves are built by POST /api/export, see http/exportRoutes.js) ---
   'export:getPreviewData': {
     roles: MANAGERS,
     handler: (ctx, { reportType, filters } = {}) => ctx.s.exportData.fetchData(reportType, filters)
   },
-  'export:getMasterData': {
+  'export:getHistory': {
     roles: MANAGERS,
-    handler: (ctx, { filters } = {}) => ctx.s.exportData.fetchMasterData(filters)
-  },
-  'export:logExport': {
-    handler: async (ctx, entry = {}) => {
-      const isMaster = Boolean(entry.isMaster);
-      const ext = String(entry.format || '').toUpperCase().slice(0, 10);
-      await ctx.audit({
-        module: 'Export Center',
-        entityType: isMaster ? 'MasterExportFile' : 'ExportFile',
-        entityId: String(entry.fileName || '').slice(0, 255),
-        action: isMaster ? `Master Export ${ext}` : `Export ${ext}`,
-        newValue: {
-          reportType: entry.reportType,
-          format: entry.format,
-          fileName: entry.fileName,
-          totalRecords: entry.totalRecords,
-          filters: entry.filters
-        }
-      });
-      return true;
-    }
+    handler: (ctx) => ctx.s.audit.findRecent({ module: 'Export Center', limit: 50 })
   }
 };
 
-module.exports = { handlers, createServices };
+module.exports = { handlers, createServices, ORDER_STATUS_ROLES };

@@ -19,7 +19,7 @@ class SearchService {
       return { ...EMPTY_RESULT };
     }
 
-    const term = `%${query.trim().toLowerCase()}%`;
+    const term = `%${query.trim().slice(0, 100).toLowerCase()}%`;
 
     try {
       const [products, doctors, institutions, areas, teamMembers, orders] = await Promise.all([

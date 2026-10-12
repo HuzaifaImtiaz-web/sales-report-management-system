@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRoutes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -6,10 +6,7 @@ import { UnsavedChangesProvider } from './context/UnsavedChangesContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { routes } from './routes/routes';
 import SplashScreen from './components/common/SplashScreen';
-import SystemInitScreen from './components/common/SystemInitScreen';
 import ErrorBoundary from './components/common/ErrorBoundary';
-
-import AutoUpdateNotifier from './components/common/AutoUpdateNotifier';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -18,31 +15,13 @@ function AppContent() {
   return (
     <div key={isAuthenticated ? 'auth-active' : 'auth-inactive'} className="h-full w-full">
       {routing}
-      {isAuthenticated && <AutoUpdateNotifier />}
     </div>
   );
 }
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
-  const [showInitScreen, setShowInitScreen] = useState(false);
-
-  useEffect(() => {
-    const checkFirstRun = async () => {
-      try {
-        if (window.api && window.api.system && typeof window.api.system.checkFirstRun === 'function') {
-          const res = await window.api.system.checkFirstRun();
-          const isFirst = Boolean(res && typeof res === 'object' && 'data' in res ? res.data : res);
-          if (isFirst) {
-            setShowInitScreen(true);
-          }
-        }
-      } catch (e) {
-        console.error('Failed to check first run status:', e);
-      }
-    };
-    checkFirstRun();
-  }, []);
+  const hideSplash = useCallback(() => setShowSplash(false), []);
 
   return (
     <ErrorBoundary>
@@ -50,18 +29,7 @@ function App() {
         <AuthProvider>
           <NotificationProvider>
             <UnsavedChangesProvider>
-              {showInitScreen ? (
-                <SystemInitScreen
-                  onComplete={() => {
-                    setShowInitScreen(false);
-                    setShowSplash(false);
-                  }}
-                />
-              ) : showSplash ? (
-                <SplashScreen onComplete={() => setShowSplash(false)} />
-              ) : (
-                <AppContent />
-              )}
+              {showSplash ? <SplashScreen onComplete={hideSplash} /> : <AppContent />}
             </UnsavedChangesProvider>
           </NotificationProvider>
         </AuthProvider>
@@ -71,4 +39,3 @@ function App() {
 }
 
 export default App;
-

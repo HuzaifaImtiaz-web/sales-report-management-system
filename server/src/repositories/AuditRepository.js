@@ -9,6 +9,12 @@ function parseJson(value) {
   }
 }
 
+function clampInt(value, fallback, min, max) {
+  const n = Math.trunc(Number(value));
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(Math.max(n, min), max);
+}
+
 function mapLog(r) {
   return {
     id: r.id,
@@ -95,7 +101,7 @@ class AuditRepository {
       }
 
       if (search) {
-        const q = `%${search.trim().toLowerCase()}%`;
+        const q = `%${String(search).trim().slice(0, 200).toLowerCase()}%`;
         conditions.push(`(
           LOWER(module) LIKE ? OR
           LOWER(entity_type) LIKE ? OR
@@ -119,13 +125,31 @@ class AuditRepository {
         ${whereClause}
         ORDER BY id DESC
         LIMIT ? OFFSET ?
-      `, [...params, Number(limit) || 100, Number(offset) || 0]);
+      `, [...params, clampInt(limit, 100, 1, 500), clampInt(offset, 0, 0, Number.MAX_SAFE_INTEGER)]);
 
       return { logs: rows.map(mapLog), total };
     } catch (err) {
       logger.error(`Error querying audit logs: ${err.message}`);
       return { logs: [], total: 0 };
     }
+  }
+
+  /** Latest entries for one module (Export Center history, backup history). */
+  async findRecent({ module, entityType = null, limit = 50 } = {}) {
+    const params = [module];
+    let where = 'module = ?';
+    if (entityType) {
+      where += ' AND entity_type = ?';
+      params.push(entityType);
+    }
+    const rows = await this.db.all(`
+      SELECT id, module, entity_type, entity_id, action, old_value, new_value, performed_by, performed_at, ip_or_device
+      FROM audit_logs
+      WHERE ${where}
+      ORDER BY id DESC
+      LIMIT ?
+    `, [...params, clampInt(limit, 50, 1, 200)]);
+    return rows.map(mapLog);
   }
 
   async getById(id) {

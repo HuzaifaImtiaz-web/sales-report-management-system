@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import Toast from '../../components/common/Toast';
 import Pagination from '../../components/common/Pagination';
@@ -20,6 +21,11 @@ import { exportToCSV } from '../../utils/exportUtils';
 
 export default function SalesEntry() {
   const navigate = useNavigate();
+  // Only the actions this role may perform are shown (the server enforces the same rules).
+  const { hasPermission } = useAuth();
+  const canComplete = hasPermission('orders.complete');
+  const canCancel = hasPermission('orders.cancel');
+  const canDelete = hasPermission('orders.delete');
   const location = useLocation();
 
   const [toast, setToast] = useState(location.state?.toast || null);
@@ -41,6 +47,7 @@ export default function SalesEntry() {
   const [teamMemberFilter, setTeamMemberFilter] = useState('');
   const [productFilter, setProductFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false); // phones only; always open on larger screens
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -245,13 +252,19 @@ export default function SalesEntry() {
           })}
         </div>
 
-        {/* Enterprise Business Filters Panel */}
+        {/* Enterprise Business Filters Panel (folded away on phones so the orders come first) */}
         <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-enterprise p-4 shadow-sm space-y-3">
           <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((open) => !open)}
+              aria-expanded={filtersOpen}
+              className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 md:cursor-default"
+            >
               <FiFilter className="w-4 h-4 text-brand-primary" />
               <span>Enterprise Filters</span>
-            </div>
+              <span className="md:hidden text-[10px] font-semibold text-gray-400">{filtersOpen ? '(hide)' : '(show)'}</span>
+            </button>
             <button
               onClick={resetFilters}
               className="text-[11px] font-bold text-brand-primary hover:underline flex items-center gap-1 cursor-pointer"
@@ -260,7 +273,7 @@ export default function SalesEntry() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className={`${filtersOpen ? 'grid' : 'hidden md:grid'} grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3`}>
             {/* Search Input */}
             <div className="relative">
               <input
@@ -405,10 +418,10 @@ export default function SalesEntry() {
 
                     return (
                       <tr key={sale.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                        <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-white">
+                        <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-white whitespace-nowrap">
                           {sale.poNumber || sale.orderNumber}
                         </td>
-                        <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300">
+                        <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
                           {sale.poDate || sale.orderDate}
                         </td>
                         <td className="py-3.5 px-4 font-medium text-gray-800 dark:text-gray-200">
@@ -426,7 +439,7 @@ export default function SalesEntry() {
                         <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300 max-w-[200px] truncate" title={itemsSummary}>
                           {itemsSummary || '—'}
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-extrabold text-right text-brand-primary">
+                        <td className="py-3.5 px-4 font-mono font-extrabold text-right text-brand-primary whitespace-nowrap">
                           Rs {Number(sale.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-3.5 px-4 text-center">
@@ -444,27 +457,36 @@ export default function SalesEntry() {
                                 >
                                   <FiEdit3 className="w-4 h-4" />
                                 </button>
-                                <button
-                                  onClick={() => setToComplete(sale)}
-                                  className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg transition-colors"
-                                  title="Complete Sale"
-                                >
-                                  <FiCheckCircle className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => setToCancel(sale)}
-                                  className="p-1.5 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg transition-colors"
-                                  title="Cancel Sale"
-                                >
-                                  <FiXCircle className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => setToDelete(sale)}
-                                  className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                                  title="Delete Order"
-                                >
-                                  <FiTrash2 className="w-4 h-4" />
-                                </button>
+                                {canComplete && (
+                                  <button
+                                    onClick={() => setToComplete(sale)}
+                                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg transition-colors"
+                                    title="Complete Sale"
+                                    aria-label="Complete Sale"
+                                  >
+                                    <FiCheckCircle className="w-4 h-4" />
+                                  </button>
+                                )}
+                                {canCancel && (
+                                  <button
+                                    onClick={() => setToCancel(sale)}
+                                    className="p-1.5 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg transition-colors"
+                                    title="Cancel Sale"
+                                    aria-label="Cancel Sale"
+                                  >
+                                    <FiXCircle className="w-4 h-4" />
+                                  </button>
+                                )}
+                                {canDelete && (
+                                  <button
+                                    onClick={() => setToDelete(sale)}
+                                    className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                                    title="Delete Order"
+                                    aria-label="Delete Order"
+                                  >
+                                    <FiTrash2 className="w-4 h-4" />
+                                  </button>
+                                )}
                               </>
                             )}
 
