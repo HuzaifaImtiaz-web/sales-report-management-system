@@ -6,7 +6,7 @@
   "author": "Himmel Pharmaceutical Ltd",
   "type": "module",
   "engines": {
-    "node": ">=20.12"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "concurrently -k -n api,web -c blue,magenta \"node server/scripts/dev-local.js\" \"vite\"",

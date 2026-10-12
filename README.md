@@ -109,7 +109,7 @@ The app is a normal Node.js server plus a static build, so any host works (Rende
 VPS, Azure...):
 
 ```bash
-npm ci && npm --prefix server ci --omit=dev
+npm ci --include=dev && npm --prefix server ci --omit=dev
 npm run build
 npm start          # serves the web app and the API on $PORT
 ```

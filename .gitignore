@@ -36,3 +36,8 @@ Thumbs.db
 .vercel/
 server/.local-db/
 *.json.gz
+
+# Vercel CLI (project link and pulled environment files)
+.vercel
+.env*
+!.env.example
