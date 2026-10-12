@@ -3,8 +3,7 @@
 ## [2.0.0] - 2026-10-12 (Web App)
 ### Changed
 - **Web app instead of desktop app**: runs in any browser (computer or phone); hosted on Vercel with
-  a shared Supabase PostgreSQL database. The Electron app, installer and auto-updater are removed
-  (the desktop v1.0.3 release is unchanged on `main`).
+  a shared Supabase PostgreSQL database. The Electron app, installer and auto-updater are removed.
 - **Exports** (Excel, PDF, PowerPoint) are built on the server and downloaded; history comes from
   the audit trail. **Backups** download as `.json.gz` and restore from a chosen file, both
   confirmed with the administrator's password.
@@ -12,6 +11,10 @@
   managers and administrators cancel them.
 - Phone-friendly lists (filters fold away, tables scroll), page titles in the top bar and browser
   tab, self-hosted fonts, faster start-up (no simulated loading screen).
+
+### Removed
+- The desktop app entirely: installers, desktop releases (v1.0.0–v1.0.3) and the client delivery
+  package. Old installer files were also purged from the git history.
 
 ### Security
 - Server-side sessions in HttpOnly/Secure/SameSite cookies, CSRF tokens, origin checks, security

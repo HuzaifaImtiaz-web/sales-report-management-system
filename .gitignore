@@ -1,12 +1,9 @@
 # Dependencies
 node_modules/
 
-# Build output & Client Delivery
+# Build output
 dist/
 release/
-Client_Delivery/Installer/*.exe
-Client_Delivery/Installer/*.blockmap
-temp_test_init_env*
 
 # Databases and user data
 *.db

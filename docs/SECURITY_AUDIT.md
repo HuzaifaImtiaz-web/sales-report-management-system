@@ -86,14 +86,14 @@ could create blank pages; the page title in the top bar always said "Dashboard".
 - **Secrets:** pattern scan of all text in all 23 commits (private keys, AWS/GitHub/Stripe/Slack
   tokens, Supabase secret keys, JWTs, credentialed database URLs): only the local development
   placeholder `postgres:postgres@127.0.0.1` matched. No real credentials.
-- **Database files in history** (`HimmelSales.db`, `database/admin.db-wal`, a sample backup):
-  starter reference data and table definitions only; no users, no password hashes, no doctor
-  names or phone numbers (email addresses found are placeholder `@himmel.com` ones). They remain
-  in history but are harmless.
-- **Repository size:** 620 MB of history comes from installers committed earlier. Not a security
-  issue; it can be removed with a history rewrite (force push) if you want a smaller repository.
+- **Database files that were in history** (`HimmelSales.db`, `database/admin.db-wal`, a sample
+  backup): starter reference data and table definitions only; no users, no password hashes, no
+  doctor names or phone numbers (email addresses found were placeholder `@himmel.com` ones).
+- **Desktop app removed (12 October 2026):** the desktop installers and build folders (`release/`,
+  `Client_Delivery/`) and those database files were removed from the entire git history, which
+  was rewritten and force-pushed; the GitHub releases v1.0.0–v1.0.3 and their tags were deleted.
 - **Current tree:** `Backups/`, `UserData/`, `database/`, `dist/`, `release/` and `.env` files are
-  untracked; `.vercelignore` keeps them out of CLI deployments.
+  ignored; `.vercelignore` keeps them out of CLI deployments.
 
 ---
 

@@ -8,7 +8,6 @@ Backups/
 UserData/
 database/
 release/
-Client_Delivery/
 dist/
 *.db
 *.db-wal
