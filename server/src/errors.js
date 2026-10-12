@@ -7,14 +7,14 @@ class AppError extends Error {
   }
 }
 
-// 401: the desktop app logs the user out when it sees this message ("Session expired").
+// 401: the web app signs the user out when it gets this status (src/api/webApi.js).
 class AuthError extends AppError {
   constructor(message = 'Session expired. Please log in again.') {
     super(message, 401);
   }
 }
 
-// 403: deliberately avoids the word "Unauthorized", which the desktop app treats as a logout signal.
+// 403: the user stays signed in; only this action is refused.
 class ForbiddenError extends AppError {
   constructor(message = 'Permission denied: your role is not allowed to perform this action.') {
     super(message, 403);

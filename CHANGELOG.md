@@ -13,8 +13,8 @@
   tab, self-hosted fonts, faster start-up (no simulated loading screen).
 
 ### Removed
-- The desktop app entirely: installers, desktop releases (v1.0.0–v1.0.3) and the client delivery
-  package. Old installer files were also purged from the git history.
+- The desktop app entirely: installers, desktop releases (v1.0.0–v1.0.3) with their release notes,
+  and the client delivery package. Old installer files were also purged from the git history.
 
 ### Security
 - Server-side sessions in HttpOnly/Secure/SameSite cookies, CSRF tokens, origin checks, security

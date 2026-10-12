@@ -96,7 +96,7 @@ class HealthService {
     };
   }
 
-  // Database part of the diagnostics panel; the desktop app adds its own local details.
+  // Settings → Diagnostics (admins only): database and API server details.
   async getDiagnostics() {
     const versionRow = await this.db.get("SELECT current_setting('server_version') AS version, pg_database_size(current_database()) AS size");
     const dbVersionRow = await this.db.get("SELECT value FROM settings WHERE key = 'db_version'");

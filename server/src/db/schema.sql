@@ -2,7 +2,7 @@
 -- Ported from the desktop app's SQLite schema. Safe to run on every migration:
 -- tables/indexes use IF NOT EXISTS, functions use CREATE OR REPLACE, views and triggers are recreated.
 --
--- Column types deliberately mirror the SQLite version so the desktop UI receives identical values:
+-- Column types deliberately mirror the SQLite version so the UI receives the same values as before:
 -- dates/timestamps stay TEXT ('YYYY-MM-DD' / 'YYYY-MM-DD HH:MM:SS'), flags stay 0/1 integers,
 -- money stays double precision (SQLite REAL).
 

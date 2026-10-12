@@ -320,7 +320,7 @@ class AuthService {
 
   /**
    * First-login security wizard for the signed-in administrator.
-   * Returns { result, user } so the caller can hand the desktop app a fresh token.
+   * Returns { result, user } so the caller can start a fresh session (new cookie and CSRF token).
    */
   async completeFirstLoginWizard(currentUserId, { newUsername, newPassword, recoveryPassword, recoveryPin } = {}) {
     if ((await this.getSecuritySetting('first_login_completed')) === 'true') {

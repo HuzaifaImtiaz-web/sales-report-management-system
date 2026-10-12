@@ -51,7 +51,7 @@ class AuditRepository {
         toText(newValue),
         performedBy || 'System',
         new Date().toISOString(),
-        ipOrDevice || 'Desktop App'
+        ipOrDevice || 'Web App'
       ]);
     } catch (err) {
       // Audit logging must NEVER throw or interrupt the primary business action

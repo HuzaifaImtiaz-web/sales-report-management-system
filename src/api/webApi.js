@@ -175,8 +175,6 @@ async function restoreBackup(file, password) {
   return body.success ? { success: true, data: body.data } : { success: false, error: body.error };
 }
 
-const notInWebApp = async () => ({ success: false, error: 'This feature is only available in the desktop app.' });
-
 function crud(prefix) {
   return {
     getAll: () => invoke(`${prefix}:getAll`),
@@ -223,8 +221,7 @@ export function createWebApi() {
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
       }, `Himmel_${String(reportType || 'Export').replace(/[^a-zA-Z0-9]/g, '_')}`),
       getHistory: () => invoke('export:getHistory'),
-      getPreviewData: (params) => invoke('export:getPreviewData', params),
-      openFile: notInWebApp
+      getPreviewData: (params) => invoke('export:getPreviewData', params)
     },
     production: {
       getConfig: async () => ({
