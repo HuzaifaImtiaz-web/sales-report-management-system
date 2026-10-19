@@ -392,7 +392,7 @@ const ReportDetailsModal = ({ po, summary, onClose }) => {
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50">
                 {summary.itemsDetailed.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/40 dark:hover:bg-white/5/10">
+                  <tr key={idx} className="hover:bg-gray-50/40 dark:hover:bg-white/5">
                     <td className="px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{item.productName}</td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-800 dark:text-gray-200">{item.quantity.toLocaleString()}</td>
                     <td className="px-4 py-3 text-center text-gray-500">{item.unit}</td>

@@ -226,7 +226,7 @@ const Institutions = () => {
                     <tr
                       id={`row-${item.id}`}
                       key={item.id}
-                      className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 transition-colors"
+                      className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors"
                     >
                       <td className="px-5 py-4 font-mono font-semibold text-gray-700 dark:text-gray-300">{item.code || '—'}</td>
                       <td className="px-5 py-4 font-semibold text-gray-905 dark:text-white">{item.name}</td>

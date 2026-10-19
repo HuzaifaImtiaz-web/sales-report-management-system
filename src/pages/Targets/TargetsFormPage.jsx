@@ -69,7 +69,7 @@ export default function TargetsFormPage() {
           setToast({ message: 'Record saved successfully.', type: 'success' });
           setFormKey((prev) => prev + 1);
           setTimeout(() => {
-            const firstInput = document.querySelector('input, select, textarea');
+            const firstInput = (document.querySelector('[role=dialog] input, [role=dialog] select, [role=dialog] textarea') || document.querySelector('input, select, textarea'));
             if (firstInput) firstInput.focus();
           }, 50);
         } else {

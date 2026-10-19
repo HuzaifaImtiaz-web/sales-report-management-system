@@ -259,7 +259,7 @@ export default function AuditLog() {
                       <tr
                         key={log.id}
                         onClick={() => setSelectedLog(log)}
-                        className="hover:bg-gray-50/70 dark:hover:bg-white/5/50 cursor-pointer transition-colors"
+                        className="hover:bg-gray-50/70 dark:hover:bg-white/5 cursor-pointer transition-colors"
                       >
                         <td className="py-3 px-4 whitespace-nowrap text-gray-600 dark:text-gray-400 font-mono text-[11px]">
                           {formatTimestamp(log.performedAt)}

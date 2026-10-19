@@ -547,7 +547,7 @@ export default function Targets() {
                   </tr>
                 ) : (
                   paginated.map((t) => (
-                    <tr key={t.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 transition-colors">
+                    <tr key={t.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                       <td className="px-5 py-4 font-mono font-semibold text-gray-500 dark:text-gray-400">{t.productCode || '—'}</td>
                       <td className="px-5 py-4 font-semibold text-gray-800 dark:text-white">
                         {t.productName}

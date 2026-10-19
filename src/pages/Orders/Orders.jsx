@@ -405,7 +405,7 @@ const Orders = () => {
                   </tr>
                 ) : (
                   paginated.map((po) => (
-                    <tr key={po.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 transition-colors">
+                    <tr key={po.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                       <td className="px-5 py-4 font-mono font-semibold text-gray-900 dark:text-white">{po.poNumber}</td>
                       <td className="px-5 py-4 whitespace-nowrap text-gray-600 dark:text-gray-300">{po.poDate}</td>
                       <td className="px-5 py-4 font-semibold text-gray-800 dark:text-white">{po.institution || '—'}</td>

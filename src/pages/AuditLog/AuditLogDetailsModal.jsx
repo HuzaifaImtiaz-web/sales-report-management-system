@@ -101,7 +101,7 @@ export default function AuditLogDetailsModal({ log, onClose }) {
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                     {diffs.map((d, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 font-medium">
+                      <tr key={idx} className="hover:bg-gray-50/50 dark:hover:bg-white/5 font-medium">
                         <td className="py-2.5 px-3.5 font-mono text-gray-900 dark:text-white capitalize font-semibold">
                           {d.field}
                         </td>

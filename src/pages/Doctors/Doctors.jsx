@@ -276,7 +276,7 @@ export default function Doctors() {
                     <tr
                       id={`row-${d.id}`}
                       key={d.id}
-                      className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 transition-colors"
+                      className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors"
                     >
                       <td className="py-3 px-4">
                         <div className="font-semibold text-gray-900 dark:text-white">{d.name}</div>

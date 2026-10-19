@@ -28,6 +28,7 @@ import UserManagement from '../pages/Users/UserManagement';
 import AuditLog from '../pages/AuditLog/AuditLog';
 
 import ProtectedRoute from '../components/common/ProtectedRoute';
+import { WithFormPanel } from '../components/layout/FormPanel';
 
 const protect = (element, permission) => <ProtectedRoute requiredPermission={permission}>{element}</ProtectedRoute>;
 
@@ -48,15 +49,15 @@ export const routes = [
   },
   {
     path: '/products/new',
-    element: protect(<ProductsFormPage />, 'products.create'),
+    element: protect(<WithFormPanel list={<Products />}><ProductsFormPage /></WithFormPanel>, 'products.create'),
   },
   {
     path: '/products/:id',
-    element: protect(<ProductsFormPage />, 'products.view'),
+    element: protect(<WithFormPanel list={<Products />}><ProductsFormPage /></WithFormPanel>, 'products.view'),
   },
   {
     path: '/products/:id/edit',
-    element: protect(<ProductsFormPage />, 'products.edit'),
+    element: protect(<WithFormPanel list={<Products />}><ProductsFormPage /></WithFormPanel>, 'products.edit'),
   },
 
   // Doctors Routes
@@ -66,15 +67,15 @@ export const routes = [
   },
   {
     path: '/doctors/new',
-    element: protect(<DoctorsFormPage />, 'doctors.create'),
+    element: protect(<WithFormPanel list={<Doctors />}><DoctorsFormPage /></WithFormPanel>, 'doctors.create'),
   },
   {
     path: '/doctors/:id',
-    element: protect(<DoctorsFormPage />, 'doctors.view'),
+    element: protect(<WithFormPanel list={<Doctors />}><DoctorsFormPage /></WithFormPanel>, 'doctors.view'),
   },
   {
     path: '/doctors/:id/edit',
-    element: protect(<DoctorsFormPage />, 'doctors.edit'),
+    element: protect(<WithFormPanel list={<Doctors />}><DoctorsFormPage /></WithFormPanel>, 'doctors.edit'),
   },
 
   // Areas Routes
@@ -84,15 +85,15 @@ export const routes = [
   },
   {
     path: '/areas/new',
-    element: protect(<AreasFormPage />, 'areas.create'),
+    element: protect(<WithFormPanel list={<Areas />}><AreasFormPage /></WithFormPanel>, 'areas.create'),
   },
   {
     path: '/areas/:id',
-    element: protect(<AreasFormPage />, 'areas.view'),
+    element: protect(<WithFormPanel list={<Areas />}><AreasFormPage /></WithFormPanel>, 'areas.view'),
   },
   {
     path: '/areas/:id/edit',
-    element: protect(<AreasFormPage />, 'areas.edit'),
+    element: protect(<WithFormPanel list={<Areas />}><AreasFormPage /></WithFormPanel>, 'areas.edit'),
   },
 
   // Team Members Routes
@@ -102,15 +103,15 @@ export const routes = [
   },
   {
     path: '/team/new',
-    element: protect(<TeamMembersFormPage />, 'teamMembers.create'),
+    element: protect(<WithFormPanel list={<TeamMembers />}><TeamMembersFormPage /></WithFormPanel>, 'teamMembers.create'),
   },
   {
     path: '/team/:id',
-    element: protect(<TeamMembersFormPage />, 'teamMembers.view'),
+    element: protect(<WithFormPanel list={<TeamMembers />}><TeamMembersFormPage /></WithFormPanel>, 'teamMembers.view'),
   },
   {
     path: '/team/:id/edit',
-    element: protect(<TeamMembersFormPage />, 'teamMembers.edit'),
+    element: protect(<WithFormPanel list={<TeamMembers />}><TeamMembersFormPage /></WithFormPanel>, 'teamMembers.edit'),
   },
 
   // Groups Routes
@@ -120,15 +121,15 @@ export const routes = [
   },
   {
     path: '/groups/new',
-    element: protect(<GroupsFormPage />, 'groups.create'),
+    element: protect(<WithFormPanel list={<Groups />}><GroupsFormPage /></WithFormPanel>, 'groups.create'),
   },
   {
     path: '/groups/:id',
-    element: protect(<GroupsFormPage />, 'groups.view'),
+    element: protect(<WithFormPanel list={<Groups />}><GroupsFormPage /></WithFormPanel>, 'groups.view'),
   },
   {
     path: '/groups/:id/edit',
-    element: protect(<GroupsFormPage />, 'groups.edit'),
+    element: protect(<WithFormPanel list={<Groups />}><GroupsFormPage /></WithFormPanel>, 'groups.edit'),
   },
 
   // Sales Entry Routes
@@ -162,15 +163,15 @@ export const routes = [
   },
   {
     path: '/institutions/new',
-    element: protect(<InstitutionsFormPage />, 'institutions.create'),
+    element: protect(<WithFormPanel list={<Institutions />}><InstitutionsFormPage /></WithFormPanel>, 'institutions.create'),
   },
   {
     path: '/institutions/:id',
-    element: protect(<InstitutionsFormPage />, 'institutions.view'),
+    element: protect(<WithFormPanel list={<Institutions />}><InstitutionsFormPage /></WithFormPanel>, 'institutions.view'),
   },
   {
     path: '/institutions/:id/edit',
-    element: protect(<InstitutionsFormPage />, 'institutions.edit'),
+    element: protect(<WithFormPanel list={<Institutions />}><InstitutionsFormPage /></WithFormPanel>, 'institutions.edit'),
   },
 
   // Target Routes

@@ -70,7 +70,7 @@ const RecentSalesTable = ({ recentSales = [] }) => {
                 } catch (e) {}
 
                 return (
-                  <tr key={row.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 transition-colors">
+                  <tr key={row.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                     <td className="px-5 py-3.5 text-gray-500 dark:text-gray-400 whitespace-nowrap font-medium">{formattedDate}</td>
                     <td className="px-5 py-3.5 text-gray-900 dark:text-white whitespace-nowrap font-mono text-xs font-semibold">{row.poNumber}</td>
                     <td className="px-5 py-3.5 text-gray-805 dark:text-gray-200 whitespace-nowrap">{row.doctorName || 'N/A'}</td>

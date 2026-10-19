@@ -69,7 +69,7 @@ export default function OrdersFormPage() {
           setToast({ message: `Order PO ${saved.poNumber || form.poNumber} saved as Pending successfully.`, type: 'success' });
           setFormKey((prev) => prev + 1);
           setTimeout(() => {
-            const firstInput = document.querySelector('input, select, textarea');
+            const firstInput = (document.querySelector('[role=dialog] input, [role=dialog] select, [role=dialog] textarea') || document.querySelector('input, select, textarea'));
             if (firstInput) firstInput.focus();
           }, 50);
         } else {
@@ -96,12 +96,12 @@ export default function OrdersFormPage() {
     });
   };
 
-  const pageTitle = mode === 'add' ? 'New Purchase Order' : mode === 'edit' ? 'Edit Purchase Order' : 'Purchase Order Details';
+  const pageTitle = mode === 'add' ? 'Sales Entry' : mode === 'edit' ? 'Edit Order' : 'Order Details';
   const shortDesc = mode === 'add'
-    ? 'Configure a new purchase order configuration.'
+    ? 'Record a new order in three short steps.'
     : mode === 'edit'
-    ? 'Modify purchase order items, remarks, and settings.'
-    : 'View purchase order details, quantities, rates, and items list.';
+    ? 'Change the order details or products.'
+    : 'Order details, products and prices.';
 
   if (loading) {
     return (
@@ -128,7 +128,7 @@ export default function OrdersFormPage() {
             </button>
           )}
           <div>
-            <h1 className="text-xl font-semibold text-gray-905 dark:text-white tracking-tight">
+            <h1 className="text-xl font-semibold text-ink dark:text-white tracking-tight">
               {pageTitle}
             </h1>
             <p className="text-xs text-gray-500 dark:text-gray-555 font-medium mt-0.5">

@@ -540,7 +540,7 @@ const Products = () => {
                   <EmptyState onAdd={openAdd} />
                 ) : (
                   paginatedProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50/60 dark:hover:bg-white/5/30 transition-colors duration-100 group">
+                    <tr key={p.id} className="hover:bg-gray-50/60 dark:hover:bg-white/5 transition-colors duration-100 group">
                       {/* Product Code */}
                       <td className="px-5 py-4 font-mono font-semibold text-gray-600 dark:text-gray-400 whitespace-nowrap">
                         {p.productCode || p.code}

@@ -135,7 +135,7 @@ export default function GlobalSearch() {
                     <button
                       key={p.id}
                       onClick={() => handleSelectResult(`/products?search=${encodeURIComponent(p.brand_name || p.brandName || '')}`)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5/60 flex items-center justify-between group text-xs transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between group text-xs transition-colors"
                     >
                       <div>
                         <span className="font-semibold text-gray-900 dark:text-white">
@@ -163,7 +163,7 @@ export default function GlobalSearch() {
                     <button
                       key={d.id}
                       onClick={() => handleSelectResult(`/doctors?search=${encodeURIComponent(d.name)}`)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5/60 flex items-center justify-between group text-xs transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between group text-xs transition-colors"
                     >
                       <div>
                         <span className="font-semibold text-gray-900 dark:text-white">{d.name}</span>
@@ -189,7 +189,7 @@ export default function GlobalSearch() {
                     <button
                       key={inst.id}
                       onClick={() => handleSelectResult(`/institutions?search=${encodeURIComponent(inst.name)}`)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5/60 flex items-center justify-between group text-xs transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between group text-xs transition-colors"
                     >
                       <div>
                         <span className="font-semibold text-gray-900 dark:text-white">{inst.name}</span>
@@ -215,7 +215,7 @@ export default function GlobalSearch() {
                     <button
                       key={o.id}
                       onClick={() => handleSelectResult(`/sales/${o.id}`)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5/60 flex items-center justify-between group text-xs transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between group text-xs transition-colors"
                     >
                       <div>
                         <span className="font-semibold text-gray-900 dark:text-white">
@@ -243,7 +243,7 @@ export default function GlobalSearch() {
                     <button
                       key={a.id}
                       onClick={() => handleSelectResult(`/areas?search=${encodeURIComponent(a.name)}`)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5/60 flex items-center justify-between group text-xs transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between group text-xs transition-colors"
                     >
                       <span className="font-semibold text-gray-900 dark:text-white">{a.name} [{a.code}]</span>
                       <span className="text-xs text-gray-500 group-hover:text-gray-600 flex items-center gap-1 font-semibold">
@@ -264,7 +264,7 @@ export default function GlobalSearch() {
                     <button
                       key={t.id}
                       onClick={() => handleSelectResult(`/team-members?search=${encodeURIComponent(t.name)}`)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5/60 flex items-center justify-between group text-xs transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between group text-xs transition-colors"
                     >
                       <div>
                         <span className="font-semibold text-gray-900 dark:text-white">{t.name}</span>

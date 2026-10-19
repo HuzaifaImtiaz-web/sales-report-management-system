@@ -644,8 +644,8 @@ const DashboardPlaceholder = () => {
                       {recentOrders.map((order) => (
                         <tr 
                           key={order.id} 
-                          onClick={() => navigate('/orders', { state: { highlightOrderId: order.id } })}
-                          className="hover:bg-gray-50/55 dark:hover:bg-white/5/30 cursor-pointer transition-colors"
+                          onClick={() => navigate(`/orders/${order.id}`)}
+                          className="hover:bg-gray-50/55 dark:hover:bg-white/5 cursor-pointer transition-colors"
                         >
                           <td className="py-2 text-brand-primary font-semibold">{order.orderNumber}</td>
                           <td className="py-2 text-gray-500">{order.orderDate}</td>
@@ -685,7 +685,7 @@ const DashboardPlaceholder = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <button 
-              onClick={() => navigate('/sales')}
+              onClick={() => navigate('/orders/new')}
               className="flex flex-col items-center justify-center p-4 border border-gray-200 dark:border-brand-navyLine rounded-xl hover:border-brand-primary hover:bg-gray-50/15 dark:hover:bg-brand-primary/5 transition-all text-center gap-2 group"
             >
               <div className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-full text-brand-primary transition-transform">

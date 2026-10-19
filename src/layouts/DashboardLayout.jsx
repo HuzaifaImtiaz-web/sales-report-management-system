@@ -1,9 +1,56 @@
 import React, { useState, createContext, useContext, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { FiGrid, FiPlusCircle, FiShoppingBag, FiMenu } from 'react-icons/fi';
+import { useUnsavedChanges } from '../context/UnsavedChangesContext';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
 
 export const LayoutContext = createContext(null);
+
+// Phones: the most used pages in a bar at the bottom; "More" opens the full menu.
+const BOTTOM_ITEMS = [
+  { label: 'Home', icon: FiGrid, path: '/dashboard', match: /^\/dashboard/ },
+  { label: 'New sale', icon: FiPlusCircle, path: '/orders/new', match: /^\/orders\/new/ },
+  { label: 'Orders', icon: FiShoppingBag, path: '/sales', match: /^\/(sales|orders\/(?!new)[^/]+)/ },
+];
+
+const BottomBar = ({ onMore }) => {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { isDirty, confirmNavigation } = useUnsavedChanges();
+  const itemCls = (active) => `flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] text-[11px] font-medium ${
+    active ? 'text-brand-primary dark:text-brand-primaryBright' : 'text-muted dark:text-gray-400'
+  }`;
+
+  return (
+    <nav aria-label="Quick menu" className="md:hidden fixed bottom-0 inset-x-0 z-20 flex bg-white/95 dark:bg-brand-navyCard/95 backdrop-blur border-t border-line dark:border-brand-navyLine pb-[env(safe-area-inset-bottom)]">
+      {BOTTOM_ITEMS.map(({ label, icon: Icon, path, match }) => {
+        const active = match.test(pathname);
+        return (
+          <Link
+            key={path}
+            to={path}
+            aria-current={active ? 'page' : undefined}
+            onClick={(e) => {
+              if (isDirty) {
+                e.preventDefault();
+                confirmNavigation(() => navigate(path));
+              }
+            }}
+            className={itemCls(active)}
+          >
+            <Icon className="w-5 h-5" aria-hidden="true" />
+            {label}
+          </Link>
+        );
+      })}
+      <button type="button" onClick={onMore} className={itemCls(false)}>
+        <FiMenu className="w-5 h-5" aria-hidden="true" />
+        More
+      </button>
+    </nav>
+  );
+};
 
 // Separate context for page title state to prevent full layout re-renders on route navigation
 const TitleContext = createContext(null);
@@ -81,9 +128,10 @@ const DashboardLayoutContent = ({ pageTitle = 'Dashboard', children }) => {
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <Navbar onMenuClick={handleMenuClick} />
           
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" id="main-content">
+          <main className="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 sm:pb-24 md:pb-8 lg:p-8" id="main-content">
             {children || <Outlet />}
           </main>
+          <BottomBar onMore={() => setMobileOpen(true)} />
         </div>
       </div>
     </LayoutContext.Provider>

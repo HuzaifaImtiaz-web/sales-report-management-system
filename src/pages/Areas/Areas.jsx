@@ -358,7 +358,7 @@ const Areas = () => {
                     <tr
                       id={`row-${a.id}`}
                       key={a.id}
-                      className="hover:bg-gray-50/60 dark:hover:bg-white/5/30 transition-colors duration-100 group"
+                      className="hover:bg-gray-50/60 dark:hover:bg-white/5 transition-colors duration-100 group"
                     >
                       <td className="px-5 py-4 font-semibold text-gray-855 dark:text-gray-200 whitespace-nowrap">{a.name}</td>
                       <td className="px-5 py-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">{a.city}</td>

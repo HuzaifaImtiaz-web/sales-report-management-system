@@ -112,7 +112,7 @@ export default function HybridComboBox({
                   key={opt.value}
                   type="button"
                   onClick={() => handleSelect(opt.value)}
-                  className="w-full px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5/60 flex items-center justify-between transition-colors"
+                  className="w-full px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between transition-colors"
                 >
                   <span>{opt.label}</span>
                   {isSelected && <FiCheck className="w-3.5 h-3.5 text-brand-primary" />}

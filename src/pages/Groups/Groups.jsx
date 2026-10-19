@@ -262,7 +262,7 @@ const Groups = () => {
                   <EmptyState onAdd={openAdd} />
                 ) : (
                   paginatedGroups.map((g) => (
-                    <tr key={g.id} className="hover:bg-gray-50/60 dark:hover:bg-white/5/30 transition-colors duration-100 group">
+                    <tr key={g.id} className="hover:bg-gray-50/60 dark:hover:bg-white/5 transition-colors duration-100 group">
                       <td className="px-5 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center w-max px-2.5 py-0.5 rounded text-[11px] font-semibold bg-brand-primary/10 text-brand-primary">
                           {g.divisionName || 'Unassigned'}

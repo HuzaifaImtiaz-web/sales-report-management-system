@@ -520,6 +520,17 @@ const Settings = () => {
     }
   };
 
+  // Sections shown one at a time; every card keeps its own logic.
+  const SECTIONS = [
+    { id: 'company', label: 'Company', hint: 'Details, logo, business year' },
+    { id: 'preferences', label: 'Preferences', hint: 'Appearance and exports' },
+    { id: 'security', label: 'Account & security', hint: 'Password, recovery' },
+    { id: 'system', label: 'Backups & system', hint: 'Backups, diagnostics' },
+    { id: 'about', label: 'About', hint: 'Version and support' },
+  ];
+  const [section, setSection] = useState('company');
+  const sectionCls = (id) => (section === id ? '' : 'hidden');
+
   return (
     <DashboardLayout pageTitle="Settings">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -550,10 +561,29 @@ const Settings = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+          <nav aria-label="Settings sections" className="w-full lg:w-60 flex-none flex lg:flex-col gap-1 overflow-x-auto pb-1 lg:pb-0 lg:sticky lg:top-0">
+            {SECTIONS.map(({ id, label, hint }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setSection(id)}
+                aria-current={section === id ? 'page' : undefined}
+                className={`flex-none text-left rounded-lg px-3.5 py-2.5 transition-colors ${
+                  section === id
+                    ? 'bg-brand-tint text-brand-primary dark:bg-brand-primary/20 dark:text-red-200'
+                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5'
+                }`}
+              >
+                <span className={`block text-sm ${section === id ? 'font-semibold' : 'font-medium'}`}>{label}</span>
+                <span className="hidden lg:block text-xs text-muted dark:text-gray-400 mt-0.5">{hint}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="flex-1 min-w-0 w-full grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* 1. Company Information */}
-            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
+            <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between ${sectionCls('company')}`}>
               <form onSubmit={handleCompanySave} className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-brand-navyLine">
                   <FiBriefcase className="w-4 h-4 text-brand-primary" />
@@ -641,7 +671,7 @@ const Settings = () => {
             </div>
 
             {/* 2. Business Year */}
-            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
+            <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between ${sectionCls('company')}`}>
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855">
                   <FiCalendar className="w-4 h-4 text-brand-primary" />
@@ -693,7 +723,7 @@ const Settings = () => {
             </div>
 
             {/* 3. Appearance */}
-            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5">
+            <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 ${sectionCls('preferences')}`}>
               <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855 mb-4">
                 <FiSun className="w-4 h-4 text-brand-primary" />
                 <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Appearance</h3>
@@ -705,7 +735,7 @@ const Settings = () => {
                   onClick={() => setThemeMode('light')}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${mode === 'light'
                       ? 'border-brand-primary bg-gray-50/15 dark:bg-brand-primary/10 text-brand-primary font-semibold shadow-sm'
-                      : 'border-gray-200 dark:border-brand-navyLine text-gray-500 hover:bg-gray-50/50 dark:hover:bg-white/5/40'
+                      : 'border-gray-200 dark:border-brand-navyLine text-gray-500 hover:bg-gray-50/50 dark:hover:bg-white/5'
                     }`}
                 >
                   <FiSun className="w-5 h-5 text-amber-500" />
@@ -717,7 +747,7 @@ const Settings = () => {
                   onClick={() => setThemeMode('dark')}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${mode === 'dark'
                       ? 'border-brand-primary bg-gray-50/15 dark:bg-brand-primary/10 text-brand-primary font-semibold shadow-sm'
-                      : 'border-gray-200 dark:border-brand-navyLine text-gray-500 hover:bg-gray-50/50 dark:hover:bg-white/5/40'
+                      : 'border-gray-200 dark:border-brand-navyLine text-gray-500 hover:bg-gray-50/50 dark:hover:bg-white/5'
                     }`}
                 >
                   <FiMoon className="w-5 h-5 text-gray-500" />
@@ -729,7 +759,7 @@ const Settings = () => {
                   onClick={() => setThemeMode('system')}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${mode === 'system'
                       ? 'border-brand-primary bg-gray-50/15 dark:bg-brand-primary/10 text-brand-primary font-semibold shadow-sm'
-                      : 'border-gray-200 dark:border-brand-navyLine text-gray-500 hover:bg-gray-50/50 dark:hover:bg-white/5/40'
+                      : 'border-gray-200 dark:border-brand-navyLine text-gray-500 hover:bg-gray-50/50 dark:hover:bg-white/5'
                     }`}
                 >
                   <FiMonitor className="w-5 h-5 text-gray-500" />
@@ -743,7 +773,7 @@ const Settings = () => {
             </div>
 
             {/* 4. Export Preferences */}
-            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
+            <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between ${sectionCls('preferences')}`}>
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855">
                   <FiSettings className="w-4 h-4 text-brand-primary" />
@@ -807,7 +837,7 @@ const Settings = () => {
             </div>
 
             {/* 5. Account */}
-            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
+            <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between ${sectionCls('security')}`}>
               <div className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855">
                   <FiUser className="w-4 h-4 text-brand-primary" />
@@ -841,7 +871,7 @@ const Settings = () => {
             </div>
 
             {/* 6. Enterprise Security Center */}
-            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 md:col-span-2 space-y-6">
+            <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 md:col-span-2 space-y-6 ${sectionCls('security')}`}>
               <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855">
                 <FiShield className="w-4.5 h-4.5 text-brand-primary" />
                 <h3 className="text-xs font-semibold text-gray-855 dark:text-gray-200">
@@ -977,7 +1007,7 @@ const Settings = () => {
             </div>
 
             {/* 7. Data Management */}
-            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5">
+            <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 ${sectionCls('system')}`}>
               <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855 mb-4">
                 <FiDatabase className="w-4 h-4 text-brand-primary" />
                 <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Data Management</h3>
@@ -1004,7 +1034,7 @@ const Settings = () => {
 
             {/* 8. Production Settings & Diagnostics (Admin Only) */}
             {user?.role === 'Admin' && (
-              <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 md:col-span-2 space-y-6">
+              <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 md:col-span-2 space-y-6 ${sectionCls('system')}`}>
                 <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-855">
                   <div className="flex items-center gap-2">
                     <FiDatabase className="w-4.5 h-4.5 text-brand-primary" />
@@ -1114,7 +1144,7 @@ const Settings = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800 font-medium text-gray-600 dark:text-gray-300">
                               {backupHistory.map((b) => (
-                                <tr key={b.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5/20">
+                                <tr key={b.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5">
                                   <td className="px-4 py-2 whitespace-nowrap">{b.performedAt}</td>
                                   <td className="px-4 py-2">{b.action}</td>
                                   <td className="px-4 py-2">{b.performedBy}</td>
@@ -1269,7 +1299,7 @@ const Settings = () => {
             )}
 
             {/* 7. About Application & Developer Information */}
-            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-6 md:col-span-2 space-y-6 select-none">
+            <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-6 md:col-span-2 space-y-6 select-none ${sectionCls('about')}`}>
 
               {/* Header with Himmel Logo & Main App Info */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-gray-200 dark:border-brand-navyLine">
@@ -1402,6 +1432,7 @@ const Settings = () => {
             </div>
 
 
+          </div>
           </div>
         )}
       </div>

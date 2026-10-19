@@ -209,17 +209,17 @@ export default function SalesEntry() {
   };
 
   return (
-    <DashboardLayout pageTitle="Sales Processing Center">
+    <DashboardLayout pageTitle="Orders">
       <div className="space-y-6 animate-fade-in pb-12">
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
         {/* Page Header */}
         <div>
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">
-            Sales Processing Center
+            Orders
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Process customer orders, view status, complete sales, and manage orders.
+            All orders: check their status, then complete, cancel or edit them.
           </p>
         </div>
 
@@ -417,7 +417,7 @@ export default function SalesEntry() {
                     const isCancelled = sale.status === 'Cancelled';
 
                     return (
-                      <tr key={sale.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 transition-colors">
+                      <tr key={sale.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                         <td className="py-3.5 px-4 font-mono font-semibold text-gray-900 dark:text-white whitespace-nowrap">
                           {sale.poNumber || sale.orderNumber}
                         </td>

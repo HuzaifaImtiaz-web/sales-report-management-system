@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { FiPlus, FiTrash2, FiSave, FiSend, FiAlertCircle, FiInfo, FiLock } from 'react-icons/fi';
+import { FiTrash2, FiSave, FiAlertCircle, FiCheck, FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 import StatusBadge from './StatusBadge';
@@ -11,6 +11,44 @@ const Field = ({ label, required, error, children }) => (
     </label>
     {children}
     {error && <p className="text-xs text-feedback-error font-semibold mt-1">{error}</p>}
+  </div>
+);
+
+const STEPS = ['Customer', 'Products', 'Review'];
+
+const Stepper = ({ step, onStep }) => (
+  <ol aria-label="Steps" className="flex flex-wrap items-center gap-3 text-sm">
+    {STEPS.map((label, i) => {
+      const done = i < step;
+      const current = i === step;
+      return (
+        <React.Fragment key={label}>
+          {i > 0 && <li aria-hidden="true" className="hidden sm:block w-10 h-px bg-line dark:bg-brand-navyLine" />}
+          <li>
+            <button
+              type="button"
+              onClick={() => onStep(i)}
+              aria-current={current ? 'step' : undefined}
+              className={`flex items-center gap-2.5 rounded-lg px-1 py-1 ${current ? 'font-semibold text-brand-primary dark:text-brand-primaryBright' : done ? 'text-ink dark:text-white' : 'text-muted dark:text-gray-400'}`}
+            >
+              <span className={`w-7 h-7 rounded-full inline-flex items-center justify-center text-xs ${
+                done ? 'bg-feedback-success text-white' : current ? 'bg-brand-primary text-white' : 'border border-gray-300 dark:border-brand-navyLine'
+              }`}>
+                {done ? <FiCheck className="w-3.5 h-3.5" /> : i + 1}
+              </span>
+              {label}
+            </button>
+          </li>
+        </React.Fragment>
+      );
+    })}
+  </ol>
+);
+
+const ReviewRow = ({ label, value }) => (
+  <div className="flex justify-between gap-4 py-2.5 border-b border-line dark:border-brand-navyLine last:border-0 text-sm">
+    <dt className="text-muted dark:text-gray-400">{label}</dt>
+    <dd className="font-medium text-ink dark:text-white text-right">{value || '—'}</dd>
   </div>
 );
 
@@ -57,6 +95,7 @@ export default function OrdersForm({
   const [items, setItems] = useState([]);
   const [errors, setErrors] = useState({});
   const [duplicateWarning, setDuplicateWarning] = useState('');
+  const [step, setStep] = useState(0);
 
   // Lock status checks: Completed or Cancelled orders are read-only
   const isCompleted = form.status === 'Completed';
@@ -192,7 +231,7 @@ export default function OrdersForm({
     updateItems(items.filter((_, i) => i !== index));
   };
 
-  const validate = () => {
+  const collectErrors = () => {
     const errs = {};
     if (!form.poNumber.trim()) errs.poNumber = 'PO Number is required.';
     if (!form.poDate) errs.poDate = 'Order Date is required.';
@@ -205,12 +244,37 @@ export default function OrdersForm({
       if (it.rate < 0) errs[`rate_${idx}`] = 'Selling price must be >= 0.';
     });
 
+    return errs;
+  };
+
+  const hasDetailErrors = (errs) => ['poNumber', 'poDate', 'teamMemberId'].some((k) => errs[k]);
+
+  // Moving forward checks the steps in between; going back is always allowed.
+  const goToStep = (target) => {
+    if (target <= step) {
+      setStep(target);
+      return;
+    }
+    const errs = collectErrors();
     setErrors(errs);
-    return Object.keys(errs).length === 0;
+    if (hasDetailErrors(errs)) {
+      setStep(0);
+      return;
+    }
+    if (target === 2 && Object.keys(errs).length > 0) {
+      setStep(1);
+      return;
+    }
+    setStep(target);
   };
 
   const handleSaveOrder = () => {
-    if (!validate()) return;
+    const errs = collectErrors();
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      setStep(hasDetailErrors(errs) ? 0 : 1);
+      return;
+    }
     const payload = {
       ...form,
       status: form.status || 'Pending',
@@ -225,7 +289,10 @@ export default function OrdersForm({
 
   return (
     <div className="space-y-6">
+      {!isReadOnly && <Stepper step={step} onStep={goToStep} />}
+
       {/* Workflow Status Banner */}
+      {mode !== 'add' && (
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-brand-navy/50 rounded-xl border border-gray-200 dark:border-brand-navyLine gap-3">
         <div className="flex items-center gap-3">
           <StatusBadge status={form.status} />
@@ -239,6 +306,7 @@ export default function OrdersForm({
           </div>
         </div>
       </div>
+      )}
 
       {item?.cancelReason && (
         <div className="p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 rounded-xl text-xs text-rose-700 dark:text-rose-300 space-y-1">
@@ -256,6 +324,7 @@ export default function OrdersForm({
         </div>
       )}
 
+      {(isReadOnly || step === 0) && (<>
       {/* Main Order Details Form */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="PO Number" required error={errors.poNumber}>
@@ -410,8 +479,9 @@ export default function OrdersForm({
           disabled={isReadOnly}
         />
       </Field>
+      </>)}
 
-      {/* Order Line Items */}
+      {(isReadOnly || step === 1) && (
       <div className="space-y-4 pt-2">
         <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-brand-navyLine">
           <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">
@@ -543,10 +613,66 @@ export default function OrdersForm({
           </span>
         </div>
       </div>
+      )}
+
+      {/* Step 3: review before saving */}
+      {!isReadOnly && step === 2 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-ink dark:text-white">Order details</h3>
+            <dl>
+              <ReviewRow label="PO number" value={form.poNumber} />
+              <ReviewRow label="Order date" value={form.poDate} />
+              <ReviewRow label="Institution" value={displayInstitution} />
+              <ReviewRow label="Doctor" value={displayDoctor} />
+              <ReviewRow label="Area" value={displayArea} />
+              <ReviewRow label="Team member" value={displayTeamMember} />
+              {form.remarks && <ReviewRow label="Remarks" value={form.remarks} />}
+            </dl>
+          </section>
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-ink dark:text-white">Products</h3>
+            <div className="overflow-x-auto border border-line dark:border-brand-navyLine rounded-lg">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-muted dark:text-gray-400 border-b border-line dark:border-brand-navyLine">
+                    <th className="px-3 py-2.5 font-medium">Product</th>
+                    <th className="px-3 py-2.5 font-medium text-right">Qty</th>
+                    <th className="px-3 py-2.5 font-medium text-right">Price</th>
+                    <th className="px-3 py-2.5 font-medium text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((it, idx) => {
+                    const p = products.find((x) => x.id === Number(it.productId)) || {};
+                    return (
+                      <tr key={idx} className="border-b border-line dark:border-brand-navyLine last:border-0">
+                        <td className="px-3 py-2.5 font-medium text-ink dark:text-white">{p.brandName || p.name || `Product #${it.productId}`}</td>
+                        <td className="px-3 py-2.5 text-right">{it.quantity}</td>
+                        <td className="px-3 py-2.5 text-right">Rs {Number(it.rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td className="px-3 py-2.5 text-right font-medium">Rs {(it.quantity * it.rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-between items-baseline pt-3">
+              <span className="text-sm text-muted dark:text-gray-400">Total</span>
+              <span className="text-2xl font-semibold text-ink dark:text-white">Rs {grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-brand-navyLine">
-        {mode !== 'add' && (
+      <div className="flex flex-wrap items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-brand-navyLine">
+        {!isReadOnly && step > 0 && (
+          <button type="button" onClick={() => setStep(step - 1)} className="btn-secondary mr-auto">
+            <FiArrowLeft className="w-4 h-4" /> Back
+          </button>
+        )}
+        {mode !== 'add' && (isReadOnly || step === 0) && (
           <button
             type="button"
             onClick={onCancel}
@@ -556,7 +682,13 @@ export default function OrdersForm({
           </button>
         )}
 
-        {!isReadOnly && (
+        {!isReadOnly && step < 2 && (
+          <button type="button" onClick={() => goToStep(step + 1)} className="btn-primary">
+            {step === 0 ? 'Next: Products' : 'Next: Review'} <FiArrowRight className="w-4 h-4" />
+          </button>
+        )}
+
+        {!isReadOnly && step === 2 && (
           <button
             type="button"
             onClick={handleSaveOrder}

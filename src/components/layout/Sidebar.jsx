@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FiGrid, FiPackage, FiUsers, FiMapPin, FiUserCheck,
   FiLayers, FiTrendingUp, FiTarget, FiBarChart2,
@@ -21,8 +21,9 @@ const getNavGroups = (user, hasPermission) => {
     {
       label: 'Sales',
       items: [
-        { label: 'Sales Entry', icon: FiTrendingUp, path: '/sales' },
-        { label: 'Orders', icon: FiShoppingBag, path: '/orders' },
+        { label: 'Sales Entry', icon: FiTrendingUp, path: '/orders/new' },
+        // The order list lives at /sales; a single order opens at /orders/:id
+        { label: 'Orders', icon: FiShoppingBag, path: '/sales', match: /^\/(sales|orders\/(?!new)[^/]+)/ },
         { label: 'Targets', icon: FiTarget, path: '/targets' },
       ],
     },
@@ -120,6 +121,8 @@ const SidebarContent = ({
   };
 
   const navGroups = getNavGroups(user, hasPermission);
+  const { pathname } = useLocation();
+  const isItemActive = ({ path, match }) => (match ? match.test(pathname) : pathname === path || pathname.startsWith(`${path}/`));
 
   const initials = user?.fullName
     ? user.fullName.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -155,8 +158,11 @@ const SidebarContent = ({
               </p>
             )}
             {group.label && isCollapsed && <div className="mx-3 mb-2 border-t border-line dark:border-brand-navyLine" />}
-            {group.items.map(({ label, icon: Icon, path }) => (
-              <NavLink
+            {group.items.map((item) => {
+              const { label, icon: Icon, path } = item;
+              const isActive = isItemActive(item);
+              return (
+              <Link
                 key={label}
                 to={path}
                 onClick={(e) => {
@@ -173,7 +179,8 @@ const SidebarContent = ({
                 onMouseEnter={(e) => handleMouseEnter(e, label)}
                 onMouseLeave={handleMouseLeave}
                 aria-label={isCollapsed ? label : undefined}
-                className={({ isActive }) =>
+                aria-current={isActive ? 'page' : undefined}
+                className={
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
                   ${isActive
                     ? 'bg-brand-tint text-brand-primary font-semibold dark:bg-brand-primary/20 dark:text-red-200'
@@ -184,8 +191,9 @@ const SidebarContent = ({
               >
                 <Icon className="w-[18px] h-[18px] flex-shrink-0" aria-hidden="true" />
                 {!isCollapsed && <span className="truncate">{label}</span>}
-              </NavLink>
-            ))}
+              </Link>
+              );
+            })}
           </div>
         ))}
       </nav>
