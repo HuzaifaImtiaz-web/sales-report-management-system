@@ -107,16 +107,16 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-      <div className="w-full max-w-lg bg-white dark:bg-gray-900 border border-gray-150 dark:border-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-lg bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#801317] via-[#A91D22] to-[#600D10] text-white p-6 relative">
+        <div className="bg-brand-primary text-white p-6 relative">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-white/10 backdrop-blur-md rounded-xl">
               <FiShield className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold uppercase tracking-wider">
+              <h2 className="text-base font-semibold">
                 First-Time Security Setup
               </h2>
               <p className="text-xs text-white/80 font-medium">
@@ -150,7 +150,7 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
           {step === 1 && (
             <div className="space-y-4">
               <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 rounded-xl space-y-2">
-                <div className="text-xs font-black uppercase text-amber-700 dark:text-amber-400 tracking-wider">
+                <div className="text-xs font-semibold text-amber-700 dark:text-amber-400">
                   ⚠️ Security Setup Required
                 </div>
                 <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-relaxed">
@@ -171,13 +171,13 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
           {/* STEP 2: Change Username & Password */}
           {step === 2 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase text-gray-700 dark:text-gray-200">
+              <div className="flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-200">
                 <FiUser className="w-4 h-4 text-brand-primary" />
                 <span>Step 1 of 3 — Corporate Login Credentials</span>
               </div>
 
               <div className="space-y-1">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <label className="block text-xs font-semibold text-gray-500">
                   New Admin Username *
                 </label>
                 <input
@@ -185,7 +185,7 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
                   placeholder="e.g. sysadmin"
-                  className="w-full px-3 py-2 text-xs font-semibold text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:border-brand-primary"
+                  className="w-full px-3 py-2 text-xs font-semibold text-gray-800 dark:text-gray-100 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:border-brand-primary"
                 />
               </div>
 
@@ -212,7 +212,7 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
           {/* STEP 3: Create Recovery Password */}
           {step === 3 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase text-gray-700 dark:text-gray-200">
+              <div className="flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-200">
                 <FiKey className="w-4 h-4 text-brand-primary" />
                 <span>Step 2 of 3 — Emergency Recovery Password</span>
               </div>
@@ -244,7 +244,7 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
           {/* STEP 4: Create Recovery PIN */}
           {step === 4 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase text-gray-700 dark:text-gray-200">
+              <div className="flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-200">
                 <FiLock className="w-4 h-4 text-brand-primary" />
                 <span>Step 3 of 3 — Recovery PIN</span>
               </div>
@@ -283,7 +283,7 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
                 <FiCheckCircle className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-gray-800 dark:text-white uppercase tracking-wider">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                   System Secured Successfully
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -295,13 +295,13 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-150 dark:border-gray-800 flex justify-end gap-2">
+        <div className="p-4 bg-gray-50 dark:bg-brand-navy/50 border-t border-gray-200 dark:border-brand-navyLine flex justify-end gap-2">
           {step < 5 ? (
             <button
               type="button"
               onClick={handleNext}
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-brand-primary hover:bg-[#8F161A] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 bg-brand-primary hover:bg-[#8F161A] text-white font-semibold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <span>{step === 4 ? (isSubmitting ? 'Saving...' : 'Finish Setup') : 'Next Step'}</span>
               <FiArrowRight className="w-4 h-4" />
@@ -310,7 +310,7 @@ const FirstLoginSecurityWizard = ({ isOpen, onComplete }) => {
             <button
               type="button"
               onClick={onComplete}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer"
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-all shadow-md cursor-pointer"
             >
               Continue to Dashboard
             </button>

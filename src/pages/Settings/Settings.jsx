@@ -527,10 +527,10 @@ const Settings = () => {
       <div className="max-w-6xl mx-auto space-y-6 pb-12">
         {/* Page Header */}
         <div>
-          <h1 className="text-xl font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
             Settings
           </h1>
-          <p className="text-xs text-gray-450 dark:text-gray-550 font-medium mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-550 font-medium mt-1">
             Manage application preferences and system configuration.
           </p>
         </div>
@@ -539,8 +539,8 @@ const Settings = () => {
           /* Premium Loading Skeleton */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-pulse">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-5 space-y-4">
-                <div className="h-4 bg-gray-150 dark:bg-gray-800 rounded w-1/3" />
+              <div key={n} className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise p-5 space-y-4">
+                <div className="h-4 bg-gray-150 dark:bg-brand-navy rounded w-1/3" />
                 <div className="space-y-2">
                   <div className="h-8 bg-gray-100 dark:bg-gray-805/50 rounded w-full" />
                   <div className="h-8 bg-gray-100 dark:bg-gray-805/50 rounded w-full" />
@@ -553,77 +553,77 @@ const Settings = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* 1. Company Information */}
-            <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
+            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
               <form onSubmit={handleCompanySave} className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-850">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-brand-navyLine">
                   <FiBriefcase className="w-4 h-4 text-brand-primary" />
-                  <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Company Information</h3>
+                  <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Company Information</h3>
                 </div>
 
                 <div className="flex items-center gap-4 py-2">
-                  <div className="w-16 h-16 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 overflow-hidden flex items-center justify-center relative group">
+                  <div className="w-16 h-16 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy overflow-hidden flex items-center justify-center relative group">
                     <img src={companyInfo.logo} alt="Company Logo" className="object-contain w-full h-full bg-white p-1" />
                   </div>
                   <div>
                     <button
                       type="button"
                       onClick={handleLogoChange}
-                      className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-[10px] font-bold text-gray-700 dark:text-gray-300 rounded-lg transition-colors inline-flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-gray-100 dark:bg-brand-navy hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 rounded-lg transition-colors inline-flex items-center gap-1.5"
                     >
                       <FiImage className="w-3.5 h-3.5" />
                       Change Logo
                     </button>
-                    <p className="text-[9px] text-gray-400 dark:text-gray-500 mt-1">Upload a PNG, JPG or WebP image (1 MB at most).</p>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-500 mt-1">Upload a PNG, JPG or WebP image (1 MB at most).</p>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Company Name</label>
+                    <label className="block text-[11px] font-semibold text-gray-500 mb-1">Company Name</label>
                     <input
                       type="text"
                       value={companyInfo.name}
                       onChange={(e) => setCompanyInfo({ ...companyInfo, name: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
+                      className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Company Email</label>
+                      <label className="block text-[11px] font-semibold text-gray-500 mb-1">Company Email</label>
                       <div className="relative">
-                        <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+                        <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-3.5 h-3.5" />
                         <input
                           type="email"
                           value={companyInfo.email}
                           onChange={(e) => setCompanyInfo({ ...companyInfo, email: e.target.value })}
-                          className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
+                          className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Company Phone</label>
+                      <label className="block text-[11px] font-semibold text-gray-500 mb-1">Company Phone</label>
                       <div className="relative">
-                        <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+                        <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-3.5 h-3.5" />
                         <input
                           type="text"
                           value={companyInfo.phone}
                           onChange={(e) => setCompanyInfo({ ...companyInfo, phone: e.target.value })}
-                          className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
+                          className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
                         />
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Company Address</label>
+                    <label className="block text-[11px] font-semibold text-gray-500 mb-1">Company Address</label>
                     <div className="relative">
-                      <FiMapPin className="absolute left-3 top-2.5 text-gray-400 w-3.5 h-3.5" />
+                      <FiMapPin className="absolute left-3 top-2.5 text-gray-500 w-3.5 h-3.5" />
                       <textarea
                         rows={2}
                         value={companyInfo.address}
                         onChange={(e) => setCompanyInfo({ ...companyInfo, address: e.target.value })}
-                        className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary resize-none"
+                        className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary resize-none"
                       />
                     </div>
                   </div>
@@ -632,7 +632,7 @@ const Settings = () => {
                 <div className="pt-2 flex justify-end">
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                    className="px-4 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
                   >
                     Save Changes
                   </button>
@@ -641,20 +641,20 @@ const Settings = () => {
             </div>
 
             {/* 2. Business Year */}
-            <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
+            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-855">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855">
                   <FiCalendar className="w-4 h-4 text-brand-primary" />
-                  <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Business Year</h3>
+                  <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Business Year</h3>
                 </div>
 
-                <div className="bg-gray-50/50 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3.5">
+                <div className="bg-gray-50/50 dark:bg-brand-navy/25 p-4 rounded-xl border border-gray-200 dark:border-brand-navyLine space-y-3.5">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400">Active Business Year</span>
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Active Business Year</span>
                     <select
                       value={businessYear.value}
                       onChange={(e) => handleSwitchBusinessYear(e.target.value)}
-                      className="text-xs font-bold text-brand-primary bg-sky-50 dark:bg-brand-primary/10 border-0 px-2.5 py-1 rounded-md cursor-pointer outline-none focus:ring-1 focus:ring-brand-primary"
+                      className="text-xs font-semibold text-brand-primary bg-gray-50 dark:bg-brand-primary/10 border-0 px-2.5 py-1 rounded-md cursor-pointer outline-none focus:ring-1 focus:ring-brand-primary"
                     >
                       {existingYears.map((y) => (
                         <option key={y.value} value={y.value}>
@@ -666,17 +666,17 @@ const Settings = () => {
 
                   <div className="grid grid-cols-2 gap-4 pt-1 text-xs">
                     <div>
-                      <p className="text-[9px] font-bold text-gray-400 uppercase">Start Date</p>
-                      <p className="font-semibold text-gray-750 dark:text-gray-200 mt-0.5">{businessYear.startDate}</p>
+                      <p className="text-[11px] font-semibold text-gray-500">Start Date</p>
+                      <p className="font-semibold text-gray-700 dark:text-gray-200 mt-0.5">{businessYear.startDate}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold text-gray-400 uppercase">End Date</p>
-                      <p className="font-semibold text-gray-750 dark:text-gray-200 mt-0.5">{businessYear.endDate}</p>
+                      <p className="text-[11px] font-semibold text-gray-500">End Date</p>
+                      <p className="font-semibold text-gray-700 dark:text-gray-200 mt-0.5">{businessYear.endDate}</p>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-[10px] text-gray-400 dark:text-gray-550 leading-relaxed font-medium">
+                <p className="text-xs text-gray-500 dark:text-gray-550 leading-relaxed font-medium">
                   Adding a new business year sets the timeline boundaries for target allocation and records. Previous records remain linked.
                 </p>
               </div>
@@ -684,7 +684,7 @@ const Settings = () => {
               <div className="pt-4 flex justify-end">
                 <button
                   onClick={() => setIsYearModalOpen(true)}
-                  className="px-4 py-2.5 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-lg transition-colors shadow-sm inline-flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-semibold rounded-lg transition-colors shadow-sm inline-flex items-center gap-1.5"
                 >
                   <FiCalendar className="w-3.5 h-3.5" />
                   Create New Business Year
@@ -693,10 +693,10 @@ const Settings = () => {
             </div>
 
             {/* 3. Appearance */}
-            <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5">
-              <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-855 mb-4">
+            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855 mb-4">
                 <FiSun className="w-4 h-4 text-brand-primary" />
-                <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Appearance</h3>
+                <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Appearance</h3>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
@@ -704,59 +704,59 @@ const Settings = () => {
                 <button
                   onClick={() => setThemeMode('light')}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${mode === 'light'
-                      ? 'border-brand-primary bg-sky-50/15 dark:bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
-                      : 'border-gray-150 dark:border-gray-750 text-gray-500 hover:bg-gray-55/50 dark:hover:bg-gray-800/40'
+                      ? 'border-brand-primary bg-gray-50/15 dark:bg-brand-primary/10 text-brand-primary font-semibold shadow-sm'
+                      : 'border-gray-200 dark:border-brand-navyLine text-gray-500 hover:bg-gray-50/50 dark:hover:bg-white/5/40'
                     }`}
                 >
                   <FiSun className="w-5 h-5 text-amber-500" />
-                  <span className="text-[10px] uppercase tracking-wider font-bold">Light</span>
+                  <span className="text-xs font-semibold">Light</span>
                 </button>
 
                 {/* Dark Mode */}
                 <button
                   onClick={() => setThemeMode('dark')}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${mode === 'dark'
-                      ? 'border-brand-primary bg-sky-50/15 dark:bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
-                      : 'border-gray-150 dark:border-gray-750 text-gray-500 hover:bg-gray-55/50 dark:hover:bg-gray-800/40'
+                      ? 'border-brand-primary bg-gray-50/15 dark:bg-brand-primary/10 text-brand-primary font-semibold shadow-sm'
+                      : 'border-gray-200 dark:border-brand-navyLine text-gray-500 hover:bg-gray-50/50 dark:hover:bg-white/5/40'
                     }`}
                 >
-                  <FiMoon className="w-5 h-5 text-indigo-500" />
-                  <span className="text-[10px] uppercase tracking-wider font-bold">Dark</span>
+                  <FiMoon className="w-5 h-5 text-gray-500" />
+                  <span className="text-xs font-semibold">Dark</span>
                 </button>
 
                 {/* System Mode */}
                 <button
                   onClick={() => setThemeMode('system')}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${mode === 'system'
-                      ? 'border-brand-primary bg-sky-50/15 dark:bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
-                      : 'border-gray-150 dark:border-gray-750 text-gray-500 hover:bg-gray-55/50 dark:hover:bg-gray-800/40'
+                      ? 'border-brand-primary bg-gray-50/15 dark:bg-brand-primary/10 text-brand-primary font-semibold shadow-sm'
+                      : 'border-gray-200 dark:border-brand-navyLine text-gray-500 hover:bg-gray-50/50 dark:hover:bg-white/5/40'
                     }`}
                 >
-                  <FiMonitor className="w-5 h-5 text-teal-500" />
-                  <span className="text-[10px] uppercase tracking-wider font-bold">System</span>
+                  <FiMonitor className="w-5 h-5 text-gray-500" />
+                  <span className="text-xs font-semibold">System</span>
                 </button>
               </div>
 
-              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-3 font-semibold italic text-center">
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-3 font-semibold italic text-center">
                 Application theme updates immediately on selection.
               </p>
             </div>
 
             {/* 4. Export Preferences */}
-            <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
+            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-855">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855">
                   <FiSettings className="w-4 h-4 text-brand-primary" />
-                  <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Export Preferences</h3>
+                  <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Export Preferences</h3>
                 </div>
 
                 <div className="space-y-3.5">
                   <div>
-                    <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Default Export Format</label>
+                    <label className="block text-[11px] font-semibold text-gray-500 mb-1.5">Default Export Format</label>
                     <select
                       value={exportPreferences.defaultFormat}
                       onChange={(e) => setExportPreferences({ ...exportPreferences, defaultFormat: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg outline-none cursor-pointer focus:ring-1 focus:ring-brand-primary"
+                      className="w-full px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none cursor-pointer focus:ring-1 focus:ring-brand-primary"
                     >
                       <option value="excel">Excel (.xlsx)</option>
                       <option value="pdf">PDF File</option>
@@ -799,7 +799,7 @@ const Settings = () => {
               <div className="pt-4 flex justify-end">
                 <button
                   onClick={handleExportPrefsSave}
-                  className="px-4 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                  className="px-4 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
                 >
                   Save Preferences
                 </button>
@@ -807,24 +807,24 @@ const Settings = () => {
             </div>
 
             {/* 5. Account */}
-            <div className="bg-white dark:bg-[#0f172a] border border-gray-155 dark:border-gray-800 rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
+            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 flex flex-col justify-between">
               <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-855">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855">
                   <FiUser className="w-4 h-4 text-brand-primary" />
-                  <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Account</h3>
+                  <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Account</h3>
                 </div>
 
                 <div className="space-y-3 py-1 text-xs">
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase">Full Name</span>
-                    <p className="font-bold text-gray-800 dark:text-gray-250 mt-0.5 capitalize">{accountInfo.fullName}</p>
+                    <span className="text-[11px] font-semibold text-gray-500">Full Name</span>
+                    <p className="font-semibold text-gray-800 dark:text-gray-250 mt-0.5 capitalize">{accountInfo.fullName}</p>
                   </div>
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase">Username</span>
+                    <span className="text-[11px] font-semibold text-gray-500">Username</span>
                     <p className="font-semibold text-gray-600 dark:text-gray-400 mt-0.5">{accountInfo.username}</p>
                   </div>
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase">Role</span>
+                    <span className="text-[11px] font-semibold text-gray-500">Role</span>
                     <p className="font-semibold text-gray-600 dark:text-gray-400 mt-0.5 capitalize">{accountInfo.role}</p>
                   </div>
                 </div>
@@ -833,7 +833,7 @@ const Settings = () => {
               <div className="pt-4 flex justify-end">
                 <button
                   onClick={() => setIsChangePasswordOpen(true)}
-                  className="px-3.5 py-2 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-[11px] font-bold text-gray-650 dark:text-gray-300 rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-2 border border-gray-200 dark:border-brand-navyLine hover:bg-gray-50 dark:hover:bg-white/5 text-[11px] font-semibold text-gray-600 dark:text-gray-300 rounded-lg transition-colors cursor-pointer"
                 >
                   Change Password
                 </button>
@@ -841,19 +841,19 @@ const Settings = () => {
             </div>
 
             {/* 6. Enterprise Security Center */}
-            <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 md:col-span-2 space-y-6">
-              <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-855">
+            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 md:col-span-2 space-y-6">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855">
                 <FiShield className="w-4.5 h-4.5 text-brand-primary" />
-                <h3 className="text-xs font-extrabold text-gray-855 dark:text-gray-200 uppercase tracking-wider">
+                <h3 className="text-xs font-semibold text-gray-855 dark:text-gray-200">
                   Enterprise Security Center & Emergency Recovery
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Card 1: Change Username */}
-                <form onSubmit={handleUpdateUsername} className="p-4 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-gray-800 rounded-xl space-y-3 flex flex-col justify-between">
+                <form onSubmit={handleUpdateUsername} className="p-4 bg-gray-50/50 dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-xl space-y-3 flex flex-col justify-between">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-white uppercase">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-800 dark:text-white">
                       <FiUser className="w-4 h-4 text-brand-primary" />
                       <span>Update Username</span>
                     </div>
@@ -866,7 +866,7 @@ const Settings = () => {
                       placeholder="Verify account password"
                     />
                     <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                      <label className="block text-xs font-semibold text-gray-500 mb-1">
                         New Username *
                       </label>
                       <input
@@ -875,22 +875,22 @@ const Settings = () => {
                         value={usernameForm.newUsername}
                         onChange={(e) => setUsernameForm({ ...usernameForm, newUsername: e.target.value })}
                         placeholder="e.g. sysadmin"
-                        className="w-full px-3 py-2 text-xs font-semibold text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:border-brand-primary"
+                        className="w-full px-3 py-2 text-xs font-semibold text-gray-800 dark:text-gray-100 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:border-brand-primary"
                       />
                     </div>
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-2 bg-brand-primary hover:bg-[#8F161A] text-white font-bold text-xs uppercase rounded-lg transition-all shadow-xs cursor-pointer mt-2"
+                    className="w-full py-2 bg-brand-primary hover:bg-[#8F161A] text-white font-semibold text-xs rounded-lg transition-all shadow-xs cursor-pointer mt-2"
                   >
                     Save Username
                   </button>
                 </form>
 
                 {/* Card 2: Update Recovery Password */}
-                <form onSubmit={handleUpdateRecoveryPassword} className="p-4 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-gray-800 rounded-xl space-y-3 flex flex-col justify-between">
+                <form onSubmit={handleUpdateRecoveryPassword} className="p-4 bg-gray-50/50 dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-xl space-y-3 flex flex-col justify-between">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-white uppercase">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-800 dark:text-white">
                       <FiKey className="w-4 h-4 text-brand-primary" />
                       <span>Recovery Password</span>
                     </div>
@@ -923,16 +923,16 @@ const Settings = () => {
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-2 bg-brand-primary hover:bg-[#8F161A] text-white font-bold text-xs uppercase rounded-lg transition-all shadow-xs cursor-pointer mt-2"
+                    className="w-full py-2 bg-brand-primary hover:bg-[#8F161A] text-white font-semibold text-xs rounded-lg transition-all shadow-xs cursor-pointer mt-2"
                   >
                     Update Recovery Password
                   </button>
                 </form>
 
                 {/* Card 3: Update Recovery PIN */}
-                <form onSubmit={handleUpdateRecoveryPin} className="p-4 bg-gray-50/50 dark:bg-slate-900/50 border border-gray-200 dark:border-gray-800 rounded-xl space-y-3 flex flex-col justify-between">
+                <form onSubmit={handleUpdateRecoveryPin} className="p-4 bg-gray-50/50 dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-xl space-y-3 flex flex-col justify-between">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-white uppercase">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-gray-800 dark:text-white">
                       <FiLock className="w-4 h-4 text-brand-primary" />
                       <span>Recovery PIN (6–8 Digits)</span>
                     </div>
@@ -968,7 +968,7 @@ const Settings = () => {
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-2 bg-brand-primary hover:bg-[#8F161A] text-white font-bold text-xs uppercase rounded-lg transition-all shadow-xs cursor-pointer mt-2"
+                    className="w-full py-2 bg-brand-primary hover:bg-[#8F161A] text-white font-semibold text-xs rounded-lg transition-all shadow-xs cursor-pointer mt-2"
                   >
                     Update Recovery PIN
                   </button>
@@ -977,24 +977,24 @@ const Settings = () => {
             </div>
 
             {/* 7. Data Management */}
-            <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5">
-              <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-855 mb-4">
+            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5">
+              <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855 mb-4">
                 <FiDatabase className="w-4 h-4 text-brand-primary" />
-                <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Data Management</h3>
+                <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Data Management</h3>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
                 {/* Export Data Card */}
                 <div
                   onClick={() => navigate('/export')}
-                  className="border border-gray-150 dark:border-gray-750 rounded-xl p-4 hover:border-brand-primary/45 dark:hover:border-brand-primary/45 hover:bg-sky-50/5 dark:hover:bg-sky-950/5 transition-all cursor-pointer flex gap-3 items-start"
+                  className="border border-gray-200 dark:border-brand-navyLine rounded-xl p-4 hover:border-brand-primary/45 dark:hover:border-brand-primary/45 hover:bg-gray-50/5 dark:hover:bg-white/5 transition-all cursor-pointer flex gap-3 items-start"
                 >
                   <div className="w-9 h-9 rounded-lg bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
                     <FiDownloadCloud className="w-4.5 h-4.5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">Export Data</h4>
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1 leading-normal">
+                    <h4 className="text-xs font-semibold text-gray-800 dark:text-white">Export Data</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 leading-normal">
                       Navigate to Export Center to extract custom records.
                     </p>
                   </div>
@@ -1004,11 +1004,11 @@ const Settings = () => {
 
             {/* 8. Production Settings & Diagnostics (Admin Only) */}
             {user?.role === 'Admin' && (
-              <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-5 md:col-span-2 space-y-6">
-                <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-855">
+              <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 md:col-span-2 space-y-6">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-855">
                   <div className="flex items-center gap-2">
                     <FiDatabase className="w-4.5 h-4.5 text-brand-primary" />
-                    <h3 className="text-xs font-bold text-gray-855 dark:text-gray-200 uppercase tracking-wider">
+                    <h3 className="text-xs font-semibold text-gray-855 dark:text-gray-200">
                       Production Settings & Diagnostics
                     </h3>
                   </div>
@@ -1028,7 +1028,7 @@ const Settings = () => {
                           type: targetVal ? 'warning' : 'success'
                         });
                       }}
-                      className={`px-3 py-1 text-[10px] font-extrabold uppercase rounded-lg transition-colors cursor-pointer ${
+                      className={`px-3 py-1 text-xs font-semibold  rounded-lg transition-colors cursor-pointer ${
                         maintenanceMode
                           ? 'bg-amber-600 text-white hover:bg-amber-700'
                           : 'bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200'
@@ -1036,7 +1036,7 @@ const Settings = () => {
                     >
                       {maintenanceMode ? 'Maintenance Mode: ON' : 'Maintenance Mode: OFF'}
                     </button>
-                    <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md ${
+                    <span className={`text-xs font-semibold  px-2.5 py-1 rounded-md ${
                       appConfig.mode === 'production'
                         ? 'text-emerald-500 bg-emerald-500/10'
                         : 'text-amber-500 bg-amber-500/10'
@@ -1049,13 +1049,13 @@ const Settings = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Backup and Restore Controls */}
                   <div className="space-y-4">
-                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs font-semibold text-gray-500 flex items-center gap-1.5">
                       <FiDownloadCloud className="w-3.5 h-3.5" />
                       Backup & Restore
                     </h4>
 
-                    <div className="bg-gray-55/50 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-4">
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                    <div className="bg-gray-50/50 dark:bg-brand-navy/25 p-4 rounded-xl border border-gray-200 dark:border-brand-navyLine space-y-4">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                         A backup is a compressed copy of all business data, downloaded to this device. Keep backups somewhere safe.
                         Restoring one replaces the business data for every user. Login accounts are not part of backups.
                       </p>
@@ -1065,7 +1065,7 @@ const Settings = () => {
                           type="button"
                           disabled={creatingBackup}
                           onClick={handleCreateBackup}
-                          className="flex-1 px-4 py-2 bg-brand-primary hover:bg-brand-primaryDark disabled:bg-brand-primary/60 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                          className="flex-1 px-4 py-2 bg-brand-primary hover:bg-brand-primaryDark disabled:bg-brand-primary/60 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
                         >
                           {creatingBackup ? (
                             <FiLoader className="w-3.5 h-3.5 animate-spin" />
@@ -1078,7 +1078,7 @@ const Settings = () => {
                         <button
                           type="button"
                           onClick={handleBrowseRestore}
-                          className="flex-1 px-4 py-2 border border-gray-200 dark:border-gray-700 hover:bg-gray-55 dark:hover:bg-gray-800 text-gray-750 dark:text-gray-300 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                          className="flex-1 px-4 py-2 border border-gray-200 dark:border-brand-navyLine hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5"
                         >
                           <FiRefreshCw className="w-3.5 h-3.5" />
                           Restore from File
@@ -1095,18 +1095,18 @@ const Settings = () => {
 
                     {/* Backup history (from the audit trail) */}
                     <div>
-                      <span className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-2">
+                      <span className="block text-[11px] font-semibold text-gray-500 mb-2">
                         Recent Backups & Restores
                       </span>
-                      <div className="border border-gray-150 dark:border-gray-800 rounded-xl overflow-hidden max-h-48 overflow-y-auto overflow-x-auto">
+                      <div className="border border-gray-200 dark:border-brand-navyLine rounded-xl overflow-hidden max-h-48 overflow-y-auto overflow-x-auto">
                         {backupHistory.length === 0 ? (
-                          <div className="p-4 text-center text-xs text-gray-400 dark:text-gray-500 font-medium italic">
+                          <div className="p-4 text-center text-xs text-gray-500 dark:text-gray-500 font-medium italic">
                             No backups yet.
                           </div>
                         ) : (
                           <table className="w-full text-left border-collapse text-xs">
                             <thead>
-                              <tr className="bg-gray-50 dark:bg-gray-800/40 border-b border-gray-100 dark:border-gray-800 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                              <tr className="bg-gray-50 dark:bg-brand-navy/40 border-b border-gray-200 dark:border-brand-navyLine text-xs font-semibold text-gray-500">
                                 <th className="px-4 py-2.5">When</th>
                                 <th className="px-4 py-2.5">Action</th>
                                 <th className="px-4 py-2.5">By</th>
@@ -1114,7 +1114,7 @@ const Settings = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800 font-medium text-gray-600 dark:text-gray-300">
                               {backupHistory.map((b) => (
-                                <tr key={b.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20">
+                                <tr key={b.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5/20">
                                   <td className="px-4 py-2 whitespace-nowrap">{b.performedAt}</td>
                                   <td className="px-4 py-2">{b.action}</td>
                                   <td className="px-4 py-2">{b.performedBy}</td>
@@ -1129,44 +1129,44 @@ const Settings = () => {
 
                   {/* System Health and Diagnostics */}
                   <div className="space-y-4">
-                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs font-semibold text-gray-500 flex items-center gap-1.5">
                       <FiActivity className="w-3.5 h-3.5" />
                       Diagnostics & System Health
                     </h4>
 
                     {diagnostics && diagnostics.server ? (
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-800 rounded-xl space-y-1">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Database Status</span>
+                        <div className="p-3 bg-gray-50/50 dark:bg-brand-navy/25 border border-gray-200 dark:border-brand-navyLine rounded-xl space-y-1">
+                          <span className="text-[11px] font-semibold text-gray-500">Database Status</span>
                           <div className="flex items-center gap-1.5">
                             <span className={`w-2 h-2 rounded-full ${diagnostics.databaseAvailable ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                            <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                            <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">
                               {diagnostics.databaseAvailable ? 'ONLINE' : 'OFFLINE'}
                             </span>
                           </div>
                         </div>
 
-                        <div className="p-3 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-800 rounded-xl space-y-1">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Database Size</span>
-                          <p className="text-xs font-bold text-gray-700 dark:text-gray-200">{diagnostics.databaseSize}</p>
+                        <div className="p-3 bg-gray-50/50 dark:bg-brand-navy/25 border border-gray-200 dark:border-brand-navyLine rounded-xl space-y-1">
+                          <span className="text-[11px] font-semibold text-gray-500">Database Size</span>
+                          <p className="text-xs font-semibold text-gray-700 dark:text-gray-200">{diagnostics.databaseSize}</p>
                         </div>
 
-                        <div className="p-3 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-800 rounded-xl space-y-1">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Records</span>
-                          <p className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                        <div className="p-3 bg-gray-50/50 dark:bg-brand-navy/25 border border-gray-200 dark:border-brand-navyLine rounded-xl space-y-1">
+                          <span className="text-[11px] font-semibold text-gray-500">Records</span>
+                          <p className="text-xs font-semibold text-gray-700 dark:text-gray-200">
                             {diagnostics.counts ? `${diagnostics.counts.orders} orders · ${diagnostics.counts.products} products · ${diagnostics.counts.users} users` : '—'}
                           </p>
                         </div>
 
-                        <div className="p-3 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-800 rounded-xl space-y-1">
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Engine</span>
-                          <p className="text-xs font-bold text-gray-700 dark:text-gray-200 truncate" title={diagnostics.databaseEngine}>
+                        <div className="p-3 bg-gray-50/50 dark:bg-brand-navy/25 border border-gray-200 dark:border-brand-navyLine rounded-xl space-y-1">
+                          <span className="text-[11px] font-semibold text-gray-500">Engine</span>
+                          <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate" title={diagnostics.databaseEngine}>
                             {diagnostics.databaseEngine}
                           </p>
                         </div>
                       </div>
                     ) : (
-                      <div className="p-4 bg-gray-50/50 dark:bg-gray-800/25 border border-gray-100 dark:border-gray-850 rounded-xl text-center text-xs text-gray-450 italic">
+                      <div className="p-4 bg-gray-50/50 dark:bg-brand-navy/25 border border-gray-200 dark:border-brand-navyLine rounded-xl text-center text-xs text-gray-500 italic">
                         Diagnostics loading...
                       </div>
                     )}
@@ -1174,14 +1174,14 @@ const Settings = () => {
                     {/* Database Health Checker */}
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+                        <span className="text-[11px] font-semibold text-gray-500">
                           Integrity Checker
                         </span>
                         <button
                           type="button"
                           disabled={runningHealthCheck}
                           onClick={handleRunHealthCheck}
-                          className="px-3 py-1 bg-brand-primary hover:bg-brand-primaryDark disabled:bg-brand-primary/60 text-white text-[10px] font-bold rounded transition-colors inline-flex items-center gap-1"
+                          className="px-3 py-1 bg-brand-primary hover:bg-brand-primaryDark disabled:bg-brand-primary/60 text-white text-xs font-semibold rounded transition-colors inline-flex items-center gap-1"
                         >
                           {runningHealthCheck ? (
                             <FiLoader className="w-3 h-3 animate-spin" />
@@ -1193,10 +1193,10 @@ const Settings = () => {
                       </div>
 
                       {integrityReport ? (
-                        <div className="bg-gray-55/40 dark:bg-gray-800/15 border border-gray-100 dark:border-gray-800 rounded-xl p-3.5 space-y-2.5">
+                        <div className="bg-gray-50/40 dark:bg-brand-navy/15 border border-gray-200 dark:border-brand-navyLine rounded-xl p-3.5 space-y-2.5">
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-gray-500 dark:text-gray-455">Overall Health</span>
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
+                            <span className="font-semibold text-gray-500 dark:text-gray-455">Overall Health</span>
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                               integrityReport.healthy
                                 ? 'bg-emerald-500/15 text-emerald-500'
                                 : 'bg-red-500/15 text-red-500'
@@ -1205,14 +1205,14 @@ const Settings = () => {
                             </span>
                           </div>
 
-                          <div className="space-y-1.5 pt-1 border-t border-gray-100 dark:border-gray-800">
+                          <div className="space-y-1.5 pt-1 border-t border-gray-200 dark:border-brand-navyLine">
                             {integrityReport.reports.map((r, idx) => (
-                              <div key={idx} className="flex items-start justify-between gap-4 text-[10px] font-medium leading-normal">
+                              <div key={idx} className="flex items-start justify-between gap-4 text-xs font-medium leading-normal">
                                 <div className="space-y-0.5">
-                                  <p className="font-bold text-gray-700 dark:text-gray-300">{r.check}</p>
-                                  <p className="text-gray-400 dark:text-gray-555">{r.message}</p>
+                                  <p className="font-semibold text-gray-700 dark:text-gray-300">{r.check}</p>
+                                  <p className="text-gray-500 dark:text-gray-555">{r.message}</p>
                                 </div>
-                                <span className={`font-bold shrink-0 ${r.status === 'PASS' ? 'text-emerald-500' : 'text-red-500'}`}>
+                                <span className={`font-semibold shrink-0 ${r.status === 'PASS' ? 'text-emerald-500' : 'text-red-500'}`}>
                                   {r.status}
                                 </span>
                               </div>
@@ -1220,12 +1220,12 @@ const Settings = () => {
                           </div>
 
                           {integrityReport.audit && (
-                            <div className="mt-3 pt-3 border-t border-gray-150 dark:border-gray-850 space-y-2">
-                              <p className="text-[10px] font-bold text-gray-405 dark:text-gray-400 uppercase tracking-wider">Table Row Audit & Integrity</p>
+                            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-brand-navyLine space-y-2">
+                              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Table Row Audit & Integrity</p>
                               <div className="overflow-x-auto">
-                                <table className="w-full text-[10px] text-left border-collapse">
+                                <table className="w-full text-xs text-left border-collapse">
                                   <thead>
-                                    <tr className="text-gray-405 dark:text-gray-450 font-bold border-b border-gray-100 dark:border-gray-800">
+                                    <tr className="text-gray-500 dark:text-gray-500 font-semibold border-b border-gray-200 dark:border-brand-navyLine">
                                       <th className="py-1">Table</th>
                                       <th className="py-1 text-center">Total</th>
                                       <th className="py-1 text-center">Active/Done</th>
@@ -1235,14 +1235,14 @@ const Settings = () => {
                                   </thead>
                                   <tbody className="divide-y divide-gray-100/50 dark:divide-gray-800/50">
                                     {Object.entries(integrityReport.audit).map(([table, meta]) => (
-                                      <tr key={table} className="text-gray-650 dark:text-gray-350 hover:bg-gray-100/20">
+                                      <tr key={table} className="text-gray-600 dark:text-gray-300 hover:bg-gray-100/20">
                                         <td className="py-1 font-semibold capitalize">{table.replace('_', ' ')}</td>
                                         <td className="py-1 text-center font-mono font-medium">{meta.total}</td>
                                         <td className="py-1 text-center font-mono font-medium text-green-600 dark:text-green-500">{meta.active}</td>
                                         <td className="py-1 text-center font-mono font-medium text-amber-600 dark:text-amber-500">{meta.inactive}</td>
-                                        <td className="py-1 text-right font-mono font-bold">
+                                        <td className="py-1 text-right font-mono font-semibold">
                                           {meta.orphaned > 0 ? (
-                                            <span className="text-red-500 bg-red-500/10 px-1 py-0.5 rounded text-[9px]">
+                                            <span className="text-red-500 bg-red-500/10 px-1 py-0.5 rounded text-[11px]">
                                               {meta.orphaned}
                                             </span>
                                           ) : (
@@ -1258,7 +1258,7 @@ const Settings = () => {
                           )}
                         </div>
                       ) : (
-                        <div className="p-4 text-center text-xs text-gray-400 dark:text-gray-500 border border-dashed border-gray-200 dark:border-gray-800 rounded-xl font-medium italic">
+                        <div className="p-4 text-center text-xs text-gray-500 dark:text-gray-500 border border-dashed border-gray-200 dark:border-brand-navyLine rounded-xl font-medium italic">
                           Click "Run Health Check" to perform structural database audits.
                         </div>
                       )}
@@ -1269,16 +1269,16 @@ const Settings = () => {
             )}
 
             {/* 7. About Application & Developer Information */}
-            <div className="bg-white dark:bg-[#0f172a] border border-gray-150 dark:border-gray-800 rounded-enterprise shadow-soft p-6 md:col-span-2 space-y-6 select-none">
+            <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-6 md:col-span-2 space-y-6 select-none">
 
               {/* Header with Himmel Logo & Main App Info */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-gray-200 dark:border-brand-navyLine">
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-white rounded-xl shadow-sm border border-gray-150 shrink-0 inline-flex items-center justify-center">
+                  <div className="p-2 bg-white rounded-xl shadow-sm border border-gray-200 shrink-0 inline-flex items-center justify-center">
                     <CompanyLogo className="h-10 w-auto object-contain drop-shadow-sm" />
                   </div>
                   <div>
-                    <h2 className="text-base font-extrabold text-gray-900 dark:text-white">
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">
                       Himmel Pharmaceutical Sales Management System
                     </h2>
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
@@ -1288,18 +1288,18 @@ const Settings = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-red-400 rounded-full border border-brand-primary/20">
+                  <span className="px-3 py-1 text-[11px] font-semibold bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-red-400 rounded-full border border-brand-primary/20">
                     v{appConfig.version || APP_VERSION}
                   </span>
-                  <span className="px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800/40">
+                  <span className="px-3 py-1 text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800/40">
                     Stable Release
                   </span>
                 </div>
               </div>
 
               {/* Application Details & Description Card */}
-              <div className="bg-gray-50/60 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+              <div className="bg-gray-50/60 dark:bg-brand-navy/25 p-4 rounded-xl border border-gray-200 dark:border-brand-navyLine space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-800 dark:text-gray-200">
                   <FiInfo className="w-4 h-4 text-brand-primary" />
                   <span>Application Information</span>
                 </div>
@@ -1307,26 +1307,26 @@ const Settings = () => {
                   Enterprise Pharmaceutical Sales &amp; Distribution Management System designed for managing Products, Doctors, Institutions, Areas, Team Members, Sales, Orders, Reporting, Analytics, Business Year Management, and Enterprise Backup &amp; Recovery.
                 </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-3 border-t border-gray-150 dark:border-gray-800/60 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-3 border-t border-gray-200 dark:border-brand-navyLine/60 text-xs">
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Application Name</span>
-                    <p className="font-bold text-gray-800 dark:text-white mt-0.5">Himmel Pharmaceutical Sales Management System</p>
+                    <span className="text-[11px] font-semibold text-gray-500 block">Application Name</span>
+                    <p className="font-semibold text-gray-800 dark:text-white mt-0.5">Himmel Pharmaceutical Sales Management System</p>
                   </div>
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Version</span>
-                    <p className="font-bold text-gray-800 dark:text-white mt-0.5">v{appConfig.version || APP_VERSION}</p>
+                    <span className="text-[11px] font-semibold text-gray-500 block">Version</span>
+                    <p className="font-semibold text-gray-800 dark:text-white mt-0.5">v{appConfig.version || APP_VERSION}</p>
                   </div>
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Release Channel</span>
-                    <p className="font-bold text-gray-800 dark:text-white mt-0.5">Production</p>
+                    <span className="text-[11px] font-semibold text-gray-500 block">Release Channel</span>
+                    <p className="font-semibold text-gray-800 dark:text-white mt-0.5">Production</p>
                   </div>
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Build Type</span>
-                    <p className="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">Stable Release</p>
+                    <span className="text-[11px] font-semibold text-gray-500 block">Build Type</span>
+                    <p className="font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">Stable Release</p>
                   </div>
                   <div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Build Date</span>
-                    <p className="font-bold text-gray-800 dark:text-gray-200 mt-0.5">{appConfig.buildDate || '2026-08-01'}</p>
+                    <span className="text-[11px] font-semibold text-gray-500 block">Build Date</span>
+                    <p className="font-semibold text-gray-800 dark:text-gray-200 mt-0.5">{appConfig.buildDate || '2026-08-01'}</p>
                   </div>
                 </div>
               </div>
@@ -1336,62 +1336,62 @@ const Settings = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                 {/* Developer Information Card */}
-                <div className="bg-gray-50/60 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3 flex flex-col justify-between">
+                <div className="bg-gray-50/60 dark:bg-brand-navy/25 p-4 rounded-xl border border-gray-200 dark:border-brand-navyLine space-y-3 flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center gap-2 pb-2.5 border-b border-gray-150 dark:border-gray-800 mb-3">
+                    <div className="flex items-center gap-2 pb-2.5 border-b border-gray-200 dark:border-brand-navyLine mb-3">
                       <FiCode className="w-4 h-4 text-brand-primary" />
-                      <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">Developer Information</h3>
+                      <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">Developer Information</h3>
                     </div>
 
                     <div className="space-y-3 text-xs">
-                      <div className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-800/40">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Developer</span>
-                        <span className="font-extrabold text-gray-900 dark:text-white">Huzaifa Imtiaz</span>
+                      <div className="flex justify-between items-center py-1 border-b border-gray-200 dark:border-brand-navyLine/40">
+                        <span className="text-xs font-semibold text-gray-500">Developer</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">Huzaifa Imtiaz</span>
                       </div>
 
-                      <div className="flex justify-between items-center py-1 border-b border-gray-100 dark:border-gray-800/40">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Role</span>
-                        <span className="font-bold text-gray-700 dark:text-gray-300">Software Engineer</span>
+                      <div className="flex justify-between items-center py-1 border-b border-gray-200 dark:border-brand-navyLine/40">
+                        <span className="text-xs font-semibold text-gray-500">Role</span>
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">Software Engineer</span>
                       </div>
 
                       <div className="flex justify-between items-center py-1">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Copyright</span>
+                        <span className="text-xs font-semibold text-gray-500">Copyright</span>
                         <span className="font-semibold text-gray-600 dark:text-gray-400">© 2026 Huzaifa Imtiaz</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-2 text-[10px] text-gray-400 dark:text-gray-500 font-semibold italic text-center border-t border-gray-100 dark:border-gray-800/40">
+                  <div className="pt-2 text-xs text-gray-500 dark:text-gray-500 font-semibold italic text-center border-t border-gray-200 dark:border-brand-navyLine/40">
                     All Rights Reserved.
                   </div>
                 </div>
 
                 {/* System Information Card */}
-                <div className="bg-gray-50/60 dark:bg-gray-800/25 p-4 rounded-xl border border-gray-100 dark:border-gray-800 space-y-3">
-                  <div className="flex items-center gap-2 pb-2.5 border-b border-gray-150 dark:border-gray-800">
+                <div className="bg-gray-50/60 dark:bg-brand-navy/25 p-4 rounded-xl border border-gray-200 dark:border-brand-navyLine space-y-3">
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-gray-200 dark:border-brand-navyLine">
                     <FiCpu className="w-4 h-4 text-brand-primary" />
-                    <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-wider">System Information</h3>
+                    <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">System Information</h3>
                   </div>
 
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
                     <div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">App Version</span>
+                      <span className="text-[11px] font-semibold text-gray-500 block">App Version</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.version || APP_VERSION}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">React</span>
+                      <span className="text-[11px] font-semibold text-gray-500 block">React</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">v{appConfig.reactVersion || '18.3.1'}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Database Engine</span>
+                      <span className="text-[11px] font-semibold text-gray-500 block">Database Engine</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.dbEngine || 'PostgreSQL (Cloud)'}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Platform</span>
+                      <span className="text-[11px] font-semibold text-gray-500 block">Platform</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200">{appConfig.platform || 'Web'}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">Server</span>
+                      <span className="text-[11px] font-semibold text-gray-500 block">Server</span>
                       <span className="font-semibold text-gray-800 dark:text-gray-200 break-all">{appConfig.cloudServer || window.location.origin}</span>
                     </div>
                   </div>
@@ -1418,11 +1418,11 @@ const Settings = () => {
       {/* EDIT PROFILE MODAL */}
       {isEditProfileOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-[#0f172a] border dark:border-gray-800 rounded-enterprise shadow-[0_24px_64px_-8px_rgba(0,0,0,0.18)] w-full max-w-md animate-slide-up overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-brand-navy to-[#162040]">
+          <div className="bg-white dark:bg-brand-navyCard border dark:border-brand-navyLine rounded-enterprise shadow-[0_24px_64px_-8px_rgba(0,0,0,0.18)] w-full max-w-md animate-slide-up overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-brand-navyLine bg-brand-navy">
               <div className="flex items-center gap-3">
                 <FiUser className="w-5 h-5 text-white" />
-                <h2 className="text-sm font-bold text-white">Edit Profile</h2>
+                <h2 className="text-sm font-semibold text-white">Edit Profile</h2>
               </div>
               <button onClick={() => setIsEditProfileOpen(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
                 <FiX className="w-4 h-4 text-white/80" />
@@ -1431,35 +1431,35 @@ const Settings = () => {
             <form onSubmit={handleProfileSave}>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Username</label>
+                  <label className="block text-[11px] font-semibold text-gray-500 mb-1">Username</label>
                   <input
                     type="text"
                     value={profileForm.username}
                     onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
-                    className="w-full px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
+                    className="w-full px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/80 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-1">Email Address</label>
+                  <label className="block text-[11px] font-semibold text-gray-500 mb-1">Email Address</label>
                   <input
                     type="email"
                     value={profileForm.email}
                     onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                    className="w-full px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
+                    className="w-full px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/80 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 flex justify-end gap-2 rounded-b-enterprise">
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-brand-navyLine bg-gray-50/50 dark:bg-brand-navy/30 flex justify-end gap-2 rounded-b-enterprise">
                 <button
                   type="button"
                   onClick={() => setIsEditProfileOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-250 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-250 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-lg transition-colors"
+                  className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-semibold rounded-lg transition-colors"
                 >
                   Save profile
                 </button>
@@ -1472,11 +1472,11 @@ const Settings = () => {
       {/* CHANGE PASSWORD MODAL */}
       {isChangePasswordOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-[#0f172a] border dark:border-gray-800 rounded-enterprise shadow-[0_24px_64px_-8px_rgba(0,0,0,0.18)] w-full max-w-md animate-slide-up overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-brand-navy to-[#162040]">
+          <div className="bg-white dark:bg-brand-navyCard border dark:border-brand-navyLine rounded-enterprise shadow-[0_24px_64px_-8px_rgba(0,0,0,0.18)] w-full max-w-md animate-slide-up overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-brand-navyLine bg-brand-navy">
               <div className="flex items-center gap-3">
                 <FiLock className="w-5 h-5 text-white" />
-                <h2 className="text-sm font-bold text-white">Change Password</h2>
+                <h2 className="text-sm font-semibold text-white">Change Password</h2>
               </div>
               <button onClick={() => setIsChangePasswordOpen(false)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
                 <FiX className="w-4 h-4 text-white/80" />
@@ -1511,17 +1511,17 @@ const Settings = () => {
                   placeholder="Re-enter new password"
                 />
               </div>
-              <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 flex justify-end gap-2 rounded-b-enterprise">
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-brand-navyLine bg-gray-50/50 dark:bg-brand-navy/30 flex justify-end gap-2 rounded-b-enterprise">
                 <button
                   type="button"
                   onClick={() => setIsChangePasswordOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-450 bg-white dark:bg-gray-800 border border-gray-250 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-500 bg-white dark:bg-brand-navy border border-gray-250 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-lg transition-colors"
+                  className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-semibold rounded-lg transition-colors"
                 >
                   Update Password
                 </button>
@@ -1536,11 +1536,11 @@ const Settings = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
           <form
             onSubmit={handleBackupAuthSubmit}
-            className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4"
+            className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4"
           >
             <div className="flex items-center gap-2">
               <FiShield className="w-5 h-5 text-brand-primary" />
-              <h3 className="text-sm font-black text-gray-800 dark:text-white uppercase tracking-wide">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-white">
                 {backupAuth.mode === 'download' ? 'Download Backup' : 'Restore Backup'}
               </h3>
             </div>
@@ -1569,14 +1569,14 @@ const Settings = () => {
                 type="button"
                 onClick={() => { setBackupAuth(null); setBackupPassword(''); }}
                 disabled={creatingBackup || restoringBackup}
-                className="flex-1 py-2.5 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-slate-300 text-xs font-bold uppercase rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex-1 py-2.5 border border-gray-200 dark:border-brand-navyLine text-gray-600 dark:text-slate-300 text-xs font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!backupPassword || creatingBackup || restoringBackup}
-                className={`flex-1 py-2.5 text-white text-xs font-bold uppercase rounded-xl transition-all shadow-md disabled:opacity-60 ${
+                className={`flex-1 py-2.5 text-white text-xs font-semibold  rounded-xl transition-all shadow-md disabled:opacity-60 ${
                   backupAuth.mode === 'restore' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-brand-primary hover:bg-brand-primaryDark'
                 }`}
               >

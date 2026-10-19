@@ -9,17 +9,25 @@ export default {
     extend: {
       colors: {
         brand: {
-          primary: "#A91D22",      // Himmel Crimson Red
-          primaryDark: "#8B1418",  // Darker Crimson
-          secondary: "#FFC72C",    // Golden Yellow
-          bg: "#FFFFFF",           // Clean White background as specified
-          lightGray: "#F9FAFB",    // Soft grey
-          navy: "#0B132B",         // Navy Accent
+          primary: "#A91D22",      // Himmel crimson: main buttons, active menu item, links
+          primaryDark: "#8B1418",  // Crimson when hovered or pressed
+          primaryBright: "#E0484D",// Crimson on dark backgrounds
+          tint: "#FDF2F2",         // Very light pink: selected menu item or row
+          secondary: "#FFC72C",    // Golden yellow: pending / warning
+          bg: "#FFFFFF",           // Cards and tables
+          lightGray: "#F8F9FA",    // Page background
+          navy: "#0B132B",         // Dark mode page background
+          navyCard: "#16203A",     // Dark mode cards
+          navyLine: "#26314F",     // Dark mode borders
         },
+        // Minimal neutrals (light mode)
+        ink: "#111827",            // Main text
+        muted: "#6B7280",          // Secondary text
+        line: "#E5E7EB",           // Lines and borders
         feedback: {
-          success: "#10B981",      // Green
-          warning: "#F59E0B",      // Amber
-          error: "#EF4444",        // Red
+          success: "#16A34A",      // Completed
+          warning: "#FFC72C",      // Pending (golden yellow, dark text on it)
+          error: "#DC2626",        // Cancelled / error
         }
       },
       fontFamily: {
@@ -29,8 +37,9 @@ export default {
         'enterprise': '12px',      // Standard 12px rounded corners
       },
       boxShadow: {
-        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02)',
-        'premium': '0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.02)',
+        // Flat design: cards are defined by their border; shadows stay barely visible.
+        'soft': '0 1px 2px 0 rgba(16, 24, 40, 0.04)',
+        'premium': '0 8px 24px -6px rgba(16, 24, 40, 0.10)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out forwards',

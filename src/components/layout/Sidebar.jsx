@@ -4,38 +4,56 @@ import {
   FiGrid, FiPackage, FiUsers, FiMapPin, FiUserCheck,
   FiLayers, FiTrendingUp, FiTarget, FiBarChart2,
   FiDownloadCloud, FiSettings, FiShield,
-  FiUser, FiClipboard, FiChevronUp, FiLogOut
+  FiClipboard, FiChevronUp, FiLogOut, FiHome, FiShoppingBag
 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
 import ConfirmDialog from '../common/dialogs/ConfirmDialog';
 import CompanyLogo from '../common/CompanyLogo';
 
-const getNavItems = (user, hasPermission) => {
+// Menu grouped by purpose. Items a role may not use are left out (the server checks them too).
+const getNavGroups = (user, hasPermission) => {
   const role = user?.role;
-  const items = [
-    { label: 'Dashboard', icon: FiGrid, path: '/dashboard' },
-    { label: 'Products', icon: FiPackage, path: '/products' },
-    { label: 'Doctors', icon: FiUsers, path: '/doctors' },
-    { label: 'Institutions', icon: FiClipboard, path: '/institutions' },
-    { label: 'Areas', icon: FiMapPin, path: '/areas' },
-    { label: 'Team Members', icon: FiUserCheck, path: '/team' },
-    { label: 'Groups', icon: FiLayers, path: '/groups' },
-    { label: 'Sales', icon: FiTrendingUp, path: '/sales' },
-    { label: 'Orders', icon: FiClipboard, path: '/orders' },
-    { label: 'Targets', icon: FiTarget, path: '/targets' },
-    { label: 'Reports', icon: FiBarChart2, path: '/reports' },
-    // Exporting is limited to roles with reports.export (the server checks it as well).
-    ...(hasPermission && hasPermission('reports.export') ? [{ label: 'Export Center', icon: FiDownloadCloud, path: '/export' }] : []),
-    { label: 'Settings', icon: FiSettings, path: '/settings' },
+  const can = (permission) => Boolean(hasPermission && hasPermission(permission));
+
+  const groups = [
+    { label: null, items: [{ label: 'Dashboard', icon: FiGrid, path: '/dashboard' }] },
+    {
+      label: 'Sales',
+      items: [
+        { label: 'Sales Entry', icon: FiTrendingUp, path: '/sales' },
+        { label: 'Orders', icon: FiShoppingBag, path: '/orders' },
+        { label: 'Targets', icon: FiTarget, path: '/targets' },
+      ],
+    },
+    {
+      label: 'Master data',
+      items: [
+        { label: 'Products', icon: FiPackage, path: '/products' },
+        { label: 'Doctors', icon: FiUsers, path: '/doctors' },
+        { label: 'Institutions', icon: FiHome, path: '/institutions' },
+        { label: 'Areas', icon: FiMapPin, path: '/areas' },
+        { label: 'Groups', icon: FiLayers, path: '/groups' },
+        { label: 'Team Members', icon: FiUserCheck, path: '/team' },
+      ],
+    },
+    {
+      label: 'Reports',
+      items: [
+        { label: 'Reports', icon: FiBarChart2, path: '/reports' },
+        ...(can('reports.export') ? [{ label: 'Export Center', icon: FiDownloadCloud, path: '/export' }] : []),
+      ],
+    },
+    {
+      label: 'System',
+      items: [
+        ...(role === 'Admin' || can('settings.users') ? [{ label: 'Users', icon: FiUsers, path: '/users' }] : []),
+        ...(role === 'Admin' || can('audit.view') ? [{ label: 'Audit Trail', icon: FiShield, path: '/audit-logs' }] : []),
+        { label: 'Settings', icon: FiSettings, path: '/settings' },
+      ],
+    },
   ];
-  if (role === 'Admin' || (hasPermission && hasPermission('audit.view'))) {
-    items.push({ label: 'Audit Trail', icon: FiShield, path: '/audit-logs' });
-  }
-  if (role === 'Admin' || (hasPermission && hasPermission('settings.users'))) {
-    items.push({ label: 'Users', icon: FiUsers, path: '/users' });
-  }
-  return items;
+  return groups.filter((group) => group.items.length > 0);
 };
 
 const SidebarContent = ({
@@ -101,7 +119,7 @@ const SidebarContent = ({
     navigate('/login', { replace: true });
   };
 
-  const navItems = getNavItems(user, hasPermission);
+  const navGroups = getNavGroups(user, hasPermission);
 
   const initials = user?.fullName
     ? user.fullName.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -109,167 +127,165 @@ const SidebarContent = ({
 
   return (
     <div className="flex flex-col h-full overflow-hidden relative">
-      {/* Brand Header (Fixed) */}
-      <div className={`flex-shrink-0 flex items-center gap-3 px-5 py-4 border-b border-white/10 ${isCollapsed ? 'justify-center px-3' : ''}`}>
-        <div className="p-1.5 bg-white rounded-lg shadow-sm border border-white/20 shrink-0 inline-flex items-center justify-center">
-          <CompanyLogo
-            className={`flex-shrink-0 object-contain transition-all duration-300 ${isCollapsed ? 'h-6 w-6' : 'h-7 w-auto max-w-[32px]'}`}
-            aria-label="Himmel Pharmaceutical"
-          />
-        </div>
-        <div className={`overflow-hidden transition-all duration-300 ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-[200px] opacity-100'}`}>
-          <p className="text-white font-bold text-sm leading-none tracking-wide whitespace-nowrap">Himmel</p>
-          <p className="text-white/55 text-xs mt-0.5 font-medium leading-none whitespace-nowrap">Pharmaceutical</p>
-        </div>
+      {/* Logo */}
+      <div className={`flex-shrink-0 flex items-center h-16 border-b border-line dark:border-brand-navyLine ${isCollapsed ? 'justify-center px-2' : 'px-5'}`}>
+        {isCollapsed ? (
+          <span className="w-10 h-10 rounded-lg bg-white border border-line dark:border-transparent inline-flex items-center justify-center overflow-hidden">
+            <CompanyLogo className="h-8 w-auto max-w-none object-left object-cover" style={{ width: 32, objectPosition: 'left center' }} aria-label="Himmel Pharmaceuticals" />
+          </span>
+        ) : (
+          <span className="inline-flex items-center rounded-lg dark:bg-white dark:px-2.5 dark:py-1.5">
+            <CompanyLogo className="h-9 w-auto" />
+          </span>
+        )}
       </div>
 
-      {/* Nav Menu (Scrolls Independently) */}
+      {/* Menu (scrolls on its own) */}
       <nav
         ref={navRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto py-4 px-2 space-y-0.5"
-        aria-label="Sidebar navigation"
+        className="flex-1 min-h-0 overflow-y-auto py-4 px-3 space-y-5"
+        aria-label="Main menu"
       >
-        {navItems.map(({ label, icon: Icon, path, badge }) => (
-          <NavLink
-            key={label}
-            to={path}
-            onClick={(e) => {
-              if (isDirty) {
-                e.preventDefault();
-                confirmNavigation(() => {
-                  if (onMobileClose) onMobileClose();
-                  navigate(path);
-                });
-              } else {
-                if (onMobileClose) onMobileClose();
-              }
-            }}
-            onMouseEnter={(e) => handleMouseEnter(e, label)}
-            onMouseLeave={handleMouseLeave}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-visible
-              ${isActive
-                ? 'bg-white text-[#8B1418] shadow-md font-semibold'
-                : 'text-white/60 hover:bg-white/10 hover:text-white hover:translate-x-0.5'
-              }
-              ${isCollapsed ? 'justify-center px-3' : ''}`
-            }
-          >
-            {({ isActive }) => (
-              <>
-                <Icon className={`w-4.5 h-4.5 flex-shrink-0 transition-transform duration-200 ${!isActive ? 'group-hover:scale-110' : ''}`} />
-                <span className={`truncate transition-all duration-300 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100'}`}>
-                  {label}
-                </span>
-                {badge && (
-                  <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full flex-shrink-0
-                    ${isActive ? 'bg-[#8B1418]/15 text-[#8B1418]' : 'bg-orange-500/80 text-white group-hover:bg-orange-400'}
-                    transition-all duration-300 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0 pointer-events-none px-0 py-0' : 'max-w-[50px] opacity-100'}`}>
-                    {badge}
-                  </span>
-                )}
-              </>
+        {navGroups.map((group) => (
+          <div key={group.label || 'main'} className="space-y-0.5">
+            {group.label && !isCollapsed && (
+              <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted dark:text-gray-400">
+                {group.label}
+              </p>
             )}
-          </NavLink>
+            {group.label && isCollapsed && <div className="mx-3 mb-2 border-t border-line dark:border-brand-navyLine" />}
+            {group.items.map(({ label, icon: Icon, path }) => (
+              <NavLink
+                key={label}
+                to={path}
+                onClick={(e) => {
+                  if (isDirty) {
+                    e.preventDefault();
+                    confirmNavigation(() => {
+                      if (onMobileClose) onMobileClose();
+                      navigate(path);
+                    });
+                  } else if (onMobileClose) {
+                    onMobileClose();
+                  }
+                }}
+                onMouseEnter={(e) => handleMouseEnter(e, label)}
+                onMouseLeave={handleMouseLeave}
+                aria-label={isCollapsed ? label : undefined}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150
+                  ${isActive
+                    ? 'bg-brand-tint text-brand-primary font-semibold dark:bg-brand-primary/20 dark:text-red-200'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-ink dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-white'
+                  }
+                  ${isCollapsed ? 'justify-center' : ''}`
+                }
+              >
+                <Icon className="w-[18px] h-[18px] flex-shrink-0" aria-hidden="true" />
+                {!isCollapsed && <span className="truncate">{label}</span>}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 
-      {/* Bottom Footer User Details (Fixed & Pinned) */}
-      <div className="flex-shrink-0 border-t border-white/10 bg-black/25 relative">
+      {/* Signed-in user */}
+      <div className="flex-shrink-0 border-t border-line dark:border-brand-navyLine relative">
         <div
           ref={buttonRef}
           onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-          className={`w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 transition-all text-left cursor-pointer min-h-[88px] ${isCollapsed ? 'justify-center px-3' : ''}`}
+          className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left cursor-pointer ${isCollapsed ? 'justify-center px-2' : ''}`}
           aria-haspopup="true"
           aria-expanded={profileMenuOpen}
         >
-          <div className="w-8 h-8 rounded-full bg-white/20 border border-white/20 flex items-center justify-center flex-shrink-0 text-white text-xs font-bold shadow-inner">
+          <div className="w-9 h-9 rounded-full bg-brand-navy dark:bg-brand-primary flex items-center justify-center flex-shrink-0 text-white text-xs font-semibold">
             {initials}
           </div>
-          
+
           {!isCollapsed && (
             <>
               <div className="flex-grow min-w-0 pr-1">
-                <p className="text-white text-xs font-bold leading-tight break-words capitalize">
+                <p className="text-sm font-semibold text-ink dark:text-white leading-tight truncate capitalize">
                   {user?.fullName || user?.username || 'Guest'}
                 </p>
-                <p className="text-white/45 text-[10px] mt-1 font-semibold break-words leading-normal">
+                <p className="text-xs text-muted dark:text-gray-400 mt-0.5 truncate">
                   {user?.role || 'Guest'}
                 </p>
               </div>
-              
-              <div className="flex-shrink-0 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+
+              <div className="flex-shrink-0 flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={handleDirectLogout}
-                  className="p-1.5 rounded-md hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
-                  title="Logout"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-muted hover:text-ink dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Sign out"
+                  aria-label="Sign out"
                 >
-                  <FiLogOut className="w-3.5 h-3.5" />
+                  <FiLogOut className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  className="p-1.5 rounded-md hover:bg-white/10 text-white/40 hover:text-white transition-colors cursor-pointer"
-                  title="Account Options"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-muted hover:text-ink dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Account options"
+                  aria-label="Account options"
                 >
-                  <FiChevronUp className="w-3.5 h-3.5" />
+                  <FiChevronUp className="w-4 h-4" />
                 </button>
               </div>
             </>
           )}
         </div>
 
-        {/* User Menu Dropdown */}
         {profileMenuOpen && (
           <div
             ref={dropdownRef}
-            className={`absolute bottom-[90px] bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-xl shadow-xl py-1.5 z-50 text-xs text-gray-700 dark:text-gray-200 animate-slide-up ${
-              isCollapsed ? 'left-2 w-48' : 'left-3 right-3'
+            className={`absolute bottom-[72px] bg-white dark:bg-brand-navyCard border border-line dark:border-brand-navyLine rounded-xl shadow-premium py-1.5 z-50 text-sm text-gray-700 dark:text-gray-200 animate-slide-up ${
+              isCollapsed ? 'left-2 w-52' : 'left-3 right-3'
             }`}
           >
-            <div className="px-3.5 py-2 border-b border-gray-100 dark:border-gray-800">
-              <p className="font-bold text-gray-900 dark:text-white capitalize truncate">{user?.fullName || user?.username}</p>
-              <p className="text-[10px] text-gray-400 dark:text-gray-500 font-semibold">{user?.role}</p>
+            <div className="px-4 py-2 border-b border-line dark:border-brand-navyLine">
+              <p className="font-semibold text-ink dark:text-white capitalize truncate">{user?.fullName || user?.username}</p>
+              <p className="text-xs text-muted dark:text-gray-400">{user?.role}</p>
             </div>
             <button
               onClick={() => {
                 setProfileMenuOpen(false);
                 confirmNavigation(() => navigate('/settings'));
               }}
-              className="w-full text-left px-3.5 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 font-medium transition-colors flex items-center gap-2"
+              className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors flex items-center gap-2.5"
             >
-              <FiSettings className="w-3.5 h-3.5" />
+              <FiSettings className="w-4 h-4" />
               Settings
             </button>
-              <button
-                onClick={() => {
-                  setProfileMenuOpen(false);
-                  confirmNavigation(() => {
-                    setShowLogoutConfirm(true);
-                  });
-                }}
-                className="w-full text-left px-3.5 py-2 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 font-semibold transition-colors flex items-center gap-2 border-t border-gray-150 dark:border-gray-800"
-              >
-                <FiLogOut className="w-3.5 h-3.5" />
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
-
-        <ConfirmDialog
-          open={showLogoutConfirm}
-          title="Log Out Confirmation"
-          message="Are you sure you want to log out of the system? Any unsaved active session context will be safely cleared."
-          confirmText="Log Out"
-          cancelText="Cancel"
-          confirmVariant="danger"
-          onConfirm={handleConfirmLogout}
-          onCancel={() => setShowLogoutConfirm(false)}
-        />
+            <button
+              onClick={() => {
+                setProfileMenuOpen(false);
+                confirmNavigation(() => {
+                  setShowLogoutConfirm(true);
+                });
+              }}
+              className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-950/30 text-red-700 dark:text-red-400 font-medium transition-colors flex items-center gap-2.5 border-t border-line dark:border-brand-navyLine"
+            >
+              <FiLogOut className="w-4 h-4" />
+              Sign out
+            </button>
+          </div>
+        )}
       </div>
-    );
-  };
+
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        title="Sign out?"
+        message="You will need to sign in again to continue."
+        confirmText="Sign out"
+        cancelText="Cancel"
+        confirmVariant="danger"
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
+    </div>
+  );
+};
 
 const Sidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
   const { user, logout, hasPermission } = useAuth();
@@ -291,59 +307,48 @@ const Sidebar = ({ collapsed, onToggle, mobileOpen, onMobileClose }) => {
     setHoveredItem(null);
   };
 
+  const shared = {
+    user,
+    logout,
+    hasPermission,
+    navigate,
+    confirmNavigation,
+    isDirty,
+    onMobileClose,
+    handleMouseEnter,
+    handleMouseLeave
+  };
+
   return (
     <>
-      {/* Desktop/Tablet Sidebar */}
+      {/* Computer and tablet */}
       <aside
-        className={`hidden md:flex flex-col relative bg-gradient-to-br from-[#801317] via-[#A91D22] to-[#600D10] flex-shrink-0 transition-all duration-300 ease-in-out h-full ${collapsed ? 'w-16' : 'w-60'}`}
+        className={`hidden md:flex flex-col relative bg-white dark:bg-brand-navyCard border-r border-line dark:border-brand-navyLine flex-shrink-0 transition-[width] duration-300 ease-in-out h-full ${collapsed ? 'w-[72px]' : 'w-64'}`}
       >
-        <SidebarContent
-          collapsed={collapsed}
-          user={user}
-          logout={logout}
-          hasPermission={hasPermission}
-          navigate={navigate}
-          confirmNavigation={confirmNavigation}
-          isDirty={isDirty}
-          onMobileClose={onMobileClose}
-          handleMouseEnter={handleMouseEnter}
-          handleMouseLeave={handleMouseLeave}
-        />
+        <SidebarContent collapsed={collapsed} {...shared} />
       </aside>
 
-      {/* Mobile Drawer Sidebar */}
+      {/* Phone: slide-in menu */}
       {mobileOpen && (
         <>
-          <div className="md:hidden fixed inset-0 bg-black/50 z-30 animate-fade-in" onClick={onMobileClose} />
-          <aside className="md:hidden fixed left-0 top-0 h-full w-60 bg-gradient-to-br from-[#801317] via-[#A91D22] to-[#600D10] z-40 flex flex-col animate-slide-up shadow-2xl">
-            <SidebarContent
-              collapsed={collapsed}
-              forceExpanded={true}
-              user={user}
-              logout={logout}
-              hasPermission={hasPermission}
-              navigate={navigate}
-              confirmNavigation={confirmNavigation}
-              isDirty={isDirty}
-              onMobileClose={onMobileClose}
-              handleMouseEnter={handleMouseEnter}
-              handleMouseLeave={handleMouseLeave}
-            />
+          <div className="md:hidden fixed inset-0 bg-black/40 z-30 animate-fade-in" onClick={onMobileClose} />
+          <aside className="md:hidden fixed left-0 top-0 h-full w-72 max-w-[85vw] bg-white dark:bg-brand-navyCard z-40 flex flex-col animate-fade-in shadow-premium">
+            <SidebarContent collapsed={collapsed} forceExpanded={true} {...shared} />
           </aside>
         </>
       )}
 
-      {/* Hover Tooltip (Shared/Global container to avoid absolute alignment issues) */}
+      {/* Name of the hovered item while the menu is collapsed to icons */}
       {collapsed && hoveredItem && (
         <div
-          className="fixed pl-2.5 z-55 pointer-events-none transition-all duration-200"
+          className="fixed pl-2.5 z-[55] pointer-events-none"
           style={{
-            left: '64px',
+            left: '72px',
             top: `${hoveredItem.top}px`,
             transform: 'translateY(-50%)'
           }}
         >
-          <div className="px-2.5 py-1 bg-gray-900 border border-white/10 text-white text-xs font-semibold rounded-md shadow-lg whitespace-nowrap animate-fade-in">
+          <div className="px-2.5 py-1 bg-ink text-white text-xs font-medium rounded-md shadow-premium whitespace-nowrap animate-fade-in">
             {hoveredItem.label}
           </div>
         </div>

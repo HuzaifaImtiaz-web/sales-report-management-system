@@ -308,14 +308,14 @@ const getPOSummary = (po, doctorsList = [], teamMembersList = [], productsList =
 const StatusBadge = ({ status }) => {
   if (status === 'Completed') {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-50 dark:bg-green-900/30 text-feedback-success border border-green-100 dark:border-green-800/50">
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 dark:bg-green-900/30 text-feedback-success border border-green-100 dark:border-green-800/50">
         <span className="w-1.5 h-1.5 rounded-full bg-feedback-success inline-block" />
         Completed
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-600 border border-amber-100 dark:border-amber-800/50">
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-900/30 text-amber-600 border border-amber-100 dark:border-amber-800/50">
       <span className="w-1.5 h-1.5 rounded-full bg-amber-505 inline-block" />
       Pending
     </span>
@@ -327,17 +327,17 @@ const ReportDetailsModal = ({ po, summary, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white dark:bg-[#0f172a] border dark:border-gray-800 rounded-enterprise shadow-[0_24px_64px_-8px_rgba(0,0,0,0.18)] w-full max-w-2xl animate-slide-up overflow-hidden">
+      <div className="bg-white dark:bg-brand-navyCard border dark:border-brand-navyLine rounded-enterprise shadow-[0_24px_64px_-8px_rgba(0,0,0,0.18)] w-full max-w-2xl animate-slide-up overflow-hidden">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-brand-navy to-[#162040]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-brand-navyLine bg-brand-navy">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
               <FiShoppingBag className="w-4.5 h-4.5 text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-white">Report Purchase Order Details</h2>
-              <p className="text-[10px] text-white/50 font-medium mt-0.5">{po.poNumber}</p>
+              <h2 className="text-sm font-semibold text-white">Report Purchase Order Details</h2>
+              <p className="text-xs text-white/50 font-medium mt-0.5">{po.poNumber}</p>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
@@ -349,68 +349,68 @@ const ReportDetailsModal = ({ po, summary, onClose }) => {
         <div className="px-6 py-5 space-y-5 max-h-[65vh] overflow-y-auto">
           {/* Info Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl px-4 py-3 border border-gray-100/50 dark:border-gray-800/50">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-550">PO Number</p>
-              <p className="text-xs font-mono font-bold text-gray-900 dark:text-white mt-1">{po.poNumber}</p>
+            <div className="bg-gray-50 dark:bg-brand-navy/50 rounded-xl px-4 py-3 border border-gray-200/50 dark:border-brand-navyLine/50">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-550">PO Number</p>
+              <p className="text-xs font-mono font-semibold text-gray-900 dark:text-white mt-1">{po.poNumber}</p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl px-4 py-3 border border-gray-100/50 dark:border-gray-800/50">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-550">PO Date</p>
-              <p className="text-xs font-semibold text-gray-850 dark:text-gray-250 mt-1">{po.poDate}</p>
+            <div className="bg-gray-50 dark:bg-brand-navy/50 rounded-xl px-4 py-3 border border-gray-200/50 dark:border-brand-navyLine/50">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-550">PO Date</p>
+              <p className="text-xs font-semibold text-gray-800 dark:text-gray-250 mt-1">{po.poDate}</p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl px-4 py-3 border border-gray-100/50 dark:border-gray-800/50">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-550">Area</p>
-              <p className="text-xs font-semibold text-gray-850 dark:text-gray-250 mt-1">{po.area}</p>
+            <div className="bg-gray-50 dark:bg-brand-navy/50 rounded-xl px-4 py-3 border border-gray-200/50 dark:border-brand-navyLine/50">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-550">Area</p>
+              <p className="text-xs font-semibold text-gray-800 dark:text-gray-250 mt-1">{po.area}</p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl px-4 py-3 border border-gray-100/50 dark:border-gray-800/50">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-550">Status</p>
+            <div className="bg-gray-50 dark:bg-brand-navy/50 rounded-xl px-4 py-3 border border-gray-200/50 dark:border-brand-navyLine/50">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-550">Status</p>
               <div className="mt-1.5"><StatusBadge status={po.status} /></div>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl px-4 py-3 border border-gray-100/50 dark:border-gray-800/50 col-span-2">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-550">Doctor</p>
-              <p className="text-xs font-bold text-gray-850 dark:text-gray-200 mt-1">{summary.doctorName}</p>
+            <div className="bg-gray-50 dark:bg-brand-navy/50 rounded-xl px-4 py-3 border border-gray-200/50 dark:border-brand-navyLine/50 col-span-2">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-550">Doctor</p>
+              <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-1">{summary.doctorName}</p>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl px-4 py-3 border border-gray-100/50 dark:border-gray-800/50 col-span-2">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-550">Team Member (MR)</p>
-              <p className="text-xs font-bold text-gray-850 dark:text-gray-200 mt-1">{summary.teamMemberName}</p>
+            <div className="bg-gray-50 dark:bg-brand-navy/50 rounded-xl px-4 py-3 border border-gray-200/50 dark:border-brand-navyLine/50 col-span-2">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-550">Team Member (MR)</p>
+              <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-1">{summary.teamMemberName}</p>
             </div>
           </div>
 
           {/* Product Items Table */}
-          <div className="border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
-            <div className="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-550">Products Summary</p>
+          <div className="border border-gray-200 dark:border-brand-navyLine rounded-xl overflow-hidden">
+            <div className="bg-gray-50 dark:bg-brand-navy/50 px-4 py-3 border-b border-gray-200 dark:border-brand-navyLine">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-550">Products Summary</p>
             </div>
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-gray-100 dark:border-gray-800 text-left bg-gray-50/20 dark:bg-gray-800/10">
-                  <th className="px-4 py-2.5 text-gray-400 uppercase font-bold text-[9px] tracking-wider">Product Name</th>
-                  <th className="px-4 py-2.5 text-right text-gray-400 uppercase font-bold text-[9px] tracking-wider">Quantity</th>
-                  <th className="px-4 py-2.5 text-center text-gray-400 uppercase font-bold text-[9px] tracking-wider">Unit</th>
-                  <th className="px-4 py-2.5 text-right text-gray-400 uppercase font-bold text-[9px] tracking-wider">Rate</th>
-                  <th className="px-4 py-2.5 text-right text-gray-400 uppercase font-bold text-[9px] tracking-wider">Total</th>
+                <tr className="border-b border-gray-200 dark:border-brand-navyLine text-left bg-gray-50/20 dark:bg-brand-navy/10">
+                  <th className="px-4 py-2.5 text-gray-500 font-semibold text-[11px]">Product Name</th>
+                  <th className="px-4 py-2.5 text-right text-gray-500 font-semibold text-[11px]">Quantity</th>
+                  <th className="px-4 py-2.5 text-center text-gray-500 font-semibold text-[11px]">Unit</th>
+                  <th className="px-4 py-2.5 text-right text-gray-500 font-semibold text-[11px]">Rate</th>
+                  <th className="px-4 py-2.5 text-right text-gray-500 font-semibold text-[11px]">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50">
                 {summary.itemsDetailed.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50/40 dark:hover:bg-gray-800/10">
-                    <td className="px-4 py-3 font-semibold text-gray-850 dark:text-gray-200">{item.productName}</td>
-                    <td className="px-4 py-3 text-right font-extrabold text-gray-800 dark:text-gray-200">{item.quantity.toLocaleString()}</td>
+                  <tr key={idx} className="hover:bg-gray-50/40 dark:hover:bg-white/5/10">
+                    <td className="px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{item.productName}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-800 dark:text-gray-200">{item.quantity.toLocaleString()}</td>
                     <td className="px-4 py-3 text-center text-gray-500">{item.unit}</td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-700 dark:text-gray-300">Rs {item.rate.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right font-extrabold text-brand-primary">Rs {item.total.toLocaleString()}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-brand-primary">Rs {item.total.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
             {/* Total Footer */}
-            <div className="bg-gray-50/50 dark:bg-gray-800/20 border-t border-gray-100 dark:border-gray-800 px-4 py-3 flex justify-between items-center">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Grand Totals</span>
+            <div className="bg-gray-50/50 dark:bg-brand-navy/20 border-t border-gray-200 dark:border-brand-navyLine px-4 py-3 flex justify-between items-center">
+              <span className="text-xs font-semibold text-gray-550 dark:text-gray-400">Grand Totals</span>
               <div className="flex gap-6">
-                <span className="text-xs font-extrabold text-gray-850 dark:text-gray-200">
+                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
                   {summary.totalQuantity.toLocaleString()} vials
                 </span>
-                <span className="text-xs font-extrabold text-brand-primary">
+                <span className="text-xs font-semibold text-brand-primary">
                   Rs {summary.totalValue.toLocaleString()}
                 </span>
               </div>
@@ -419,8 +419,8 @@ const ReportDetailsModal = ({ po, summary, onClose }) => {
 
           {/* Remarks */}
           {po.remarks && (
-            <div className="border border-gray-100 dark:border-gray-800 rounded-xl p-4">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-550 border-b border-gray-100 dark:border-gray-800 pb-2 mb-2">Special Remarks</p>
+            <div className="border border-gray-200 dark:border-brand-navyLine rounded-xl p-4">
+              <p className="text-[11px] font-semibold text-gray-500 dark:text-gray-550 border-b border-gray-200 dark:border-brand-navyLine pb-2 mb-2">Special Remarks</p>
               <p className="text-xs text-gray-700 dark:text-gray-300 font-medium leading-relaxed italic">
                 &ldquo;{po.remarks}&rdquo;
               </p>
@@ -429,10 +429,10 @@ const ReportDetailsModal = ({ po, summary, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 flex justify-end">
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-brand-navyLine bg-gray-50/50 dark:bg-brand-navy/30 flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 text-xs font-bold text-white bg-brand-navy rounded-lg hover:bg-[#162040] shadow-sm transition-all duration-150"
+            className="px-5 py-2 text-xs font-semibold text-white bg-brand-navy rounded-lg hover:bg-[#16203A] shadow-sm transition-all duration-150"
           >
             Close
           </button>
@@ -449,10 +449,10 @@ const SkeletonRows = () => {
   return (
     <>
       {[1, 2, 3, 4, 5].map((idx) => (
-        <tr key={idx} className="border-b border-gray-55 dark:border-gray-800/50">
+        <tr key={idx} className="border-b border-gray-100 dark:border-brand-navyLine/50">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((col) => (
             <td key={col} className="px-6 py-4">
-              <div className="h-4 bg-gray-200 dark:bg-gray-750 rounded animate-pulse w-full max-w-[80px]" />
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-full max-w-[80px]" />
             </td>
           ))}
         </tr>
@@ -770,7 +770,8 @@ const Reports = () => {
   }, [filteredPOs]);
 
   // Colors for pie charts
-  const COLORS = ['#0F172A', '#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+  // Palette: crimson first, then navy-grey, golden yellow and lighter tints.
+  const COLORS = ['#A91D22', '#64748B', '#FFC72C', '#D9777A', '#9CA3AF', '#8B1418', '#CBD5E1'];
 
   // Export handlers
   const handleExport = (type) => {
@@ -801,15 +802,15 @@ const Reports = () => {
         {/* ── Page Title ── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Reports Panel</h1>
-            <p className="text-xs text-gray-400 dark:text-gray-550 font-medium mt-1">View, filter, analyze, and export sales reports.</p>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Reports Panel</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-550 font-medium mt-1">View, filter, analyze, and export sales reports.</p>
           </div>
           
           {/* Export Options */}
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to={`/export?search=${encodeURIComponent(activeFilters.search)}&startDate=${encodeURIComponent(activeFilters.startDate)}&endDate=${encodeURIComponent(activeFilters.endDate)}&doctor=${encodeURIComponent(activeFilters.doctorId)}&area=${encodeURIComponent(activeFilters.area)}&teamMember=${encodeURIComponent(activeFilters.teamMemberId)}&product=${encodeURIComponent(activeFilters.productId)}&status=${encodeURIComponent(activeFilters.status)}`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-white bg-brand-primary hover:bg-brand-primaryDark rounded-lg transition-colors shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold text-white bg-brand-primary hover:bg-brand-primaryDark rounded-lg transition-colors shadow-sm"
             >
               <FiDownload className="w-3.5 h-3.5" />
               Export Center
@@ -817,7 +818,7 @@ const Reports = () => {
             <button
               disabled={exporting !== null}
               onClick={() => handleExport('excel')}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors shadow-sm disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm disabled:opacity-50"
             >
               <FiFileText className="w-3.5 h-3.5 text-green-600" />
               {exporting === 'excel' ? 'Exporting...' : 'Export Excel'}
@@ -825,7 +826,7 @@ const Reports = () => {
             <button
               disabled={exporting !== null}
               onClick={() => handleExport('pdf')}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors shadow-sm disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm disabled:opacity-50"
             >
               <FiFileText className="w-3.5 h-3.5 text-red-500" />
               {exporting === 'pdf' ? 'Exporting...' : 'Export PDF'}
@@ -833,7 +834,7 @@ const Reports = () => {
             <button
               disabled={exporting !== null}
               onClick={() => handleExport('ppt')}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors shadow-sm disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm disabled:opacity-50"
             >
               <FiTrendingUp className="w-3.5 h-3.5 text-amber-500" />
               {exporting === 'ppt' ? 'Exporting...' : 'Export PPT'}
@@ -842,18 +843,18 @@ const Reports = () => {
         </div>
 
         {/* ── Multiple Filter Panel ── */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-5 space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-brand-navyLine">
             <FiFilter className="w-4 h-4 text-brand-primary" />
-            <span className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-widest">Filter Controls</span>
+            <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Filter Controls</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {/* Autocomplete Search input */}
             <div className="flex flex-col relative" ref={autocompleteRef}>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Smart Search</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5">Smart Search</label>
               <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <input
                   type="text"
                   placeholder="Type Doctor, Area, MR, Product..."
@@ -864,13 +865,13 @@ const Reports = () => {
                       setShowSuggestions(true);
                     }
                   }}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all placeholder:text-gray-400"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all placeholder:text-gray-400"
                 />
               </div>
               
               {/* Autocomplete suggestions dropdown */}
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-[100%] left-0 right-0 z-50 mt-1 bg-white dark:bg-[#1e293b] border border-gray-150 dark:border-gray-700 rounded-lg shadow-xl max-h-60 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-700">
+                <div className="absolute top-[100%] left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-lg shadow-xl max-h-60 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-700">
                   {suggestions.map((s, idx) => (
                     <div
                       key={idx}
@@ -878,7 +879,7 @@ const Reports = () => {
                       className="px-3.5 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer text-xs font-semibold text-gray-700 dark:text-gray-200 flex justify-between items-center transition-colors duration-150"
                     >
                       <span className="truncate pr-2">{s.label}</span>
-                      <span className="text-[8px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-gray-550 flex-shrink-0">
+                      <span className="text-[8px] font-semibold px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-550 flex-shrink-0">
                         {s.type}
                       </span>
                     </div>
@@ -889,41 +890,41 @@ const Reports = () => {
 
             {/* Date range picker */}
             <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Start Date</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5">Start Date</label>
               <div className="relative">
-                <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <input
                   type="date"
                   value={tempFilters.startDate}
                   onChange={(e) => setTempFilters({ ...tempFilters, startDate: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 />
               </div>
             </div>
 
             {/* End Date */}
             <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">End Date</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5">End Date</label>
               <div className="relative">
-                <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <input
                   type="date"
                   value={tempFilters.endDate}
                   onChange={(e) => setTempFilters({ ...tempFilters, endDate: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 />
               </div>
             </div>
 
             {/* Doctor */}
             <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Doctor</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5">Doctor</label>
               <div className="relative">
-                <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <select
                   value={tempFilters.doctorId}
                   onChange={(e) => setTempFilters({ ...tempFilters, doctorId: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 >
                   <option value="">All Doctors</option>
                   {doctors.map((d) => (
@@ -935,13 +936,13 @@ const Reports = () => {
 
             {/* Area */}
             <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Area</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5">Area</label>
               <div className="relative">
-                <FiMapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <FiMapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <select
                   value={tempFilters.area}
                   onChange={(e) => setTempFilters({ ...tempFilters, area: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 >
                   <option value="">All Areas</option>
                   {areas.map((a) => (
@@ -953,13 +954,13 @@ const Reports = () => {
 
             {/* Team Member */}
             <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Team Member</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5">Team Member</label>
               <div className="relative">
-                <FiBriefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <FiBriefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <select
                   value={tempFilters.teamMemberId}
                   onChange={(e) => setTempFilters({ ...tempFilters, teamMemberId: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 >
                   <option value="">All Team Members</option>
                   {teamMembers.map((t) => (
@@ -971,13 +972,13 @@ const Reports = () => {
 
             {/* Product */}
             <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Product</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5">Product</label>
               <div className="relative">
-                <FiTag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <FiTag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <select
                   value={tempFilters.productId}
                   onChange={(e) => setTempFilters({ ...tempFilters, productId: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 >
                   <option value="">All Products</option>
                   {products.map((p) => (
@@ -989,13 +990,13 @@ const Reports = () => {
 
             {/* Status */}
             <div className="flex flex-col">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Status</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5">Status</label>
               <div className="relative">
-                <FiClock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <FiClock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <select
                   value={tempFilters.status}
                   onChange={(e) => setTempFilters({ ...tempFilters, status: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-750 dark:text-gray-200 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-brand-primary/20 transition-all"
                 >
                   <option value="">All Statuses</option>
                   <option value="Pending">Pending</option>
@@ -1006,16 +1007,16 @@ const Reports = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-55/60 dark:border-gray-800/50">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100/60 dark:border-brand-navyLine/50">
             <button
               onClick={handleResetFilters}
-              className="inline-flex items-center gap-1 px-4 py-2 text-xs font-bold text-gray-655 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-150 dark:hover:bg-gray-750 transition-colors shadow-sm"
+              className="inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold text-gray-655 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-150 dark:hover:bg-gray-700 transition-colors shadow-sm"
             >
               <FiRefreshCw className="w-3.5 h-3.5" /> Reset Filters
             </button>
             <button
               onClick={handleApplyFilters}
-              className="inline-flex items-center gap-1 px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark transition-colors shadow-md"
+              className="inline-flex items-center gap-1 px-5 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark transition-colors shadow-md"
             >
               <FiCheck className="w-3.5 h-3.5" /> Apply Filters
             </button>
@@ -1025,57 +1026,57 @@ const Reports = () => {
         {/* ── Summary Cards ── */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Card 1: Total Purchase Orders */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center border border-slate-100/50 dark:border-slate-800">
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-brand-navyCard flex items-center justify-center border border-slate-100/50 dark:border-slate-800">
               <FiShoppingBag className="w-5 h-5 text-brand-navy" />
             </div>
             <div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Total POs</p>
-              <p className="text-lg font-extrabold text-gray-900 dark:text-white mt-0.5">{summaryMetrics.totalPOs}</p>
+              <p className="text-[11px] font-semibold text-gray-500">Total POs</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white mt-0.5">{summaryMetrics.totalPOs}</p>
             </div>
           </div>
 
           {/* Card 2: Total Vials Sold */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-955/20 flex items-center justify-center border border-sky-100 dark:border-sky-900/30">
-              <FiTrendingUp className="w-5 h-5 text-sky-500" />
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-955/20 flex items-center justify-center border border-gray-100 dark:border-gray-900/30">
+              <FiTrendingUp className="w-5 h-5 text-gray-500" />
             </div>
             <div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Vials Sold</p>
-              <p className="text-lg font-extrabold text-gray-900 dark:text-white mt-0.5">{summaryMetrics.totalVials.toLocaleString()}</p>
+              <p className="text-[11px] font-semibold text-gray-500">Vials Sold</p>
+              <p className="text-lg font-semibold text-gray-900 dark:text-white mt-0.5">{summaryMetrics.totalVials.toLocaleString()}</p>
             </div>
           </div>
 
           {/* Card 3: Total Sales Amount */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 flex items-center gap-4 col-span-2 lg:col-span-1">
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-4 flex items-center gap-4 col-span-2 lg:col-span-1">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-955/20 flex items-center justify-center border border-emerald-100 dark:border-emerald-900/30">
-              <span className="text-emerald-500 font-extrabold text-sm">Rs</span>
+              <span className="text-emerald-500 font-semibold text-sm">Rs</span>
             </div>
             <div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Sales Amount</p>
-              <p className="text-lg font-extrabold text-brand-primary mt-0.5">Rs {summaryMetrics.totalAmount.toLocaleString()}</p>
+              <p className="text-[11px] font-semibold text-gray-500">Sales Amount</p>
+              <p className="text-lg font-semibold text-brand-primary mt-0.5">Rs {summaryMetrics.totalAmount.toLocaleString()}</p>
             </div>
           </div>
 
           {/* Card 4: Pending Orders */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-955/20 flex items-center justify-center border border-amber-100 dark:border-amber-900/30">
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/20 flex items-center justify-center border border-amber-100 dark:border-amber-900/30">
               <FiClock className="w-5 h-5 text-amber-500" />
             </div>
             <div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Pending Orders</p>
-              <p className="text-lg font-extrabold text-amber-600 mt-0.5">{summaryMetrics.pendingOrders}</p>
+              <p className="text-[11px] font-semibold text-gray-500">Pending Orders</p>
+              <p className="text-lg font-semibold text-amber-600 mt-0.5">{summaryMetrics.pendingOrders}</p>
             </div>
           </div>
 
           {/* Card 5: Completed Orders */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 flex items-center gap-4">
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-4 flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-955/20 flex items-center justify-center border border-green-100 dark:border-green-900/30">
               <FiCheckCircle className="w-5 h-5 text-feedback-success" />
             </div>
             <div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Completed Orders</p>
-              <p className="text-lg font-extrabold text-feedback-success mt-0.5">{summaryMetrics.completedOrders}</p>
+              <p className="text-[11px] font-semibold text-gray-500">Completed Orders</p>
+              <p className="text-lg font-semibold text-feedback-success mt-0.5">{summaryMetrics.completedOrders}</p>
             </div>
           </div>
         </div>
@@ -1084,62 +1085,62 @@ const Reports = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
           {/* Chart 1: Monthly Sales */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-4 shadow-soft">
-            <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-widest mb-3">Monthly Sales (Rs)</h3>
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise p-4 shadow-soft">
+            <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-3">Monthly Sales (Rs)</h3>
             <div className="w-full h-[230px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyChartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis dataKey="month" stroke="#94A3B8" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <XAxis dataKey="month" stroke="#6B7280" fontSize={10} tickLine={false} />
+                  <YAxis stroke="#6B7280" fontSize={10} tickLine={false} />
                   <Tooltip formatter={(value) => [value != null ? `Rs ${Number(value).toLocaleString()}` : 'Rs 0', 'Sales']} />
-                  <Bar dataKey="Sales" fill="#0EA5E9" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Sales" fill="#A91D22" radius={[4, 4, 0, 0]} maxBarSize={48} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Chart 2: Monthly Vials Sold */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-4 shadow-soft">
-            <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-widest mb-3">Monthly Vials Sold</h3>
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise p-4 shadow-soft">
+            <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-3">Monthly Vials Sold</h3>
             <div className="w-full h-[230px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlyChartData}>
                   <defs>
                     <linearGradient id="colorVials" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#A91D22" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#A91D22" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis dataKey="month" stroke="#94A3B8" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <XAxis dataKey="month" stroke="#6B7280" fontSize={10} tickLine={false} />
+                  <YAxis stroke="#6B7280" fontSize={10} tickLine={false} />
                   <Tooltip formatter={(value) => [value != null ? Number(value).toLocaleString() : '0', 'Vials']} />
-                  <Area type="monotone" dataKey="Vials" stroke="#10B981" fillOpacity={1} fill="url(#colorVials)" />
+                  <Area type="monotone" dataKey="Vials" stroke="#A91D22" fillOpacity={1} fill="url(#colorVials)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Chart 3: Product-wise Sales */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-4 shadow-soft">
-            <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-widest mb-3">Top Products (Sales)</h3>
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise p-4 shadow-soft">
+            <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-3">Top Products (Sales)</h3>
             <div className="w-full h-[230px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={productChartData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
-                  <XAxis type="number" stroke="#94A3B8" fontSize={10} tickLine={false} />
-                  <YAxis dataKey="name" type="category" stroke="#94A3B8" fontSize={9} tickLine={false} width={80} />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
+                  <XAxis type="number" stroke="#6B7280" fontSize={10} tickLine={false} />
+                  <YAxis dataKey="name" type="category" stroke="#6B7280" fontSize={9} tickLine={false} width={80} />
                   <Tooltip formatter={(value) => [value != null ? `Rs ${Number(value).toLocaleString()}` : 'Rs 0', 'Sales']} />
-                  <Bar dataKey="Sales" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="Sales" fill="#A91D22" radius={[0, 4, 4, 0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Chart 4: Area-wise Sales */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-4 shadow-soft">
-            <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-widest mb-3">Area-wise Sales</h3>
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise p-4 shadow-soft">
+            <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-3">Area-wise Sales</h3>
             <div className="w-full h-[230px] flex items-center justify-center">
               <div className="w-[60%] h-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -1161,11 +1162,11 @@ const Reports = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="w-[40%] text-[10px] space-y-1.5 max-h-[180px] overflow-y-auto pr-1">
+              <div className="w-[40%] text-xs space-y-1.5 max-h-[180px] overflow-y-auto pr-1">
                 {areaChartData.map((item, index) => (
                   <div key={item.name} className="flex items-center gap-1.5">
                     <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                    <span className="text-gray-600 dark:text-gray-400 font-bold truncate max-w-[80px]" title={item.name}>{item.name}</span>
+                    <span className="text-gray-600 dark:text-gray-400 font-semibold truncate max-w-[80px]" title={item.name}>{item.name}</span>
                   </div>
                 ))}
               </div>
@@ -1173,16 +1174,16 @@ const Reports = () => {
           </div>
 
           {/* Chart 5: Team Member Performance */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-4 shadow-soft md:col-span-2">
-            <h3 className="text-xs font-bold text-gray-850 dark:text-gray-200 uppercase tracking-widest mb-3">Team Member Sales Performance (Rs)</h3>
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise p-4 shadow-soft md:col-span-2">
+            <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-3">Team Member Sales Performance (Rs)</h3>
             <div className="w-full h-[230px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={teamChartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis dataKey="name" stroke="#94A3B8" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" fontSize={10} tickLine={false} />
+                  <YAxis stroke="#6B7280" fontSize={10} tickLine={false} />
                   <Tooltip formatter={(value) => [value != null ? `Rs ${Number(value).toLocaleString()}` : 'Rs 0', 'Sales']} />
-                  <Bar dataKey="Sales" fill="#0F172A" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Sales" fill="#A91D22" radius={[4, 4, 0, 0]} maxBarSize={48} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -1191,11 +1192,11 @@ const Reports = () => {
         </div>
 
         {/* ── Reports Table & Record Entries ── */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-brand-navyLine">
             <div>
-              <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-widest">Sales Record Log</h3>
-              <p className="text-[10px] text-gray-400 dark:text-gray-550 font-medium mt-0.5">
+              <h3 className="text-xs font-semibold text-gray-900 dark:text-white">Sales Record Log</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-550 font-medium mt-0.5">
                 {loading ? 'Processing filter request...' : `Showing ${filteredPOs.length > 0 ? startIndex + 1 : 0}–${Math.min(endIndex, filteredPOs.length)} of ${filteredPOs.length} reports`}
               </p>
             </div>
@@ -1204,7 +1205,7 @@ const Reports = () => {
           <div className="overflow-x-auto overflow-y-auto max-h-[500px] relative scrollbar-thin">
             <table className="w-full text-xs min-w-[1000px] table-auto" aria-label="Reports Table Log">
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800/50 text-left">
+                <tr className="bg-gray-50 dark:bg-brand-navy/50 text-left">
                   {[
                     'PO Number',
                     'PO Date',
@@ -1217,7 +1218,7 @@ const Reports = () => {
                     'Status',
                     'Actions'
                   ].map((h) => (
-                    <th key={h} className="sticky top-0 bg-gray-55 dark:bg-[#1e293b] backdrop-blur-sm z-10 text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-6 py-4 whitespace-nowrap border-b border-gray-100 dark:border-gray-800 shadow-sm">
+                    <th key={h} className="sticky top-0 bg-gray-50 dark:bg-brand-navyCard backdrop-blur-sm z-10 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-4 whitespace-nowrap border-b border-gray-200 dark:border-brand-navyLine shadow-sm">
                       {h}
                     </th>
                   ))}
@@ -1228,33 +1229,33 @@ const Reports = () => {
                   <SkeletonRows />
                 ) : paginatedPOs.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-12 text-center text-gray-400 dark:text-gray-550 font-bold bg-white dark:bg-[#0f172a]">
+                    <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-550 font-semibold bg-white dark:bg-brand-navyCard">
                       No report records match the selected active filters.
                     </td>
                   </tr>
                 ) : (
                   paginatedPOs.map((po) => (
-                    <tr key={po.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors duration-150 bg-white dark:bg-[#0f172a]">
-                      <td className="px-6 py-4 font-mono font-bold text-gray-955 dark:text-white">{po.poNumber}</td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-450 font-semibold">{po.poDate}</td>
-                      <td className="px-6 py-4 text-gray-900 dark:text-white font-bold">{po.summary.doctorName}</td>
-                      <td className="px-6 py-4 text-gray-750 dark:text-gray-300 font-medium">{po.area}</td>
-                      <td className="px-6 py-4 text-gray-750 dark:text-gray-250 font-medium">{po.summary.teamMemberName}</td>
-                      <td className="px-6 py-4 text-center text-gray-800 dark:text-gray-250 font-extrabold">{po.summary.totalProductsCount}</td>
-                      <td className="px-6 py-4 text-right text-gray-850 dark:text-gray-100 font-extrabold">{po.summary.totalQuantity.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-right font-extrabold text-brand-primary">Rs {po.summary.totalValue.toLocaleString()}</td>
+                    <tr key={po.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors duration-150 bg-white dark:bg-brand-navyCard">
+                      <td className="px-6 py-4 font-mono font-semibold text-gray-955 dark:text-white">{po.poNumber}</td>
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-500 font-semibold">{po.poDate}</td>
+                      <td className="px-6 py-4 text-gray-900 dark:text-white font-semibold">{po.summary.doctorName}</td>
+                      <td className="px-6 py-4 text-gray-700 dark:text-gray-300 font-medium">{po.area}</td>
+                      <td className="px-6 py-4 text-gray-700 dark:text-gray-250 font-medium">{po.summary.teamMemberName}</td>
+                      <td className="px-6 py-4 text-center text-gray-800 dark:text-gray-250 font-semibold">{po.summary.totalProductsCount}</td>
+                      <td className="px-6 py-4 text-right text-gray-800 dark:text-gray-100 font-semibold">{po.summary.totalQuantity.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-right font-semibold text-brand-primary">Rs {po.summary.totalValue.toLocaleString()}</td>
                       <td className="px-6 py-4"><StatusBadge status={po.status} /></td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex gap-2">
                           <button
                             onClick={() => setSelectedPO(po)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-brand-primary bg-sky-50 dark:bg-sky-900/30 border border-sky-100 dark:border-sky-800/50 hover:bg-sky-100 dark:hover:bg-sky-900/50 hover:border-sky-200 transition-all duration-150"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-brand-primary bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-brand-navyLine hover:bg-gray-100 dark:hover:bg-white/5 hover:border-gray-200 transition-all duration-150"
                           >
                             <FiEye className="w-3 h-3" /> View
                           </button>
                           <button
                             onClick={() => handleExport('pdf')}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold text-gray-700 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-all duration-150"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-150"
                           >
                             <FiDownload className="w-3 h-3" /> Export
                           </button>

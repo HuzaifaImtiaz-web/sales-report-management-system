@@ -22,31 +22,31 @@ import { teamMemberService } from '../../services/teamMemberService';
 
 const DeleteDialog = ({ order, onCancel, onConfirm }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in">
-    <div className="bg-white dark:bg-[#0f172a] border dark:border-gray-800 rounded-enterprise shadow-2xl w-full max-w-md animate-slide-up">
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+    <div className="bg-white dark:bg-brand-navyCard border dark:border-brand-navyLine rounded-enterprise shadow-2xl w-full max-w-md animate-slide-up">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-200 dark:border-brand-navyLine">
         <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
           <FiAlertTriangle className="w-5 h-5 text-feedback-error" />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-gray-900 dark:text-white">Delete Order</h2>
-          <p className="text-[11px] font-mono text-gray-400 mt-0.5">{order.poNumber}</p>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Delete Order</h2>
+          <p className="text-[11px] font-mono text-gray-500 mt-0.5">{order.poNumber}</p>
         </div>
       </div>
       <div className="px-6 py-5">
         <p className="text-sm text-gray-700 dark:text-gray-300 font-semibold">
-          Are you sure you want to delete Purchase Order <span className="font-bold text-gray-900 dark:text-white font-mono">{order.poNumber}</span>? Only orders in Draft status can be deleted.
+          Are you sure you want to delete Purchase Order <span className="font-semibold text-gray-900 dark:text-white font-mono">{order.poNumber}</span>? Only orders in Draft status can be deleted.
         </p>
       </div>
-      <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 rounded-b-enterprise">
+      <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-brand-navyLine bg-gray-50/50 dark:bg-brand-navy/30 rounded-b-enterprise">
         <button
           onClick={onCancel}
-          className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50"
+          className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="px-4 py-2 text-xs font-bold text-white bg-feedback-error rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1.5"
+          className="px-4 py-2 text-xs font-semibold text-white bg-feedback-error rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1.5"
         >
           <FiTrash2 className="w-3.5 h-3.5" />
           Delete
@@ -202,7 +202,7 @@ const Orders = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">Orders Workflow</h1>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Orders Workflow</h1>
             <p className="text-xs text-gray-500 font-medium mt-1">Manage customer purchase orders (Pending → Completed / Cancelled).</p>
           </div>
           <div className="flex items-center gap-3">
@@ -218,14 +218,14 @@ const Orders = () => {
                 { key: 'totalAmount', label: 'Total Amount' },
                 { key: 'status', label: 'Status' }
               ])}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               title="Export filtered orders to CSV"
             >
               <FiDownload className="w-3.5 h-3.5" /> Export Filtered
             </button>
             <button
               onClick={() => navigate('/orders/new')}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-brand-primary text-white text-xs font-bold rounded-lg hover:bg-brand-primaryDark transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-brand-primary text-white text-xs font-semibold rounded-lg hover:bg-brand-primaryDark transition-all shadow-sm"
             >
               <FiPlus className="w-4 h-4" />
               New Order
@@ -234,8 +234,8 @@ const Orders = () => {
         </div>
 
         {/* Filters Panel (phones: search and status first, other filters folded) */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-enterprise shadow-soft p-5 space-y-4">
-          <div className={`${moreFilters ? 'flex' : 'hidden md:flex'} flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-800 pb-3`}>
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 space-y-4">
+          <div className={`${moreFilters ? 'flex' : 'hidden md:flex'} flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-200 dark:border-brand-navyLine pb-3`}>
             <FilterPresetBar
               moduleName="orders"
               currentFilters={{ search, statusFilter, dateFilter, institutionFilter, doctorFilter, areaFilter, teamMemberFilter, productFilter }}
@@ -258,22 +258,22 @@ const Orders = () => {
           {/* Search bar & status tabs */}
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by PO Number, Doctor, Area..."
-                className="w-full pl-10 pr-4 py-2 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
+                className="w-full pl-10 pr-4 py-2 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
               />
             </div>
 
-            <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg overflow-x-auto">
+            <div className="flex bg-gray-100 dark:bg-brand-navy p-1 rounded-lg overflow-x-auto">
               {['All', 'Pending', 'Completed', 'Cancelled'].map((s) => (
                 <button
                   key={s}
                   onClick={() => setStatusFilter(s)}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-md whitespace-nowrap transition-colors ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-colors ${
                     statusFilter === s
                       ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                       : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
@@ -290,7 +290,7 @@ const Orders = () => {
             type="button"
             onClick={() => setMoreFilters((open) => !open)}
             aria-expanded={moreFilters}
-            className="md:hidden self-start text-[11px] font-bold text-brand-primary hover:underline"
+            className="md:hidden self-start text-[11px] font-semibold text-brand-primary hover:underline"
           >
             {moreFilters ? 'Fewer filters' : 'More filters (date, institution, doctor...)'}
           </button>
@@ -298,20 +298,20 @@ const Orders = () => {
           {/* Advanced filters */}
           <div className={`${moreFilters ? 'grid' : 'hidden md:grid'} grid-cols-2 md:grid-cols-6 gap-3`}>
             <div>
-              <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Date</label>
+              <label className="block text-[8px] font-semibold text-gray-500 mb-1">Date</label>
               <input
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs rounded"
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy text-xs rounded"
               />
             </div>
             <div>
-              <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Institution</label>
+              <label className="block text-[8px] font-semibold text-gray-500 mb-1">Institution</label>
               <select
                 value={institutionFilter}
                 onChange={(e) => setInstitutionFilter(e.target.value)}
-                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs rounded cursor-pointer"
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy text-xs rounded cursor-pointer"
               >
                 <option value="">All</option>
                 {institutions.map((inst) => (
@@ -320,11 +320,11 @@ const Orders = () => {
               </select>
             </div>
             <div>
-              <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Doctor</label>
+              <label className="block text-[8px] font-semibold text-gray-500 mb-1">Doctor</label>
               <select
                 value={doctorFilter}
                 onChange={(e) => setDoctorFilter(e.target.value)}
-                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs rounded cursor-pointer"
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy text-xs rounded cursor-pointer"
               >
                 <option value="">All</option>
                 {doctors.map((d) => (
@@ -333,11 +333,11 @@ const Orders = () => {
               </select>
             </div>
             <div>
-              <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Area</label>
+              <label className="block text-[8px] font-semibold text-gray-500 mb-1">Area</label>
               <select
                 value={areaFilter}
                 onChange={(e) => setAreaFilter(e.target.value)}
-                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs rounded cursor-pointer"
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy text-xs rounded cursor-pointer"
               >
                 <option value="">All</option>
                 {areas.map((a) => (
@@ -346,11 +346,11 @@ const Orders = () => {
               </select>
             </div>
             <div>
-              <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Team Member</label>
+              <label className="block text-[8px] font-semibold text-gray-500 mb-1">Team Member</label>
               <select
                 value={teamMemberFilter}
                 onChange={(e) => setTeamMemberFilter(e.target.value)}
-                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs rounded cursor-pointer"
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy text-xs rounded cursor-pointer"
               >
                 <option value="">All</option>
                 {teamMembers.map((t) => (
@@ -359,11 +359,11 @@ const Orders = () => {
               </select>
             </div>
             <div>
-              <label className="block text-[8px] font-bold text-gray-450 uppercase mb-1">Product</label>
+              <label className="block text-[8px] font-semibold text-gray-500 mb-1">Product</label>
               <select
                 value={productFilter}
                 onChange={(e) => setProductFilter(e.target.value)}
-                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs rounded cursor-pointer"
+                className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy text-xs rounded cursor-pointer"
               >
                 <option value="">All</option>
                 {products.map((p) => (
@@ -377,7 +377,7 @@ const Orders = () => {
             <div className="flex justify-end pt-1">
               <button
                 onClick={handleClearFilters}
-                className="px-3 py-1.5 text-[10px] font-bold border border-gray-200 dark:border-gray-700 rounded text-gray-500 hover:bg-gray-50 flex items-center gap-1"
+                className="px-3 py-1.5 text-xs font-semibold border border-gray-200 dark:border-brand-navyLine rounded text-gray-500 hover:bg-gray-50 flex items-center gap-1"
               >
                 <FiX className="w-3 h-3" /> Clear Filters
               </button>
@@ -386,11 +386,11 @@ const Orders = () => {
         </div>
 
         {/* Orders Table */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-enterprise shadow-soft overflow-hidden">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft overflow-hidden">
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             <table className="w-full text-xs" aria-label="Orders table">
-              <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-[#0f172a] shadow-xs">
-                <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-brand-navyCard shadow-xs">
+                <tr className="bg-gray-50 dark:bg-brand-navy/50 border-b border-gray-200 dark:border-brand-navyLine text-xs font-semibold text-gray-500">
                   {['PO Number', 'Date', 'Institution', 'Doctor', 'Area', 'Team Member', 'Items', 'Total Vials', 'Total Amount', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="text-left px-5 py-3.5 whitespace-nowrap">{h}</th>
                   ))}
@@ -399,29 +399,29 @@ const Orders = () => {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                 {paginated.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-5 py-12 text-center text-gray-400 font-bold">
+                    <td colSpan={11} className="px-5 py-12 text-center text-gray-500 font-semibold">
                       No purchase orders found.
                     </td>
                   </tr>
                 ) : (
                   paginated.map((po) => (
-                    <tr key={po.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                      <td className="px-5 py-4 font-mono font-bold text-gray-900 dark:text-white">{po.poNumber}</td>
+                    <tr key={po.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 transition-colors">
+                      <td className="px-5 py-4 font-mono font-semibold text-gray-900 dark:text-white">{po.poNumber}</td>
                       <td className="px-5 py-4 whitespace-nowrap text-gray-600 dark:text-gray-300">{po.poDate}</td>
-                      <td className="px-5 py-4 font-bold text-gray-800 dark:text-white">{po.institution || '—'}</td>
+                      <td className="px-5 py-4 font-semibold text-gray-800 dark:text-white">{po.institution || '—'}</td>
                       <td className="px-5 py-4 whitespace-nowrap text-gray-600 dark:text-gray-300">{po.doctor}</td>
                       <td className="px-5 py-4 whitespace-nowrap text-gray-600 dark:text-gray-300">{po.area}</td>
                       <td className="px-5 py-4 whitespace-nowrap text-gray-600 dark:text-gray-300">{po.teamMember}</td>
                       <td className="px-5 py-4 text-center font-semibold">{po.products ? po.products.length : 0}</td>
                       <td className="px-5 py-4 text-right font-semibold">{po.totalQty || 0}</td>
-                      <td className="px-5 py-4 text-right font-extrabold text-brand-primary whitespace-nowrap">Rs {(po.totalAmount || 0).toLocaleString()}</td>
+                      <td className="px-5 py-4 text-right font-semibold text-brand-primary whitespace-nowrap">Rs {(po.totalAmount || 0).toLocaleString()}</td>
                       <td className="px-5 py-4"><StatusBadge status={po.status} /></td>
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => navigate(`/orders/${po.id}`)}
                             title="View Details"
-                            className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded text-[10px] font-bold inline-flex items-center gap-1"
+                            className="px-2.5 py-1 bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded text-xs font-semibold inline-flex items-center gap-1"
                           >
                             <FiEye className="w-3 h-3" /> View
                           </button>
@@ -431,7 +431,7 @@ const Orders = () => {
                               <button
                                 onClick={() => navigate(`/orders/${po.id}/edit`)}
                                 title="Edit Order"
-                                className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded text-[10px] font-bold inline-flex items-center gap-1"
+                                className="px-2.5 py-1 bg-gray-100 dark:bg-brand-navy text-gray-700 dark:text-gray-300 rounded text-xs font-semibold inline-flex items-center gap-1"
                               >
                                 <FiEdit3 className="w-3 h-3" /> Edit
                               </button>
@@ -439,7 +439,7 @@ const Orders = () => {
                                 <button
                                   onClick={() => handleStatusChange(po, 'Completed')}
                                   title="Mark as Completed"
-                                  className="px-2.5 py-1 bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 rounded text-[10px] font-bold inline-flex items-center gap-1"
+                                  className="px-2.5 py-1 bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 rounded text-xs font-semibold inline-flex items-center gap-1"
                                 >
                                   <FiCheckCircle className="w-3 h-3" /> Complete
                                 </button>
@@ -448,7 +448,7 @@ const Orders = () => {
                                 <button
                                   onClick={() => setToCancel(po)}
                                   title="Cancel Order"
-                                  className="px-2.5 py-1 bg-yellow-50 dark:bg-yellow-950/40 text-yellow-600 dark:text-yellow-500 rounded text-[10px] font-bold inline-flex items-center gap-1"
+                                  className="px-2.5 py-1 bg-yellow-50 dark:bg-yellow-950/40 text-yellow-600 dark:text-yellow-500 rounded text-xs font-semibold inline-flex items-center gap-1"
                                 >
                                   <FiRotateCcw className="w-3 h-3" /> Cancel
                                 </button>
@@ -457,7 +457,7 @@ const Orders = () => {
                                 <button
                                   onClick={() => setToDelete(po)}
                                   title="Delete Order"
-                                  className="px-2.5 py-1 bg-red-50 dark:bg-red-950/40 text-rose-600 dark:text-rose-400 rounded text-[10px] font-bold inline-flex items-center gap-1"
+                                  className="px-2.5 py-1 bg-red-50 dark:bg-red-950/40 text-rose-600 dark:text-rose-400 rounded text-xs font-semibold inline-flex items-center gap-1"
                                 >
                                   <FiTrash2 className="w-3 h-3" /> Delete
                                 </button>
@@ -468,7 +468,7 @@ const Orders = () => {
                           {(po.status === 'Completed' || po.status === 'Cancelled') && (
                             <button
                               onClick={() => handleExport(po)}
-                              className="px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded text-[10px] font-bold inline-flex items-center gap-1"
+                              className="px-2.5 py-1 bg-gray-100 dark:bg-brand-navy text-gray-600 dark:text-gray-300 rounded text-xs font-semibold inline-flex items-center gap-1"
                             >
                               <FiDownload className="w-3 h-3" /> Export
                             </button>

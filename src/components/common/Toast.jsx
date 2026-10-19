@@ -28,7 +28,7 @@ const Toast = ({ message, type = 'success', onClose, duration = 5000 }) => {
         <button
           onClick={onClose}
           aria-label="Close notification"
-          className="text-gray-400 hover:text-gray-650 transition-colors p-0.5 rounded"
+          className="text-gray-500 hover:text-gray-600 transition-colors p-0.5 rounded"
         >
           <FiX className="w-4 h-4" />
         </button>

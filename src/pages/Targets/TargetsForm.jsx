@@ -38,20 +38,20 @@ const INITIAL_TEAM = [
 
 const Field = ({ label, required, error, children }) => (
   <div>
-    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-555 dark:text-gray-400 mb-1.5">
+    <label className="block text-xs font-semibold text-gray-555 dark:text-gray-400 mb-1.5">
       {label} {required && <span className="text-feedback-error">*</span>}
     </label>
     {children}
-    {error && <p className="text-[10px] text-feedback-error font-semibold mt-1 flex items-center gap-1"><FiAlertCircle /> {error}</p>}
+    {error && <p className="text-xs text-feedback-error font-semibold mt-1 flex items-center gap-1"><FiAlertCircle /> {error}</p>}
   </div>
 );
 
 const inputCls = (err, disabled) =>
-  `w-full px-3 py-2.5 text-xs font-semibold text-gray-900 dark:text-white bg-white dark:bg-[#1e293b] border rounded-lg outline-none
+  `w-full px-3 py-2.5 text-xs font-semibold text-gray-900 dark:text-white bg-white dark:bg-brand-navyCard border rounded-lg outline-none
    transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500
    focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40
-   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/20' : 'border-gray-200 dark:border-gray-700'}
-   ${disabled ? 'cursor-default bg-gray-100 dark:bg-[#1e293b] text-gray-900 dark:text-white font-bold opacity-100' : ''}`;
+   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/20' : 'border-gray-200 dark:border-brand-navyLine'}
+   ${disabled ? 'cursor-default bg-gray-100 dark:bg-brand-navyCard text-gray-900 dark:text-white font-semibold opacity-100' : ''}`;
 
 export default function TargetsForm({
   mode,
@@ -368,7 +368,7 @@ export default function TargetsForm({
       {/* Validation Alert Card */}
       {Object.keys(errors).length > 0 && (
         <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-feedback-error rounded-xl text-xs text-feedback-error space-y-1.5 animate-fade-in">
-          <p className="font-bold flex items-center gap-1.5 text-sm"><FiAlertCircle className="w-4.5 h-4.5" /> Validation Errors Found:</p>
+          <p className="font-semibold flex items-center gap-1.5 text-sm"><FiAlertCircle className="w-4.5 h-4.5" /> Validation Errors Found:</p>
           <ul className="list-disc pl-5 space-y-1 font-semibold">
             {errors.productId && <li>{errors.productId}</li>}
             {errors.annualTarget && <li>{errors.annualTarget}</li>}
@@ -423,9 +423,9 @@ export default function TargetsForm({
               value={annualTarget}
               onChange={(e) => { setAnnualTarget(e.target.value); setIsDirty(true); }}
               placeholder="e.g. 50000"
-              className={inputCls(errors.annualTarget, isView) + ' pr-16 text-gray-900 dark:text-white font-bold bg-white dark:bg-[#1e293b]'}
+              className={inputCls(errors.annualTarget, isView) + ' pr-16 text-gray-900 dark:text-white font-semibold bg-white dark:bg-brand-navyCard'}
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-extrabold text-gray-700 dark:text-gray-200">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-700 dark:text-gray-200">
               {productUnit}
             </span>
           </div>
@@ -435,38 +435,38 @@ export default function TargetsForm({
           <input
             disabled
             value={productUnit}
-            className={inputCls(false, true) + ' font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-[#1e293b]'}
+            className={inputCls(false, true) + ' font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-brand-navyCard'}
           />
         </Field>
 
         <Field label="Estimated Target Amount">
-          <div className="w-full px-3 py-2 text-xs font-extrabold text-brand-primary dark:text-red-400 bg-gray-50 dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-between h-[38px]">
+          <div className="w-full px-3 py-2 text-xs font-semibold text-brand-primary dark:text-red-400 bg-gray-50 dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-lg flex items-center justify-between h-[38px]">
             <span>Rs {annualTargetAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-            <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">({productRate > 0 ? `Rs ${productRate.toLocaleString()}/unit` : 'No Rate'})</span>
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">({productRate > 0 ? `Rs ${productRate.toLocaleString()}/unit` : 'No Rate'})</span>
           </div>
         </Field>
       </div>
 
       {/* Area Distribution Table Section */}
-      <div className="border border-gray-150 dark:border-gray-800 rounded-xl p-4 bg-white dark:bg-[#0b0f19]/30 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100 dark:border-gray-800">
+      <div className="border border-gray-200 dark:border-brand-navyLine rounded-xl p-4 bg-white dark:bg-[#0b0f19]/30 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200 dark:border-brand-navyLine">
           <div>
-            <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Area Distribution</h3>
-            <p className="text-[10px] text-gray-405 dark:text-gray-500 font-semibold mt-0.5">Define regional target splits. Sum must equal exactly 100%.</p>
+            <h3 className="text-xs font-semibold text-gray-900 dark:text-white">Area Distribution</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-500 font-semibold mt-0.5">Define regional target splits. Sum must equal exactly 100%.</p>
           </div>
           {!isView && (
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleDistributeAreasEvenly}
-                className="px-2.5 py-1.5 bg-gray-105 dark:bg-gray-800 hover:bg-gray-150 text-gray-700 dark:text-gray-300 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 border border-gray-200 dark:border-gray-700"
+                className="px-2.5 py-1.5 bg-gray-105 dark:bg-brand-navy hover:bg-gray-150 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 border border-gray-200 dark:border-brand-navyLine"
               >
                 <FiRefreshCw className="w-3 h-3" /> Distribute Evenly
               </button>
               <button
                 type="button"
                 onClick={handleAddAreaRow}
-                className="px-2.5 py-1.5 bg-brand-primary text-white text-[10px] font-bold rounded-lg hover:bg-brand-primaryDark shadow-sm transition-all flex items-center gap-1"
+                className="px-2.5 py-1.5 bg-brand-primary text-white text-xs font-semibold rounded-lg hover:bg-brand-primaryDark shadow-sm transition-all flex items-center gap-1"
               >
                 <FiPlus className="w-3 h-3" /> Add Area
               </button>
@@ -477,7 +477,7 @@ export default function TargetsForm({
         <div className="overflow-x-auto">
           <table className="w-full text-xs" aria-label="Area target distribution table">
             <thead>
-              <tr className="border-b border-gray-100 dark:border-gray-800 text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">
+              <tr className="border-b border-gray-200 dark:border-brand-navyLine text-xs font-semibold text-gray-500 dark:text-gray-400">
                 <th className="text-left py-2 pr-4">Area</th>
                 <th className="text-center py-2 px-4 w-28">Target %</th>
                 <th className="text-right py-2 px-4 w-40">Target Quantity</th>
@@ -511,13 +511,13 @@ export default function TargetsForm({
                           max="100"
                           value={row.percentage}
                           onChange={(e) => handleAreaPercentageChange(idx, e.target.value)}
-                          className="w-full px-2.5 py-1.5 text-xs text-center font-bold bg-gray-55 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg outline-none"
+                          className="w-full px-2.5 py-1.5 text-xs text-center font-semibold bg-gray-50 dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none"
                         />
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">%</span>
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-semibold">%</span>
                       </div>
                     </td>
-                    <td className="py-2.5 px-4 text-right font-extrabold text-gray-800 dark:text-gray-250">
-                      {rowQty.toLocaleString()} <span className="text-[10px] text-gray-400 font-normal">{productUnit}</span>
+                    <td className="py-2.5 px-4 text-right font-semibold text-gray-800 dark:text-gray-250">
+                      {rowQty.toLocaleString()} <span className="text-xs text-gray-500 font-normal">{productUnit}</span>
                     </td>
                     {!isView && (
                       <td className="py-2.5 pl-2 text-center">
@@ -538,9 +538,9 @@ export default function TargetsForm({
         </div>
 
         {/* Running Area Total Indicator */}
-        <div className="flex items-center justify-between p-3 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 bg-gray-55 dark:bg-gray-800/40 text-xs">
-          <span className="font-bold text-gray-600 dark:text-gray-400">Total Area Percentage:</span>
-          <span className={`font-extrabold text-sm ${areaPercentageSum === 100 ? 'text-feedback-success' : 'text-feedback-error'}`}>
+        <div className="flex items-center justify-between p-3 rounded-lg border border-dashed border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy/40 text-xs">
+          <span className="font-semibold text-gray-600 dark:text-gray-400">Total Area Percentage:</span>
+          <span className={`font-semibold text-sm ${areaPercentageSum === 100 ? 'text-feedback-success' : 'text-feedback-error'}`}>
             {areaPercentageSum}% / 100%
           </span>
         </div>
@@ -548,7 +548,7 @@ export default function TargetsForm({
 
       {/* Team Member Distribution Sections */}
       <div className="space-y-4">
-        <h3 className="text-xs font-bold text-gray-805 dark:text-gray-200 uppercase tracking-wider">Team Member Distribution</h3>
+        <h3 className="text-xs font-semibold text-gray-805 dark:text-gray-200">Team Member Distribution</h3>
         {areasDistribution.map((row, areaIdx) => {
           if (!row.areaName) return null;
           const areaQty = Math.round((Number(annualTarget) || 0) * (Number(row.percentage) || 0) / 100);
@@ -556,12 +556,12 @@ export default function TargetsForm({
           const availableMembers = getTeamMembersForArea(row.areaName);
 
           return (
-            <div key={areaIdx} className="border border-gray-150 dark:border-gray-800 rounded-xl p-4 bg-gray-50/30 dark:bg-[#0f172a]/30 space-y-3.5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-gray-100 dark:border-gray-800">
+            <div key={areaIdx} className="border border-gray-200 dark:border-brand-navyLine rounded-xl p-4 bg-gray-50/30 dark:bg-brand-navyCard/30 space-y-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-gray-200 dark:border-brand-navyLine">
                 <div>
-                  <h4 className="text-xs font-bold text-brand-primary uppercase tracking-wide">{row.areaName}</h4>
-                  <p className="text-[10px] text-gray-405 dark:text-gray-550 mt-0.5 font-semibold">
-                    Area Target: <span className="font-bold text-gray-705 dark:text-gray-300">{areaQty.toLocaleString()} {productUnit}</span>
+                  <h4 className="text-xs font-semibold text-brand-primary">{row.areaName}</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-550 mt-0.5 font-semibold">
+                    Area Target: <span className="font-semibold text-gray-705 dark:text-gray-300">{areaQty.toLocaleString()} {productUnit}</span>
                   </p>
                 </div>
                 {!isView && (
@@ -569,14 +569,14 @@ export default function TargetsForm({
                     <button
                       type="button"
                       onClick={() => handleDistributeTMEvenly(areaIdx)}
-                      className="px-2 py-1 bg-white dark:bg-gray-800 hover:bg-gray-50 text-gray-600 dark:text-gray-300 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 border border-gray-200 dark:border-gray-700"
+                      className="px-2 py-1 bg-white dark:bg-brand-navy hover:bg-gray-50 text-gray-600 dark:text-gray-300 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 border border-gray-200 dark:border-brand-navyLine"
                     >
                       <FiRefreshCw className="w-2.5 h-2.5" /> Distribute Evenly
                     </button>
                     <button
                       type="button"
                       onClick={() => handleAddTeamMemberRow(areaIdx)}
-                      className="px-2.5 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary text-[10px] font-bold rounded-lg transition-all flex items-center gap-0.5"
+                      className="px-2.5 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary text-xs font-semibold rounded-lg transition-all flex items-center gap-0.5"
                     >
                       <FiPlus className="w-3 h-3" /> Add Team Member
                     </button>
@@ -585,12 +585,12 @@ export default function TargetsForm({
               </div>
 
               {row.teamMembers.length === 0 ? (
-                <p className="text-xs text-gray-400 dark:text-gray-500 italic py-2">
+                <p className="text-xs text-gray-500 dark:text-gray-500 italic py-2">
                   No Team Members configured. Click "+ Add Team Member" to configure one.
                 </p>
               ) : (
                 <div className="space-y-2">
-                  <div className="grid grid-cols-12 gap-3 text-[9px] font-bold text-gray-405 dark:text-gray-450 uppercase pb-1 tracking-wider">
+                  <div className="grid grid-cols-12 gap-3 text-[11px] font-semibold text-gray-500 dark:text-gray-500 pb-1">
                     <div className="col-span-5">Team Member</div>
                     <div className="col-span-3 text-center">Target %</div>
                     <div className="col-span-3 text-right">Target Quantity</div>
@@ -599,7 +599,7 @@ export default function TargetsForm({
                   {row.teamMembers.map((tm, tmIdx) => {
                     const tmQty = Math.round(areaQty * (Number(tm.percentage) || 0) / 100);
                     return (
-                      <div key={tmIdx} className="grid grid-cols-12 gap-3 items-center bg-white dark:bg-gray-805/50 p-2.5 rounded-lg border border-gray-100 dark:border-gray-800">
+                      <div key={tmIdx} className="grid grid-cols-12 gap-3 items-center bg-white dark:bg-gray-805/50 p-2.5 rounded-lg border border-gray-200 dark:border-brand-navyLine">
                         <div className="col-span-5">
                           <select
                             disabled={isView}
@@ -622,13 +622,13 @@ export default function TargetsForm({
                               max="100"
                               value={tm.percentage}
                               onChange={(e) => handleTMPercentageChange(areaIdx, tmIdx, e.target.value)}
-                              className="w-full px-2 py-1 text-xs text-center font-bold bg-gray-55 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded outline-none"
+                              className="w-full px-2 py-1 text-xs text-center font-semibold bg-gray-50 dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded outline-none"
                             />
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-gray-405 font-bold">%</span>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-gray-500 font-semibold">%</span>
                           </div>
                         </div>
-                        <div className="col-span-3 text-right font-bold text-gray-800 dark:text-gray-205">
-                          {tmQty.toLocaleString()} <span className="text-[9px] text-gray-400 font-normal">{productUnit}</span>
+                        <div className="col-span-3 text-right font-semibold text-gray-800 dark:text-gray-205">
+                          {tmQty.toLocaleString()} <span className="text-[11px] text-gray-500 font-normal">{productUnit}</span>
                         </div>
                         {!isView && (
                           <div className="col-span-1 flex justify-center">
@@ -646,7 +646,7 @@ export default function TargetsForm({
                   })}
                   
                   {/* Team Members Total Percentage Indicator */}
-                  <div className="flex justify-between items-center text-[10px] font-bold pt-2 text-gray-500 dark:text-gray-405">
+                  <div className="flex justify-between items-center text-xs font-semibold pt-2 text-gray-500 dark:text-gray-400">
                     <span>Total Team Member Split:</span>
                     <span className={tmSum === 100 ? 'text-feedback-success' : 'text-feedback-error'}>
                       {tmSum}% / 100%
@@ -672,20 +672,20 @@ export default function TargetsForm({
       </Field>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-155 dark:border-gray-850">
+      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-brand-navyLine">
         {isView ? (
           <>
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-55 transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 transition-colors"
             >
               Back
             </button>
             <button
               type="button"
               onClick={() => navigate(`/targets/${item.id}/edit`)}
-              className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
+              className="px-5 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
             >
               <FiEdit2 className="w-3.5 h-3.5" /> Edit Targets
             </button>
@@ -695,14 +695,14 @@ export default function TargetsForm({
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-55 transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSaveClick}
-              className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
+              className="px-5 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
             >
               <FiCheck className="w-3.5 h-3.5" />
               {isEdit ? 'Update Targets' : 'Save Targets'}

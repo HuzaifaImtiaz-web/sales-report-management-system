@@ -15,22 +15,22 @@ export default function Pagination({
   const endRecord = Math.min(currentPage * pageSize, totalRecords);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white dark:bg-[#0f172a] border-t border-gray-150 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-400">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white dark:bg-brand-navyCard border-t border-gray-200 dark:border-brand-navyLine text-xs text-gray-600 dark:text-gray-400">
       {/* Records Summary & Page Size Select */}
       <div className="flex items-center gap-4">
         <span>
-          Showing <strong className="text-gray-900 dark:text-white font-bold">{startRecord}</strong> to{' '}
-          <strong className="text-gray-900 dark:text-white font-bold">{endRecord}</strong> of{' '}
-          <strong className="text-gray-900 dark:text-white font-bold">{totalRecords.toLocaleString()}</strong> records
+          Showing <strong className="text-gray-900 dark:text-white font-semibold">{startRecord}</strong> to{' '}
+          <strong className="text-gray-900 dark:text-white font-semibold">{endRecord}</strong> of{' '}
+          <strong className="text-gray-900 dark:text-white font-semibold">{totalRecords.toLocaleString()}</strong> records
         </span>
 
         {onPageSizeChange && (
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-gray-400">Per page:</span>
+            <span className="text-[11px] font-semibold text-gray-500">Per page:</span>
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="px-2 py-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-800 dark:text-gray-200 outline-none cursor-pointer"
+              className="px-2 py-1 bg-gray-50 dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg text-xs font-semibold text-gray-800 dark:text-gray-200 outline-none cursor-pointer"
             >
               <option value={25}>25</option>
               <option value={50}>50</option>
@@ -46,7 +46,7 @@ export default function Pagination({
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
           title="First Page"
-          className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+          className="p-1.5 rounded-lg border border-gray-200 dark:border-brand-navyLine hover:bg-gray-50 dark:hover:bg-white/5 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         >
           <FiChevronsLeft className="w-4 h-4" />
         </button>
@@ -55,12 +55,12 @@ export default function Pagination({
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           title="Previous Page"
-          className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+          className="p-1.5 rounded-lg border border-gray-200 dark:border-brand-navyLine hover:bg-gray-50 dark:hover:bg-white/5 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         >
           <FiChevronLeft className="w-4 h-4" />
         </button>
 
-        <span className="px-3 py-1 font-bold text-gray-800 dark:text-gray-200">
+        <span className="px-3 py-1 font-semibold text-gray-800 dark:text-gray-200">
           Page {currentPage} of {totalPages || 1}
         </span>
 
@@ -68,7 +68,7 @@ export default function Pagination({
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
           title="Next Page"
-          className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+          className="p-1.5 rounded-lg border border-gray-200 dark:border-brand-navyLine hover:bg-gray-50 dark:hover:bg-white/5 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         >
           <FiChevronRight className="w-4 h-4" />
         </button>
@@ -77,7 +77,7 @@ export default function Pagination({
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage >= totalPages}
           title="Last Page"
-          className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+          className="p-1.5 rounded-lg border border-gray-200 dark:border-brand-navyLine hover:bg-gray-50 dark:hover:bg-white/5 text-gray-500 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
         >
           <FiChevronsRight className="w-4 h-4" />
         </button>

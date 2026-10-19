@@ -26,20 +26,20 @@ const UNIT_TYPES = [
 
 const Field = ({ label, required, error, children, className = '' }) => (
   <div className={className}>
-    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-550 dark:text-gray-400 mb-1.5">
+    <label className="block text-xs font-semibold text-gray-550 dark:text-gray-400 mb-1.5">
       {label} {required && <span className="text-feedback-error">*</span>}
     </label>
     {children}
-    {error && <p className="text-[10px] text-feedback-error font-semibold mt-1">{error}</p>}
+    {error && <p className="text-xs text-feedback-error font-semibold mt-1">{error}</p>}
   </div>
 );
 
 const inputCls = (err, disabled) =>
-  `w-full px-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border rounded-lg outline-none
+  `w-full px-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border rounded-lg outline-none
    transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-555
    focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40
-   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-100 dark:border-gray-750'}
-   ${disabled ? 'opacity-70 cursor-default bg-gray-100/50 dark:bg-gray-800/30' : ''}`;
+   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-brand-navyLine'}
+   ${disabled ? 'opacity-70 cursor-default bg-gray-100/50 dark:bg-brand-navy/30' : ''}`;
 
 export default function ProductsForm({ mode, item, onSave, onCancel }) {
   const isView = mode === 'view';
@@ -201,7 +201,7 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
   };
 
   return (
-    <div className="space-y-5 max-w-4xl mx-auto bg-white dark:bg-[#0f172a] p-6 rounded-enterprise border border-gray-100 dark:border-gray-800 shadow-soft">
+    <div className="space-y-5 max-w-4xl mx-auto bg-white dark:bg-brand-navyCard p-6 rounded-enterprise border border-gray-200 dark:border-brand-navyLine shadow-soft">
       {/* Strict Field Ordering:
           1. Division
           2. Product Group
@@ -258,7 +258,7 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
                 className={inputCls(errors.groupName, isView)}
               />
               {showSuggestions && suggestions.length > 0 && (
-                <ul className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+                <ul className="absolute z-10 w-full bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
                   {suggestions.map((s) => (
                     <li
                       key={s}
@@ -266,7 +266,7 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
                         set('groupName', s);
                         setShowSuggestions(false);
                       }}
-                      className="px-3 py-2 text-xs hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 cursor-pointer text-gray-750 dark:text-gray-200 font-semibold"
+                      className="px-3 py-2 text-xs hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 cursor-pointer text-gray-700 dark:text-gray-200 font-semibold"
                     >
                       {s}
                     </li>
@@ -409,11 +409,11 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Field label="Per Unit Price">
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-405">Rs.</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500">Rs.</span>
               <input
                 disabled
                 value={computedPerUnitPrice > 0 ? `${computedPerUnitPrice.toLocaleString()} per ${form.unitTypeName}` : '0'}
-                className={inputCls(false, true) + ' pl-9 font-bold text-brand-primary'}
+                className={inputCls(false, true) + ' pl-9 font-semibold text-brand-primary'}
               />
             </div>
           </Field>
@@ -435,7 +435,7 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
         <Field label="Status" required>
           {isView ? (
             <div className="pt-1">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold border ${statusBadgeCls(form.status)}`}>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusBadgeCls(form.status)}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${form.status === 'Active' ? 'bg-feedback-success' : form.status === 'Inactive' ? 'bg-amber-500' : 'bg-feedback-error'
                   }`} />
                 {form.status}
@@ -451,20 +451,20 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
         </Field>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-105 dark:border-gray-800">
+        <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-105 dark:border-brand-navyLine">
           {isView ? (
             <>
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Back
               </button>
               <button
                 type="button"
                 onClick={() => navigate(`/products/${form.id}/edit`)}
-                className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
+                className="px-5 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
               >
                 <FiEdit2 className="w-3.5 h-3.5" /> Edit
               </button>
@@ -474,14 +474,14 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
+                className="px-5 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
               >
                 <FiCheck className="w-3.5 h-3.5" />
                 {isEdit ? 'Update' : 'Save'}

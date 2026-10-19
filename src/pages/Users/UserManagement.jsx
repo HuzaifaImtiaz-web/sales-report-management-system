@@ -95,7 +95,7 @@ const UserManagement = () => {
       <DashboardLayout pageTitle="Access Denied">
         <div className="flex h-[60vh] flex-col items-center justify-center text-center p-6">
           <FiXCircle className="w-16 h-16 text-red-500 mb-4" />
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white uppercase tracking-wider">Access Denied</h1>
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Access Denied</h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-md">
             You do not have the required permissions to view the User Management screen. Please contact your system administrator if you believe this is an error.
           </p>
@@ -270,7 +270,7 @@ const UserManagement = () => {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
               Enterprise User Administration
             </h1>
             <p className="text-xs text-gray-500 dark:text-slate-400 font-medium mt-1">
@@ -279,7 +279,7 @@ const UserManagement = () => {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2.5 bg-brand-primary hover:bg-[#8F161A] text-white text-xs font-bold rounded-xl transition-colors shadow-md inline-flex items-center gap-2 cursor-pointer uppercase tracking-wider"
+            className="px-4 py-2.5 bg-brand-primary hover:bg-[#8F161A] text-white text-xs font-semibold rounded-xl transition-colors shadow-md inline-flex items-center gap-2 cursor-pointer"
           >
             <FiUserPlus className="w-4 h-4" />
             Create User Account
@@ -287,27 +287,27 @@ const UserManagement = () => {
         </div>
 
         {/* Search & Role/Status Filters Bar */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-sm p-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="relative w-full md:w-80">
-            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
             <input
               type="text"
               placeholder="Search by name, username or role..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-brand-primary/20"
+              className="w-full pl-10 pr-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-xl outline-none focus:ring-2 focus:ring-brand-primary/20"
             />
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-1.5 text-xs text-gray-400 font-bold uppercase">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 font-semibold">
               <FiFilter className="w-3.5 h-3.5" />
               Role:
             </div>
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-3 py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-700 dark:text-gray-200 outline-none"
+              className="px-3 py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-700 dark:text-gray-200 outline-none"
             >
               <option value="ALL">All Roles</option>
               <option value="Admin">Admin</option>
@@ -315,13 +315,13 @@ const UserManagement = () => {
               <option value="Sales Representative">Sales Representative</option>
             </select>
 
-            <div className="flex items-center gap-1.5 text-xs text-gray-400 font-bold uppercase ml-2">
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 font-semibold ml-2">
               Status:
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-700 dark:text-gray-200 outline-none"
+              className="px-3 py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-700 dark:text-gray-200 outline-none"
             >
               <option value="ALL">All Statuses</option>
               <option value="ACTIVE">Active</option>
@@ -332,11 +332,11 @@ const UserManagement = () => {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-slate-900 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <tr className="border-b border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-xs font-semibold text-gray-500">
                   <th className="px-5 py-4">User</th>
                   <th className="px-5 py-4">Role</th>
                   <th className="px-5 py-4">Status</th>
@@ -348,13 +348,13 @@ const UserManagement = () => {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-10 text-gray-400 font-semibold uppercase tracking-wider">
+                    <td colSpan={6} className="text-center py-10 text-gray-500 font-semibold">
                       Loading system user directory...
                     </td>
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-10 text-gray-400 font-semibold uppercase tracking-wider">
+                    <td colSpan={6} className="text-center py-10 text-gray-500 font-semibold">
                       No user accounts match current criteria.
                     </td>
                   </tr>
@@ -366,27 +366,27 @@ const UserManagement = () => {
                     return (
                       <tr key={u.id || u.username} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="px-5 py-4">
-                          <div className="font-bold text-gray-800 dark:text-white capitalize">{u.fullName}</div>
-                          <div className="text-[11px] text-gray-400 font-semibold">@{u.username}</div>
+                          <div className="font-semibold text-gray-800 dark:text-white capitalize">{u.fullName}</div>
+                          <div className="text-[11px] text-gray-500 font-semibold">@{u.username}</div>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
+                          <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
                             {displayRole}
                           </span>
                         </td>
                         <td className="px-5 py-4">
                           {isLocked ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400">
                               <FiLock className="w-3 h-3" />
                               Locked
                             </span>
                           ) : u.isActive ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
                               <FiCheckCircle className="w-3 h-3" />
                               Active
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-400">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-950/40 text-red-700 dark:text-red-400">
                               <FiXCircle className="w-3 h-3" />
                               Disabled
                             </span>
@@ -396,8 +396,8 @@ const UserManagement = () => {
                           {u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Never'}
                         </td>
                         <td className="px-5 py-4">
-                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
-                            (u.failedAttempts || 0) > 0 ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400' : 'text-gray-400'
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                            (u.failedAttempts || 0) > 0 ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400' : 'text-gray-500'
                           }`}>
                             {u.failedAttempts || 0}
                           </span>
@@ -405,14 +405,14 @@ const UserManagement = () => {
                         <td className="px-5 py-4 text-right space-x-2">
                           <button
                             onClick={() => handleOpenEdit(u)}
-                            className="p-1.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 border border-gray-200 dark:border-brand-navyLine hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
                             title="Edit User"
                           >
                             <FiEdit className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setResetTargetUser(u)}
-                            className="p-1.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 border border-gray-200 dark:border-brand-navyLine hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 rounded-lg transition-colors cursor-pointer"
                             title="Reset Password"
                           >
                             <FiKey className="w-3.5 h-3.5" />
@@ -428,14 +428,14 @@ const UserManagement = () => {
                           {isLocked && (
                             <button
                               onClick={() => handleUnlockAccount(u)}
-                              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer"
+                              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
                             >
                               Unlock
                             </button>
                           )}
                           <button
                             onClick={() => handleToggleActive(u)}
-                            className={`px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer ${
+                            className={`px-3 py-1.5 text-xs font-semibold  rounded-lg transition-colors cursor-pointer ${
                               u.isActive
                                 ? 'bg-red-50 dark:bg-red-950/40 text-red-600 hover:bg-red-100'
                                 : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 hover:bg-emerald-100'
@@ -457,42 +457,42 @@ const UserManagement = () => {
       {/* CREATE USER MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
-          <div className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between p-5 bg-brand-primary text-white">
               <div className="flex items-center gap-2">
                 <FiUserPlus className="w-5 h-5" />
-                <h2 className="text-sm font-bold uppercase tracking-wider">Create Account</h2>
+                <h2 className="text-sm font-semibold">Create Account</h2>
               </div>
               <button onClick={() => setShowCreateModal(false)} className="text-white/80 hover:text-white">&times;</button>
             </div>
             <form onSubmit={handleCreateUser}>
               <div className="p-6 space-y-4 text-xs font-semibold">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Full Name</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Full Name</label>
                   <input
                     type="text"
                     required
                     value={newUser.fullName}
                     onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Username</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Username</label>
                   <input
                     type="text"
                     required
                     value={newUser.username}
                     onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Role</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Role</label>
                   <select
                     value={newUser.role}
                     onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
                   >
                     <option value="Administrator">Administrator</option>
                     <option value="Manager">Manager</option>
@@ -518,9 +518,9 @@ const UserManagement = () => {
                   placeholder="Re-enter password"
                 />
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-slate-900 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2">
-                <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-slate-300">Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-brand-primary text-white text-xs font-bold uppercase rounded-xl">Create Account</button>
+              <div className="p-4 bg-gray-50 dark:bg-brand-navyCard border-t border-gray-200 dark:border-brand-navyLine flex justify-end gap-2">
+                <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-brand-primary text-white text-xs font-semibold rounded-xl">Create Account</button>
               </div>
             </form>
           </div>
@@ -530,32 +530,32 @@ const UserManagement = () => {
       {/* EDIT USER MODAL */}
       {editTargetUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
-          <div className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between p-5 bg-brand-primary text-white">
               <div className="flex items-center gap-2">
                 <FiEdit className="w-5 h-5" />
-                <h2 className="text-sm font-bold uppercase tracking-wider">Edit User @{editTargetUser.username}</h2>
+                <h2 className="text-sm font-semibold">Edit User @{editTargetUser.username}</h2>
               </div>
               <button onClick={() => setEditTargetUser(null)} className="text-white/80 hover:text-white">&times;</button>
             </div>
             <form onSubmit={handleEditUserSubmit}>
               <div className="p-6 space-y-4 text-xs font-semibold">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Full Name</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Full Name</label>
                   <input
                     type="text"
                     required
                     value={editForm.fullName}
                     onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Role</label>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Role</label>
                   <select
                     value={editForm.role}
                     onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
                   >
                     <option value="Administrator">Administrator</option>
                     <option value="Manager">Manager</option>
@@ -563,9 +563,9 @@ const UserManagement = () => {
                   </select>
                 </div>
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-slate-900 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2">
-                <button type="button" onClick={() => setEditTargetUser(null)} className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-slate-300">Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-brand-primary text-white text-xs font-bold uppercase rounded-xl">Save Changes</button>
+              <div className="p-4 bg-gray-50 dark:bg-brand-navyCard border-t border-gray-200 dark:border-brand-navyLine flex justify-end gap-2">
+                <button type="button" onClick={() => setEditTargetUser(null)} className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-brand-primary text-white text-xs font-semibold rounded-xl">Save Changes</button>
               </div>
             </form>
           </div>
@@ -575,11 +575,11 @@ const UserManagement = () => {
       {/* RESET PASSWORD MODAL */}
       {resetTargetUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
-          <div className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between p-5 bg-brand-primary text-white">
               <div className="flex items-center gap-2">
                 <FiLock className="w-5 h-5" />
-                <h2 className="text-sm font-bold uppercase tracking-wider">Reset Password</h2>
+                <h2 className="text-sm font-semibold">Reset Password</h2>
               </div>
               <button onClick={() => setResetTargetUser(null)} className="text-white/80 hover:text-white">&times;</button>
             </div>
@@ -607,9 +607,9 @@ const UserManagement = () => {
                   placeholder="Re-enter password"
                 />
               </div>
-              <div className="p-4 bg-gray-50 dark:bg-slate-900 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2">
-                <button type="button" onClick={() => setResetTargetUser(null)} className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-slate-300">Cancel</button>
-                <button type="submit" className="px-5 py-2 bg-brand-primary text-white text-xs font-bold uppercase rounded-xl">Update Password</button>
+              <div className="p-4 bg-gray-50 dark:bg-brand-navyCard border-t border-gray-200 dark:border-brand-navyLine flex justify-end gap-2">
+                <button type="button" onClick={() => setResetTargetUser(null)} className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-brand-primary text-white text-xs font-semibold rounded-xl">Update Password</button>
               </div>
             </form>
           </div>
@@ -619,11 +619,11 @@ const UserManagement = () => {
       {/* DELETE USER CONFIRMATION MODAL */}
       {deleteTargetUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
-          <div className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          <div className="bg-white dark:bg-[#0F172A] border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between p-5 bg-rose-600 text-white">
               <div className="flex items-center gap-2">
                 <FiTrash2 className="w-5 h-5" />
-                <h2 className="text-sm font-bold uppercase tracking-wider">Delete User Account</h2>
+                <h2 className="text-sm font-semibold">Delete User Account</h2>
               </div>
               <button onClick={() => setDeleteTargetUser(null)} className="text-white/80 hover:text-white">&times;</button>
             </div>
@@ -631,7 +631,7 @@ const UserManagement = () => {
               <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-900/50">
                 <FiAlertTriangle className="w-5 h-5 shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
                 <div>
-                  <p className="font-bold text-sm">Permanent Action Warning</p>
+                  <p className="font-semibold text-sm">Permanent Action Warning</p>
                   <p className="text-xs text-red-600/90 dark:text-red-300/90 mt-1">
                     Are you sure you want to permanently delete user account <strong className="underline">@{deleteTargetUser.username}</strong> ({deleteTargetUser.fullName})?
                   </p>
@@ -641,18 +641,18 @@ const UserManagement = () => {
                 This action will remove their user record from the system authentication database. This action cannot be undone.
               </p>
             </div>
-            <div className="p-4 bg-gray-50 dark:bg-slate-900 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2">
+            <div className="p-4 bg-gray-50 dark:bg-brand-navyCard border-t border-gray-200 dark:border-brand-navyLine flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setDeleteTargetUser(null)}
-                className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteUser}
-                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase rounded-xl transition-colors cursor-pointer shadow-sm"
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-sm"
               >
                 Confirm Delete
               </button>

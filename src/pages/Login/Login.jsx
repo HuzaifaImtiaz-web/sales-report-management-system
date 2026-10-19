@@ -3,15 +3,24 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import CompanyLogo from '../../components/common/CompanyLogo';
-import { FiLock, FiUser, FiAlertCircle, FiSun, FiMoon } from 'react-icons/fi';
+import {
+  FiLock, FiUser, FiAlertCircle, FiSun, FiMoon, FiEye, FiEyeOff,
+  FiList, FiBarChart2, FiShield, FiKey
+} from 'react-icons/fi';
 import { APP_VERSION_LABEL } from '../../utils/version';
 
 import EmergencyRecoveryModal from '../../components/auth/EmergencyRecoveryModal';
-import EnterprisePasswordInput from '../../components/common/EnterprisePasswordInput';
+
+const FEATURES = [
+  { icon: FiList, title: 'Quick sales entry', text: 'Record an order in three short steps, even from a phone.' },
+  { icon: FiBarChart2, title: 'Live targets and reports', text: 'See progress by product, area and team member; download Excel, PDF or PowerPoint.' },
+  { icon: FiShield, title: 'Secure by design', text: 'Encrypted connection, automatic sign-out and a full audit trail.' },
+];
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
@@ -20,9 +29,6 @@ const Login = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const usernameRef = useRef(null);
-
-  // Focus states
-  const [usernameFocused, setUsernameFocused] = useState(false);
 
   useEffect(() => {
     const animId = requestAnimationFrame(() => {
@@ -52,7 +58,6 @@ const Login = () => {
       setSessionExpiredMsg(null);
     }
 
-    // Input Validation
     if (!username.trim()) {
       setError('Username is required.');
       return;
@@ -81,224 +86,193 @@ const Login = () => {
     }
   };
 
+  const fieldBox = 'flex items-center gap-2.5 h-12 px-3.5 rounded-lg border border-line dark:border-brand-navyLine bg-white dark:bg-brand-navy text-muted dark:text-gray-400 focus-within:border-brand-primary focus-within:ring-4 focus-within:ring-brand-primary/10 transition-shadow';
+  const fieldInput = 'no-global-focus flex-1 min-w-0 h-full bg-transparent border-0 outline-none text-[15px] text-ink dark:text-white placeholder:text-gray-400';
+
   return (
-    <div className="flex min-h-screen bg-white dark:bg-[#0B132B] transition-colors duration-300 font-sans overflow-hidden">
-      
-      {/* LEFT PANEL: Branding & Graphic Section (40%) */}
-      <div className="hidden lg:flex w-[40%] relative bg-gradient-to-br from-[#801317] via-[#A91D22] to-[#600D10] text-white p-12 flex-col justify-between overflow-hidden shadow-2xl">
-        {/* Molecule network SVG decoration */}
-        <div className="absolute inset-0 opacity-15 pointer-events-none z-0">
-          <svg className="w-full h-full" viewBox="0 0 400 800" xmlns="http://www.w3.org/2000/svg">
-            {/* Grid structure lines */}
-            <line x1="50" y1="100" x2="150" y2="180" stroke="white" strokeWidth="1.5" />
-            <line x1="150" y1="180" x2="100" y2="300" stroke="white" strokeWidth="1.5" />
-            <line x1="100" y1="300" x2="250" y2="350" stroke="white" strokeWidth="1.5" />
-            <line x1="250" y1="350" x2="320" y2="250" stroke="white" strokeWidth="1.5" />
-            <line x1="250" y1="350" x2="200" y2="500" stroke="white" strokeWidth="1.5" />
-            <line x1="200" y1="500" x2="80" y2="550" stroke="white" strokeWidth="1.5" />
-            <line x1="200" y1="500" x2="300" y2="650" stroke="white" strokeWidth="1.5" />
-            
-            {/* Hexagonal Node connection circles */}
-            <circle cx="50" cy="100" r="6" fill="white" />
-            <circle cx="150" cy="180" r="8" fill="white" className="animate-pulse" />
-            <circle cx="100" cy="300" r="5" fill="white" />
-            <circle cx="250" cy="350" r="9" fill="white" />
-            <circle cx="320" cy="250" r="6" fill="white" />
-            <circle cx="200" cy="500" r="8" fill="white" />
-            <circle cx="80" cy="550" r="5" fill="white" />
-            <circle cx="300" cy="650" r="7" fill="white" />
-            
-            {/* Scientific hexagons */}
-            <polygon points="120,420 150,400 180,420 180,450 150,470 120,450" fill="none" stroke="white" strokeWidth="1" />
-            <polygon points="260,120 280,105 300,120 300,140 280,155 260,140" fill="none" stroke="white" strokeWidth="1" opacity="0.7" />
-          </svg>
+    <div className="flex flex-wrap min-h-screen bg-white dark:bg-brand-navy font-sans">
+
+      {/* Left: brand panel */}
+      <section className="relative overflow-hidden hidden lg:flex flex-1 basis-[480px] flex-col justify-between gap-12 bg-brand-primary text-white px-14 py-12">
+        <div aria-hidden="true" className="absolute w-[520px] h-[520px] -right-[200px] -top-[160px] rounded-full border border-white/15" />
+        <div aria-hidden="true" className="absolute w-[360px] h-[360px] -right-[120px] -top-[80px] rounded-full border border-white/15" />
+        <div aria-hidden="true" className="absolute w-[420px] h-[420px] -left-[180px] -bottom-[220px] rounded-full bg-brand-primaryDark" />
+
+        <div className="relative self-start bg-white rounded-2xl px-5 py-3.5">
+          <CompanyLogo className="h-12 w-auto" />
         </div>
 
-        {/* Brand Header */}
-        <div className="z-10 flex items-center gap-3">
-          <div className="p-2 bg-white rounded-xl shadow-md border border-white/20 shrink-0 inline-flex items-center justify-center">
-            <CompanyLogo className="h-7 w-auto max-w-[36px] object-contain" />
+        <div className="relative max-w-[500px] space-y-7">
+          <div className="space-y-3.5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em]">Sales Management System</p>
+            <h1 className="text-[38px] leading-tight font-semibold">Every order, target and report in one place.</h1>
+            <p className="text-base leading-relaxed">Built for the Himmel sales team: works on any computer or phone, wherever you are.</p>
           </div>
-          <div>
-            <h2 className="text-sm font-extrabold tracking-[0.25em] uppercase leading-none">Himmel</h2>
-            <p className="text-[10px] font-semibold tracking-[0.2em] text-white/70 uppercase mt-1">Pharmaceutical</p>
-          </div>
+          <ul className="space-y-4">
+            {FEATURES.map(({ icon: Icon, title, text }) => (
+              <li key={title} className="flex gap-3.5 items-start">
+                <span className="flex-none w-10 h-10 rounded-[10px] bg-brand-primaryDark inline-flex items-center justify-center">
+                  <Icon className="w-5 h-5" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="block text-[15px] font-semibold">{title}</span>
+                  <span className="block text-sm leading-relaxed">{text}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Mid Branding Statement */}
-        <div className="z-10 my-auto pr-6 space-y-4">
-          <h1 className="text-3xl font-black uppercase tracking-wider leading-tight">
-            Sales & Order<br />Management
-          </h1>
-          <div className="h-1 w-12 bg-white/40 rounded-full"></div>
-          <p className="text-xs text-white/80 leading-relaxed font-medium">
-            Secure cloud platform built exclusively for commercial medicine records, analytical targets, and order compliance pipelines.
-          </p>
+        <div className="relative flex flex-wrap justify-between gap-3 text-[13px]">
+          <span>© {new Date().getFullYear()} Himmel Pharmaceuticals Pvt Ltd</span>
+          <span>{APP_VERSION_LABEL}</span>
         </div>
+      </section>
 
-        {/* Footer Info */}
-        <div className="z-10 space-y-1">
-          <p className="text-[10px] font-bold tracking-widest text-white/70 uppercase">
-            {APP_VERSION_LABEL}
-          </p>
-          <p className="text-[9px] text-white/50 font-medium">
-            © {new Date().getFullYear()} Himmel Pharmaceutical. All rights reserved.
-          </p>
-        </div>
-      </div>
-
-      {/* RIGHT PANEL: Form Section (60% or 100% on Mobile/Tablet) */}
-      <div className="flex-1 flex flex-col justify-between p-8 lg:p-12 relative">
-        
-        {/* Top bar with theme toggle */}
-        <div className="flex justify-between items-center">
-          <div className="lg:hidden flex items-center gap-2">
-            <div className="p-1.5 bg-white rounded-lg shadow-sm border border-gray-150 shrink-0 inline-flex items-center justify-center">
-              <CompanyLogo className="h-6 w-auto object-contain" />
-            </div>
-            <span className="text-xs font-black tracking-widest uppercase text-gray-800 dark:text-white">Himmel</span>
-          </div>
-          <div className="hidden lg:block"></div>
-          
+      {/* Right: sign-in form */}
+      <section className="flex-1 basis-[480px] flex flex-col px-6 py-8 sm:px-10">
+        <div className="flex items-center justify-between">
+          <span className="lg:hidden inline-flex rounded-lg dark:bg-white dark:px-2 dark:py-1.5">
+            <CompanyLogo className="h-9 w-auto" />
+          </span>
+          <span className="hidden lg:block" />
           <button
+            type="button"
             onClick={toggleTheme}
-            className="p-2.5 rounded-xl border border-gray-150 dark:border-gray-850 hover:bg-gray-50 dark:hover:bg-gray-800/60 text-gray-600 dark:text-gray-300 transition-all duration-200 cursor-pointer shadow-sm"
-            aria-label="Toggle Theme"
+            className="w-10 h-10 inline-flex items-center justify-center rounded-lg border border-line dark:border-brand-navyLine text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {theme === 'dark' ? <FiSun className="w-4 h-4" /> : <FiMoon className="w-4 h-4" />}
           </button>
         </div>
 
-        {/* Centered Login Box */}
-        <div className="w-full max-w-sm mx-auto my-auto space-y-7 py-8">
-          <div>
-            <h1 className="text-2xl font-black text-gray-850 dark:text-white tracking-wide uppercase">
-              Welcome Back
-            </h1>
-            <p className="text-xs text-gray-450 dark:text-slate-400 font-medium mt-1.5">
-              Enter your corporate credentials to access your workspace.
-            </p>
-          </div>
+        <div className="w-full max-w-[400px] mx-auto my-auto py-10">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            <div className="space-y-1.5">
+              <h2 className="text-[28px] font-semibold text-ink dark:text-white">Welcome back</h2>
+              <p className="text-[15px] text-muted dark:text-gray-400">Sign in to continue to Himmel Sales.</p>
+            </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-            
-            {/* Status & Error Display Card */}
             {error && (
-              <div className="flex items-start gap-3 p-3.5 bg-red-50 dark:bg-red-950/20 text-red-650 dark:text-red-400 rounded-xl text-xs font-semibold border border-red-100 dark:border-red-900/30 animate-shake">
-                <FiAlertCircle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
+              <div role="alert" className="flex items-start gap-3 p-3.5 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/30 dark:text-red-300 dark:border-red-900/50">
+                <FiAlertCircle className="h-[18px] w-[18px] shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             {sessionExpiredMsg && !error && (
-              <div className="flex items-start gap-3 p-3.5 bg-amber-50 dark:bg-amber-955/20 text-amber-650 dark:text-amber-400 rounded-xl text-xs font-semibold border border-amber-100 dark:border-amber-900/30">
-                <FiAlertCircle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
+              <div role="status" className="flex items-start gap-3 p-3.5 rounded-lg text-sm bg-[#FFF6D6] text-[#6B4E00] border border-[#FFE08A] dark:bg-yellow-950/30 dark:text-yellow-200 dark:border-yellow-900/50">
+                <FiAlertCircle className="h-[18px] w-[18px] shrink-0 mt-0.5" />
                 <span>{sessionExpiredMsg}</span>
               </div>
             )}
 
-            {/* Username Input Container */}
-            <div className="space-y-1 relative">
-              <div className={`relative flex items-center rounded-xl border transition-all duration-200 ${
-                usernameFocused
-                  ? 'border-blue-500 ring-2 ring-blue-500/20 bg-white dark:bg-slate-900 shadow-sm'
-                  : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-[#0f172a]/30'
-              }`}>
-                <div className="pl-3.5 text-gray-400 dark:text-slate-500">
-                  <FiUser className="w-4 h-4" />
-                </div>
-                {/* Float-label wrapper */}
-                <div className="relative flex-grow">
-                  <input
-                    id="username"
-                    type="text"
-                    autoComplete="username"
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    maxLength={100}
-                    required
-                    disabled={isSubmitting}
-                    ref={usernameRef}
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    onFocus={() => setUsernameFocused(true)}
-                    onBlur={() => setUsernameFocused(false)}
-                    placeholder=" "
-                    className="no-global-focus block w-full px-3 py-3.5 text-xs font-semibold text-gray-800 dark:text-white bg-transparent outline-none pt-5 pb-1.5 placeholder-transparent border-0 focus:border-0 focus:ring-0"
-                  />
-                  <label
-                    htmlFor="username"
-                    className={`absolute left-3 top-3.5 pointer-events-none text-xs font-bold text-gray-400 dark:text-slate-500 transition-all duration-200 uppercase tracking-wider origin-top-left ${
-                      username || usernameFocused
-                        ? 'transform -translate-y-3.5 scale-75 text-blue-500 dark:text-blue-400'
-                        : ''
-                    }`}
-                  >
-                    Username
-                  </label>
-                </div>
+            <div className="space-y-1.5">
+              <label htmlFor="username" className="block text-sm font-medium text-ink dark:text-gray-200">Username</label>
+              <div className={fieldBox}>
+                <FiUser className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                <input
+                  id="username"
+                  type="text"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  maxLength={100}
+                  required
+                  disabled={isSubmitting}
+                  ref={usernameRef}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Your username"
+                  className={fieldInput}
+                />
               </div>
             </div>
 
-            {/* Password Input Container */}
-            <div className="space-y-1">
-              <EnterprisePasswordInput
-                id="password"
-                name="password"
-                label="Password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required={true}
-                disabled={isSubmitting}
-                placeholder="••••••••"
-              />
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <label htmlFor="password" className="block text-sm font-medium text-ink dark:text-gray-200">Password</label>
+                <button
+                  type="button"
+                  onClick={() => setIsRecoveryOpen(true)}
+                  className="text-[13px] font-medium text-brand-primary hover:text-brand-primaryDark dark:text-brand-primaryBright"
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <div className={`${fieldBox} pr-1.5`}>
+                <FiLock className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  disabled={isSubmitting}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Your password"
+                  className={fieldInput}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="w-10 h-10 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-ink dark:hover:text-white"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <FiEyeOff className="w-[18px] h-[18px]" /> : <FiEye className="w-[18px] h-[18px]" />}
+                </button>
+              </div>
             </div>
 
-            {/* Sign In Button */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex justify-center items-center py-3.5 bg-brand-primary hover:bg-[#8F161A] active:bg-[#7D1115] disabled:bg-[#A91D22]/60 text-white font-bold text-xs tracking-[0.15em] uppercase rounded-xl transition-all shadow-md hover:shadow-brand-primary/10 cursor-pointer disabled:cursor-not-allowed select-none"
+              className="w-full h-[50px] inline-flex justify-center items-center gap-2 rounded-lg bg-brand-primary hover:bg-brand-primaryDark disabled:opacity-60 text-white text-[15px] font-medium transition-colors cursor-pointer disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                  <span>Signing In...</span>
-                </div>
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />
+                  Signing in…
+                </>
               ) : (
-                'Login'
+                'Sign in'
               )}
             </button>
 
-            {/* Emergency Recovery Link */}
-            <div className="pt-2 text-center">
-              <button
-                type="button"
-                onClick={() => setIsRecoveryOpen(true)}
-                className="text-xs font-bold text-gray-500 hover:text-brand-primary dark:text-slate-400 dark:hover:text-red-400 transition-colors uppercase tracking-wider cursor-pointer underline"
-              >
-                Emergency Recovery
-              </button>
+            <div className="flex items-center gap-3 text-[13px] text-muted dark:text-gray-400">
+              <span className="flex-1 h-px bg-line dark:bg-brand-navyLine" />
+              Administrators only
+              <span className="flex-1 h-px bg-line dark:bg-brand-navyLine" />
             </div>
+
+            <button
+              type="button"
+              onClick={() => setIsRecoveryOpen(true)}
+              className="w-full h-[46px] inline-flex items-center justify-center gap-2 rounded-lg border border-line dark:border-brand-navyLine text-sm font-medium text-ink dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+            >
+              <FiKey className="w-4 h-4" aria-hidden="true" />
+              Emergency account recovery
+            </button>
+
+            <div className="flex gap-3 items-start p-3.5 rounded-[10px] bg-brand-lightGray dark:bg-brand-navyCard border border-line dark:border-brand-navyLine text-[13px] leading-relaxed text-gray-600 dark:text-gray-300">
+              <FiShield className="w-[18px] h-[18px] shrink-0 mt-px text-feedback-success" aria-hidden="true" />
+              <span>Secure connection. For your safety you are signed out after 30 minutes without activity.</span>
+            </div>
+
+            <p className="text-center text-[13px] text-muted dark:text-gray-400">Need an account? Ask your administrator.</p>
           </form>
         </div>
 
-        {/* Emergency Recovery Modal */}
+        <p className="lg:hidden text-center text-xs text-muted dark:text-gray-400">{APP_VERSION_LABEL}</p>
+
         <EmergencyRecoveryModal
           isOpen={isRecoveryOpen}
           onClose={() => setIsRecoveryOpen(false)}
         />
-
-
-        {/* Small version label for smaller screens */}
-        <div className="lg:hidden text-center text-[10px] font-bold text-gray-450 dark:text-slate-500 tracking-widest uppercase">
-          {APP_VERSION_LABEL}
-        </div>
-      </div>
+      </section>
     </div>
   );
 };
 
 export default Login;
-

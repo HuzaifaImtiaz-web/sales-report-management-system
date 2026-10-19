@@ -66,9 +66,9 @@ const AlertDialog = ({
         };
       default:
         return {
-          icon: <FiInfo className="w-6 h-6 text-blue-500" />,
-          iconBg: 'bg-blue-100 dark:bg-blue-950/50',
-          button: 'bg-blue-600 hover:bg-blue-700 text-white',
+          icon: <FiInfo className="w-6 h-6 text-gray-500" />,
+          iconBg: 'bg-gray-100 dark:bg-white/5',
+          button: 'bg-gray-600 hover:bg-gray-700 text-white',
         };
     }
   };
@@ -83,14 +83,14 @@ const AlertDialog = ({
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-desc"
     >
-      <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+      <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
         <div className="p-6 space-y-4">
           <div className="flex items-start gap-4">
             <div className={`p-3 rounded-2xl shrink-0 ${vStyles.iconBg}`}>
               {vStyles.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 id="alert-dialog-title" className="text-base font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+              <h3 id="alert-dialog-title" className="text-base font-semibold text-gray-900 dark:text-white">
                 {title}
               </h3>
               <div id="alert-dialog-desc" className="text-xs text-gray-600 dark:text-slate-300 font-medium mt-1.5 leading-relaxed">
@@ -100,12 +100,12 @@ const AlertDialog = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-end px-6 py-4 bg-gray-50/80 dark:bg-slate-900/80 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-end px-6 py-4 bg-gray-50/80 dark:bg-brand-navyCard border-t border-gray-200 dark:border-brand-navyLine">
           <button
             ref={okBtnRef}
             type="button"
             onClick={onClose}
-            className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md cursor-pointer ${vStyles.button}`}
+            className={`px-6 py-2.5 rounded-xl text-xs font-semibold   transition-all shadow-md cursor-pointer ${vStyles.button}`}
           >
             {buttonText}
           </button>

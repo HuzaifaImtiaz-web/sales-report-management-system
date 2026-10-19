@@ -91,14 +91,14 @@ const ConfirmDialog = ({
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-desc"
     >
-      <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+      <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
         <div className="p-6 space-y-4">
           <div className="flex items-start gap-4">
             <div className={`p-3 rounded-2xl shrink-0 ${variant.iconBg}`}>
               {variant.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 id="confirm-dialog-title" className="text-base font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+              <h3 id="confirm-dialog-title" className="text-base font-semibold text-gray-900 dark:text-white">
                 {title}
               </h3>
               <div id="confirm-dialog-desc" className="text-xs text-gray-600 dark:text-slate-300 font-medium mt-1.5 leading-relaxed">
@@ -108,14 +108,14 @@ const ConfirmDialog = ({
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50/80 dark:bg-slate-900/80 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50/80 dark:bg-brand-navyCard border-t border-gray-200 dark:border-brand-navyLine">
           {cancelText && (
             <button
               ref={cancelBtnRef}
               type="button"
               disabled={loading}
               onClick={onCancel}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 text-xs font-bold uppercase tracking-wider hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 text-xs font-semibold hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
             >
               {cancelText}
             </button>
@@ -125,7 +125,7 @@ const ConfirmDialog = ({
             type="button"
             disabled={loading}
             onClick={onConfirm}
-            className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2 ${variant.confirmBtn}`}
+            className={`px-5 py-2.5 rounded-xl text-xs font-semibold   transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2 ${variant.confirmBtn}`}
           >
             {loading && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
             {confirmText}

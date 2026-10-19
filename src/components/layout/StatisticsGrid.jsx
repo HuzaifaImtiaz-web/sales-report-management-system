@@ -20,8 +20,8 @@ const StatisticsGrid = ({
   const stats = [
     {
       icon: FiPackage,
-      iconBg: 'bg-blue-50 dark:bg-blue-900/30',
-      iconColor: 'text-blue-500',
+      iconBg: 'bg-gray-50 dark:bg-white/5',
+      iconColor: 'text-gray-500',
       title: 'Total Products',
       value: productsCount.toString(),
       trend: 'Database',
@@ -31,8 +31,8 @@ const StatisticsGrid = ({
     },
     {
       icon: FiUsers,
-      iconBg: 'bg-purple-50 dark:bg-purple-900/30',
-      iconColor: 'text-purple-500',
+      iconBg: 'bg-gray-50 dark:bg-white/5',
+      iconColor: 'text-gray-500',
       title: 'Total Doctors',
       value: doctorsCount.toString(),
       trend: 'Database',
@@ -53,8 +53,8 @@ const StatisticsGrid = ({
     },
     {
       icon: FiUserCheck,
-      iconBg: 'bg-teal-50 dark:bg-teal-900/30',
-      iconColor: 'text-teal-500',
+      iconBg: 'bg-gray-50 dark:bg-white/5',
+      iconColor: 'text-gray-500',
       title: 'Total Team Members',
       value: teamCount.toString(),
       trend: 'Database',

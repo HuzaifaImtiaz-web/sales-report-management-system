@@ -93,7 +93,7 @@ const PromptDialog = ({
       aria-modal="true"
       aria-labelledby="prompt-dialog-title"
     >
-      <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
+      <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-4">
             <div className="flex items-start gap-4">
@@ -101,7 +101,7 @@ const PromptDialog = ({
                 <FiEdit3 className="w-6 h-6 text-brand-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 id="prompt-dialog-title" className="text-base font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+                <h3 id="prompt-dialog-title" className="text-base font-semibold text-gray-900 dark:text-white">
                   {title}
                 </h3>
                 {message && (
@@ -126,7 +126,7 @@ const PromptDialog = ({
                 className={`w-full px-4 py-3 rounded-xl border text-xs font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-800/80 outline-none transition-all ${
                   error
                     ? 'border-red-500 ring-2 ring-red-500/20'
-                    : 'border-gray-200 dark:border-gray-700 focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20'
+                    : 'border-gray-200 dark:border-brand-navyLine focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20'
                 }`}
               />
               {error && (
@@ -138,13 +138,13 @@ const PromptDialog = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50/80 dark:bg-slate-900/80 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50/80 dark:bg-brand-navyCard border-t border-gray-200 dark:border-brand-navyLine">
             {cancelText && (
               <button
                 type="button"
                 disabled={loading}
                 onClick={onCancel}
-                className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 text-xs font-bold uppercase tracking-wider hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 text-xs font-semibold hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {cancelText}
               </button>
@@ -152,7 +152,7 @@ const PromptDialog = ({
             <button
               type="submit"
               disabled={loading}
-              className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2 ${getVariantStyles()}`}
+              className={`px-5 py-2.5 rounded-xl text-xs font-semibold   transition-all disabled:opacity-50 cursor-pointer flex items-center gap-2 ${getVariantStyles()}`}
             >
               {loading && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               {confirmText}

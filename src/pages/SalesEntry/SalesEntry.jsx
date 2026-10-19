@@ -215,7 +215,7 @@ export default function SalesEntry() {
 
         {/* Page Header */}
         <div>
-          <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">
             Sales Processing Center
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -224,7 +224,7 @@ export default function SalesEntry() {
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-800 pb-3 overflow-x-auto">
+        <div className="flex items-center gap-2 border-b border-gray-200 dark:border-brand-navyLine pb-3 overflow-x-auto">
           {['All', 'Pending', 'Completed', 'Cancelled'].map(st => {
             const count = st === 'All' ? sales.length : sales.filter(s => s.status === st).length;
             const isActive = statusFilter === st;
@@ -235,14 +235,14 @@ export default function SalesEntry() {
                   setStatusFilter(st);
                   setCurrentPage(1);
                 }}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
                   isActive
                     ? 'bg-brand-primary text-white shadow-sm'
-                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                    : 'bg-white dark:bg-brand-navy text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-brand-navyLine'
                 }`}
               >
                 <span>{st}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                <span className={`px-2 py-0.5 rounded-full text-xs font-mono ${
                   isActive ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                 }`}>
                   {count}
@@ -253,21 +253,21 @@ export default function SalesEntry() {
         </div>
 
         {/* Enterprise Business Filters Panel (folded away on phones so the orders come first) */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-enterprise p-4 shadow-sm space-y-3">
-          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise p-4 shadow-sm space-y-3">
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-brand-navyLine pb-2">
             <button
               type="button"
               onClick={() => setFiltersOpen((open) => !open)}
               aria-expanded={filtersOpen}
-              className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 md:cursor-default"
+              className="flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-gray-300 md:cursor-default"
             >
               <FiFilter className="w-4 h-4 text-brand-primary" />
               <span>Enterprise Filters</span>
-              <span className="md:hidden text-[10px] font-semibold text-gray-400">{filtersOpen ? '(hide)' : '(show)'}</span>
+              <span className="md:hidden text-xs font-semibold text-gray-500">{filtersOpen ? '(hide)' : '(show)'}</span>
             </button>
             <button
               onClick={resetFilters}
-              className="text-[11px] font-bold text-brand-primary hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-[11px] font-semibold text-brand-primary hover:underline flex items-center gap-1 cursor-pointer"
             >
               <FiRefreshCw className="w-3 h-3" /> Reset Filters
             </button>
@@ -281,16 +281,16 @@ export default function SalesEntry() {
                 placeholder="Search PO#, Doctor, Inst..."
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:border-brand-primary font-medium"
+                className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-200 dark:border-brand-navyLine rounded-lg bg-gray-50 dark:bg-brand-navy text-gray-800 dark:text-gray-200 focus:outline-none focus:border-brand-primary font-medium"
               />
-              <FiSearch className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400" />
+              <FiSearch className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-500" />
             </div>
 
             {/* Doctor Filter */}
             <select
               value={doctorFilter}
               onChange={(e) => { setDoctorFilter(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-brand-navyLine rounded-lg bg-gray-50 dark:bg-brand-navy text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
             >
               <option value="">All Doctors</option>
               {doctors.map(d => (
@@ -302,7 +302,7 @@ export default function SalesEntry() {
             <select
               value={institutionFilter}
               onChange={(e) => { setInstitutionFilter(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-brand-navyLine rounded-lg bg-gray-50 dark:bg-brand-navy text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
             >
               <option value="">All Institutions</option>
               {institutions.map(i => (
@@ -314,7 +314,7 @@ export default function SalesEntry() {
             <select
               value={areaFilter}
               onChange={(e) => { setAreaFilter(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-brand-navyLine rounded-lg bg-gray-50 dark:bg-brand-navy text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
             >
               <option value="">All Areas</option>
               {areas.map(a => (
@@ -326,7 +326,7 @@ export default function SalesEntry() {
             <select
               value={teamMemberFilter}
               onChange={(e) => { setTeamMemberFilter(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-brand-navyLine rounded-lg bg-gray-50 dark:bg-brand-navy text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
             >
               <option value="">All Team Members</option>
               {teamMembers.map(t => (
@@ -338,7 +338,7 @@ export default function SalesEntry() {
             <select
               value={productFilter}
               onChange={(e) => { setProductFilter(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
+              className="px-3 py-1.5 text-xs border border-gray-200 dark:border-brand-navyLine rounded-lg bg-gray-50 dark:bg-brand-navy text-gray-800 dark:text-gray-200 font-medium cursor-pointer"
             >
               <option value="">All Products</option>
               {products.map(p => (
@@ -348,30 +348,30 @@ export default function SalesEntry() {
 
             {/* Start Date */}
             <div className="flex items-center gap-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase shrink-0">From:</span>
+              <span className="text-xs font-semibold text-gray-500 shrink-0">From:</span>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
-                className="w-full px-2 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium"
+                className="w-full px-2 py-1 text-xs border border-gray-200 dark:border-brand-navyLine rounded bg-gray-50 dark:bg-brand-navy text-gray-800 dark:text-gray-200 font-medium"
               />
             </div>
 
             {/* End Date */}
             <div className="flex items-center gap-1">
-              <span className="text-[10px] font-bold text-gray-400 uppercase shrink-0">To:</span>
+              <span className="text-xs font-semibold text-gray-500 shrink-0">To:</span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
-                className="w-full px-2 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium"
+                className="w-full px-2 py-1 text-xs border border-gray-200 dark:border-brand-navyLine rounded bg-gray-50 dark:bg-brand-navy text-gray-800 dark:text-gray-200 font-medium"
               />
             </div>
           </div>
         </div>
 
         {/* Sales Table Container */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-enterprise shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-sm overflow-hidden">
           {loading ? (
             <div className="p-12 flex justify-center items-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
@@ -379,14 +379,14 @@ export default function SalesEntry() {
           ) : filteredSales.length === 0 ? (
             <div className="p-12 text-center text-gray-500 dark:text-gray-400">
               <FiShoppingBag className="w-10 h-10 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
-              <p className="text-sm font-bold text-gray-700 dark:text-gray-300">No Sales Orders Found</p>
-              <p className="text-xs text-gray-400 mt-1">Try adjusting your search criteria or create a new order.</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">No Sales Orders Found</p>
+              <p className="text-xs text-gray-500 mt-1">Try adjusting your search criteria or create a new order.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50/80 dark:bg-gray-800/40 border-b border-gray-200 dark:border-gray-800 text-[10px] uppercase tracking-wider font-extrabold text-gray-500 dark:text-gray-400">
+                  <tr className="bg-gray-50/80 dark:bg-brand-navy/40 border-b border-gray-200 dark:border-brand-navyLine text-xs font-semibold text-gray-500 dark:text-gray-400">
                     <th className="py-3 px-4">PO Number</th>
                     <th className="py-3 px-4">Date</th>
                     <th className="py-3 px-4">Doctor / Institution</th>
@@ -417,8 +417,8 @@ export default function SalesEntry() {
                     const isCancelled = sale.status === 'Cancelled';
 
                     return (
-                      <tr key={sale.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                        <td className="py-3.5 px-4 font-mono font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                      <tr key={sale.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-semibold text-gray-900 dark:text-white whitespace-nowrap">
                           {sale.poNumber || sale.orderNumber}
                         </td>
                         <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">
@@ -427,7 +427,7 @@ export default function SalesEntry() {
                         <td className="py-3.5 px-4 font-medium text-gray-800 dark:text-gray-200">
                           <div>{docName}</div>
                           {instName !== '—' && (
-                            <div className="text-[10px] text-gray-400">{instName}</div>
+                            <div className="text-xs text-gray-500">{instName}</div>
                           )}
                         </td>
                         <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300">
@@ -439,7 +439,7 @@ export default function SalesEntry() {
                         <td className="py-3.5 px-4 font-medium text-gray-600 dark:text-gray-300 max-w-[200px] truncate" title={itemsSummary}>
                           {itemsSummary || '—'}
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-extrabold text-right text-brand-primary whitespace-nowrap">
+                        <td className="py-3.5 px-4 font-mono font-semibold text-right text-brand-primary whitespace-nowrap">
                           Rs {Number(sale.totalAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-3.5 px-4 text-center">
@@ -452,7 +452,7 @@ export default function SalesEntry() {
                               <>
                                 <button
                                   onClick={() => navigate(`/orders/${sale.id}/edit`)}
-                                  className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors"
+                                  className="p-1.5 text-gray-600 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors"
                                   title="Edit Order"
                                 >
                                   <FiEdit3 className="w-4 h-4" />
@@ -495,14 +495,14 @@ export default function SalesEntry() {
                               <>
                                 <button
                                   onClick={() => navigate(`/orders/${sale.id}`)}
-                                  className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                  className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                                   title="View Order Details"
                                 >
                                   <FiEye className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handlePrint(sale)}
-                                  className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors"
+                                  className="p-1.5 text-gray-600 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors"
                                   title="Print Order"
                                 >
                                   <FiPrinter className="w-4 h-4" />
@@ -514,7 +514,7 @@ export default function SalesEntry() {
                             {isCancelled && (
                               <button
                                 onClick={() => navigate(`/orders/${sale.id}`)}
-                                className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                                className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                                 title="View Order Details"
                               >
                                 <FiEye className="w-4 h-4" />
@@ -532,7 +532,7 @@ export default function SalesEntry() {
 
           {/* Pagination */}
           {filteredSales.length > 0 && (
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+            <div className="p-4 border-t border-gray-200 dark:border-brand-navyLine">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}

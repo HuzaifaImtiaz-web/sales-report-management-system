@@ -28,13 +28,13 @@ const EmptyState = ({ onAdd }) => (
         <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-brand-primary mb-3">
           <FiUserCheck className="w-6 h-6" />
         </div>
-        <p className="text-xs font-bold text-gray-800 dark:text-gray-200 mb-1">No Doctors Found</p>
-        <p className="text-[11px] text-gray-400 dark:text-gray-550 mb-4">
+        <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1">No Doctors Found</p>
+        <p className="text-[11px] text-gray-500 dark:text-gray-550 mb-4">
           No records match your criteria. Add your first doctor to get started.
         </p>
         <button
           onClick={onAdd}
-          className="px-4 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5 transition-colors"
+          className="px-4 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5 transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" /> Add First Doctor
         </button>
@@ -152,8 +152,8 @@ export default function Doctors() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Doctors</h1>
-            <p className="text-xs text-gray-400 dark:text-gray-550 font-medium mt-1">Manage hospital doctors & consultants.</p>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Doctors</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-550 font-medium mt-1">Manage hospital doctors & consultants.</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -164,24 +164,24 @@ export default function Doctors() {
                 { key: 'area', label: 'Area' },
                 { key: 'status', label: 'Status' }
               ])}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               title="Export filtered doctors to CSV"
             >
               <FiDownload className="w-3.5 h-3.5" /> Export Filtered
             </button>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-feedback-success text-[11px] font-bold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-feedback-success text-[11px] font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-feedback-success" />
               {activeCount} Active
             </span>
             {inactiveCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 text-feedback-error text-[11px] font-bold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 text-feedback-error text-[11px] font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-feedback-error" />
                 {inactiveCount} Inactive
               </span>
             )}
             <button
               onClick={() => navigate('/doctors/new')}
-              className="px-4 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5 transition-colors"
             >
               <FiPlus className="w-3.5 h-3.5" /> Add Doctor
             </button>
@@ -189,22 +189,22 @@ export default function Doctors() {
         </div>
 
         {/* Filter Bar */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise p-4 shadow-soft">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise p-4 shadow-soft">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             {/* Search Input */}
             <div className="relative flex-1 max-w-md">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-3.5 h-3.5" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by Doctor Name, Hospital, Specialty..."
-                className="w-full pl-9 pr-8 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-750 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-555"
+                className="w-full pl-9 pr-8 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-555"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-200"
                 >
                   <FiX className="w-3.5 h-3.5" />
                 </button>
@@ -216,7 +216,7 @@ export default function Doctors() {
               <select
                 value={areaFilter}
                 onChange={(e) => setAreaFilter(e.target.value)}
-                className="pl-3 pr-8 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-750 rounded-lg outline-none cursor-pointer appearance-none"
+                className="pl-3 pr-8 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none cursor-pointer appearance-none"
               >
                 <option value="">All Areas</option>
                 {areasList.map((a) => <option key={a} value={a}>{a}</option>)}
@@ -225,7 +225,7 @@ export default function Doctors() {
               <select
                 value={specialtyFilter}
                 onChange={(e) => setSpecialtyFilter(e.target.value)}
-                className="pl-3 pr-8 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-750 rounded-lg outline-none cursor-pointer appearance-none"
+                className="pl-3 pr-8 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none cursor-pointer appearance-none"
               >
                 <option value="">All Specialties</option>
                 {SPECIALTIES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -241,7 +241,7 @@ export default function Doctors() {
               {showClear && (
                 <button
                   onClick={handleClear}
-                  className="px-2.5 py-1.5 text-[11px] font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                  className="px-2.5 py-1.5 text-[11px] font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                 >
                   Clear Filters
                 </button>
@@ -251,11 +251,11 @@ export default function Doctors() {
         </div>
 
         {/* Table */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft overflow-hidden">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                <tr className="border-b border-gray-200 dark:border-brand-navyLine bg-gray-50/50 dark:bg-brand-navy/40 text-xs font-semibold text-gray-500 dark:text-gray-400">
                   <th className="py-3 px-4">Doctor Name</th>
                   <th className="py-3 px-4">Specialty</th>
                   <th className="py-3 px-4">Hospital</th>
@@ -267,7 +267,7 @@ export default function Doctors() {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-400 font-medium">Loading doctors...</td>
+                    <td colSpan={6} className="py-8 text-center text-gray-500 font-medium">Loading doctors...</td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <EmptyState onAdd={() => navigate('/doctors/new')} />
@@ -276,13 +276,13 @@ export default function Doctors() {
                     <tr
                       id={`row-${d.id}`}
                       key={d.id}
-                      className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                      className="hover:bg-gray-50/50 dark:hover:bg-white/5/30 transition-colors"
                     >
                       <td className="py-3 px-4">
-                        <div className="font-bold text-gray-900 dark:text-white">{d.name}</div>
+                        <div className="font-semibold text-gray-900 dark:text-white">{d.name}</div>
                       </td>
                       <td className="py-3 px-4 text-gray-700 dark:text-gray-300 font-medium">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs font-semibold">
                           <FiBriefcase className="w-2.5 h-2.5" /> {d.specialty || 'General'}
                         </span>
                       </td>
@@ -291,11 +291,11 @@ export default function Doctors() {
                       </td>
                       <td className="py-3 px-4 text-gray-600 dark:text-gray-400 font-medium">
                         <span className="flex items-center gap-1">
-                          <FiMapPin className="w-3 h-3 text-gray-400" /> {d.area || 'Unassigned'}
+                          <FiMapPin className="w-3 h-3 text-gray-500" /> {d.area || 'Unassigned'}
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
                           d.status === 'Active'
                             ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-feedback-success'
                             : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-feedback-error'
@@ -308,21 +308,21 @@ export default function Doctors() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => navigate(`/doctors/${d.id}`)}
-                            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             title="View Doctor Details"
                           >
                             <FiEye className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => navigate(`/doctors/${d.id}/edit`)}
-                            className="p-1.5 text-gray-400 hover:text-brand-primary rounded-lg hover:bg-brand-primary/10 transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-brand-primary rounded-lg hover:bg-brand-primary/10 transition-colors"
                             title="Edit Doctor"
                           >
                             <FiEdit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setToDelete(d)}
-                            className="p-1.5 text-gray-400 hover:text-feedback-error rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-feedback-error rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             title="Delete Doctor"
                           >
                             <FiTrash2 className="w-3.5 h-3.5" />

@@ -116,21 +116,21 @@ export default function TargetsFormPage() {
         <div className="flex items-center gap-4">
           <button
             onClick={handleCancel}
-            className="p-2 hover:bg-gray-155 dark:hover:bg-gray-800 rounded-lg text-gray-550 hover:text-gray-700 transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg text-gray-550 hover:text-gray-700 transition-colors"
           >
             ← Back
           </button>
           <div>
-            <h1 className="text-xl font-extrabold text-gray-950 dark:text-white tracking-tight">
+            <h1 className="text-xl font-semibold text-gray-950 dark:text-white tracking-tight">
               {pageTitle}
             </h1>
-            <p className="text-xs text-gray-400 dark:text-gray-555 font-medium mt-0.5">
+            <p className="text-xs text-gray-500 dark:text-gray-555 font-medium mt-0.5">
               {shortDesc}
             </p>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-sm p-6 sm:p-8">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-sm p-6 sm:p-8">
           <TargetsForm
             key={formKey}
             mode={mode}

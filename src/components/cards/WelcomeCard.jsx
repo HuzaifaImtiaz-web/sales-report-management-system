@@ -28,16 +28,16 @@ const WelcomeCard = () => {
       
       <div className="relative z-10 space-y-4">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight capitalize">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight capitalize">
             Welcome Back, {name}
           </h2>
-          <p className="text-brand-secondary text-sm font-bold mt-1 uppercase tracking-wide">
+          <p className="text-brand-secondary text-sm font-semibold mt-1">
             {getGreeting()}
           </p>
         </div>
 
         <div className="pt-2 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <p className="text-white/80 font-bold uppercase tracking-wider">
+          <p className="text-white/80 font-semibold">
             {formatDate()}
           </p>
           <p className="text-white/60 italic font-semibold">

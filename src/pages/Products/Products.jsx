@@ -17,14 +17,14 @@ const StatusBadge = ({ status }) => {
   switch (status) {
     case 'Active':
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-50 dark:bg-green-900/30 text-feedback-success border border-green-100 dark:border-green-800/50">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 dark:bg-green-900/30 text-feedback-success border border-green-100 dark:border-green-800/50">
           <span className="w-1.5 h-1.5 rounded-full bg-feedback-success inline-block" />
           Active
         </span>
       );
     case 'Inactive':
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-600 border border-amber-100 dark:border-amber-805/50">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-900/30 text-amber-600 border border-amber-100 dark:border-amber-805/50">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
           Inactive
         </span>
@@ -32,7 +32,7 @@ const StatusBadge = ({ status }) => {
     case 'Discontinued':
     default:
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-50 dark:bg-red-900/30 text-feedback-error border border-red-100 dark:border-red-800/50">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-feedback-error border border-red-100 dark:border-red-800/50">
           <span className="w-1.5 h-1.5 rounded-full bg-feedback-error inline-block" />
           Discontinued
         </span>
@@ -57,16 +57,16 @@ const EmptyState = ({ onAdd }) => (
   <tr>
     <td colSpan={11} className="px-5 py-16 text-center">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-16 h-16 rounded-2xl bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-2xl bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine flex items-center justify-center">
           <FiPackage className="w-8 h-8 text-gray-200 dark:text-gray-600" />
         </div>
         <div>
-          <p className="text-sm font-bold text-gray-400 dark:text-gray-555">No products available.</p>
+          <p className="text-sm font-semibold text-gray-500 dark:text-gray-555">No products available.</p>
           <p className="text-[11px] text-gray-300 dark:text-gray-655 font-medium mt-1">Start by adding your first product.</p>
         </div>
         <button
           onClick={onAdd}
-          className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow-md transition-all duration-150"
+          className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow-md transition-all duration-150"
         >
           <FiPlus className="w-3.5 h-3.5" /> Add First Product
         </button>
@@ -283,8 +283,8 @@ const Products = () => {
         {/* ── Header ── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-905 dark:text-white tracking-tight">Products Master</h1>
-            <p className="text-xs text-gray-400 dark:text-gray-550 font-medium mt-1 font-semibold">Manage Himmel Pharmaceutical products master records.</p>
+            <h1 className="text-xl font-semibold text-gray-905 dark:text-white tracking-tight">Products Master</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-550 font-medium mt-1 font-semibold">Manage Himmel Pharmaceutical products master records.</p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -300,30 +300,30 @@ const Products = () => {
                 { key: 'mrp', label: 'MRP' },
                 { key: 'status', label: 'Status' }
               ])}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               title="Export filtered products to CSV"
             >
               <FiDownload className="w-3.5 h-3.5" /> Export Filtered
             </button>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-feedback-success text-[11px] font-bold">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800/50 text-feedback-success text-[11px] font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-feedback-success" />
               {activeCount} Active
             </span>
             {inactiveCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50 text-amber-600 text-[11px] font-bold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50 text-amber-600 text-[11px] font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 {inactiveCount} Inactive
               </span>
             )}
             {discontinuedCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 text-feedback-error text-[11px] font-bold">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 text-feedback-error text-[11px] font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-feedback-error" />
                 {discontinuedCount} Discontinued
               </span>
             )}
             <button
               onClick={openAdd}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow-md transition-all duration-150"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow-md transition-all duration-150"
             >
               <FiPlus className="w-3.5 h-3.5" /> Add Product
             </button>
@@ -331,8 +331,8 @@ const Products = () => {
         </div>
 
         {/* ── Search & Filter (phones: search first, other filters folded) ── */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft p-4 space-y-3">
-          <div className={`${moreFilters ? 'flex' : 'hidden md:flex'} flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-100 dark:border-gray-800 pb-3`}>
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-4 space-y-3">
+          <div className={`${moreFilters ? 'flex' : 'hidden md:flex'} flex-col md:flex-row md:items-center justify-between gap-3 border-b border-gray-200 dark:border-brand-navyLine pb-3`}>
             <FilterPresetBar
               moduleName="products"
               currentFilters={{ search, statusFilter, divisionFilter, groupFilter }}
@@ -352,20 +352,20 @@ const Products = () => {
             {/* Row 1: Search & Clear */}
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search products by code, brand, generic, registration number, division, group..."
-                  className="w-full pl-9 pr-4 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-255 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="w-full pl-9 pr-4 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
               </div>
 
               {(search || statusFilter !== 'All' || divisionFilter !== 'All' || groupFilter) && (
                 <button
                   onClick={handleClearAll}
-                  className="px-3 py-2.5 text-xs font-bold text-gray-500 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-150 flex items-center gap-1.5 whitespace-nowrap"
+                  className="px-3 py-2.5 text-xs font-semibold text-gray-500 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-150 flex items-center gap-1.5 whitespace-nowrap"
                 >
                   <FiX className="w-3.5 h-3.5" /> Clear Filters
                 </button>
@@ -377,16 +377,16 @@ const Products = () => {
               type="button"
               onClick={() => setMoreFilters((open) => !open)}
               aria-expanded={moreFilters}
-              className="md:hidden self-start text-[11px] font-bold text-brand-primary hover:underline"
+              className="md:hidden self-start text-[11px] font-semibold text-brand-primary hover:underline"
             >
               {moreFilters ? 'Fewer filters' : 'More filters (division, group, status)'}
             </button>
 
             {/* Row 2: Advanced Filters (Division, Product Group, Status) */}
-            <div className={`${moreFilters ? 'grid' : 'hidden md:grid'} grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100 dark:border-gray-800`}>
+            <div className={`${moreFilters ? 'grid' : 'hidden md:grid'} grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-200 dark:border-brand-navyLine`}>
               {/* Division Filter */}
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Division</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Division</label>
                 <select
                   value={divisionFilter}
                   onChange={(e) => {
@@ -394,7 +394,7 @@ const Products = () => {
                     setGroupFilter('');
                     setGroupFilterQuery('');
                   }}
-                  className="w-full px-3 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-205 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none cursor-pointer"
+                  className="w-full px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-205 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none cursor-pointer"
                 >
                   <option value="All">All Divisions</option>
                   <option value="Cardiology">Cardiology</option>
@@ -404,7 +404,7 @@ const Products = () => {
 
               {/* Product Group Filter (Searchable ComboBox) */}
               <div className="relative">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1.5">Product Group</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Product Group</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -417,27 +417,27 @@ const Products = () => {
                     onFocus={() => setShowGroupFilterSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowGroupFilterSuggestions(false), 200)}
                     placeholder="All Groups / Type to search..."
-                    className="w-full px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-205 bg-gray-55 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 rounded-lg outline-none"
+                    className="w-full px-3 py-2.5 text-xs font-semibold text-gray-700 dark:text-gray-205 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none"
                   />
                   {groupFilterQuery && (
                     <button
                       type="button"
                       onClick={() => { setGroupFilter(''); setGroupFilterQuery(''); }}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm font-bold"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 text-sm font-semibold"
                     >
                       ×
                     </button>
                   )}
                 </div>
                 {showGroupFilterSuggestions && groupSuggestions.length > 0 && (
-                  <ul className="absolute z-20 w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
+                  <ul className="absolute z-20 w-full bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg mt-1 max-h-40 overflow-y-auto shadow-lg">
                     <li
                       onMouseDown={() => {
                         setGroupFilter('');
                         setGroupFilterQuery('');
                         setShowGroupFilterSuggestions(false);
                       }}
-                      className="px-3 py-2 text-xs hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 cursor-pointer text-gray-700 dark:text-gray-200 font-bold border-b border-gray-100 dark:border-gray-700"
+                      className="px-3 py-2 text-xs hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 cursor-pointer text-gray-700 dark:text-gray-200 font-semibold border-b border-gray-200 dark:border-brand-navyLine"
                     >
                       All Groups
                     </li>
@@ -449,7 +449,7 @@ const Products = () => {
                           setGroupFilterQuery(g);
                           setShowGroupFilterSuggestions(false);
                         }}
-                        className="px-3 py-2 text-xs hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 cursor-pointer text-gray-750 dark:text-gray-200 font-semibold"
+                        className="px-3 py-2 text-xs hover:bg-brand-primary/10 dark:hover:bg-brand-primary/20 cursor-pointer text-gray-700 dark:text-gray-200 font-semibold"
                       >
                         {g}
                       </li>
@@ -460,7 +460,7 @@ const Products = () => {
 
               {/* Status Filter Buttons */}
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1.5">Status</label>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">Status</label>
                 <StatusSelector
                   options={['All', 'Active', 'Inactive', 'Discontinued']}
                   value={statusFilter}
@@ -472,11 +472,11 @@ const Products = () => {
         </div>
 
         {/* ── Table ── */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-100 dark:border-gray-800 rounded-enterprise shadow-soft overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-brand-navyLine">
             <div>
-              <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-widest">Products Master List</h3>
-              <p className="text-[10px] text-gray-405 dark:text-gray-550 font-medium mt-0.5">
+              <h3 className="text-xs font-semibold text-gray-900 dark:text-white">Products Master List</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-550 font-medium mt-0.5">
                 Showing {sorted.length > 0 ? startIndex + 1 : 0}–{Math.min(endIndex, sorted.length)} of {sorted.length} records
               </p>
             </div>
@@ -484,8 +484,8 @@ const Products = () => {
 
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             <table className="w-full text-xs" aria-label="Products table">
-              <thead className="sticky top-0 z-10 bg-gray-55 dark:bg-[#0f172a] shadow-xs">
-                <tr className="bg-gray-55 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
+              <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-brand-navyCard shadow-xs">
+                <tr className="bg-gray-50 dark:bg-brand-navy/50 border-b border-gray-200 dark:border-brand-navyLine">
                   {[
                     'Product Code',
                     'Brand Name',
@@ -514,7 +514,7 @@ const Products = () => {
                             }
                           }
                         }}
-                        className={`text-left text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest px-5 py-3.5 whitespace-nowrap
+                        className={`text-left text-xs font-semibold text-gray-500 dark:text-gray-400   px-5 py-3.5 whitespace-nowrap
                           ${isSortable ? 'cursor-pointer select-none hover:text-gray-705 dark:hover:text-gray-200' : ''}`}
                       >
                         <div className="flex items-center gap-1">
@@ -540,13 +540,13 @@ const Products = () => {
                   <EmptyState onAdd={openAdd} />
                 ) : (
                   paginatedProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-55/60 dark:hover:bg-gray-800/30 transition-colors duration-100 group">
+                    <tr key={p.id} className="hover:bg-gray-50/60 dark:hover:bg-white/5/30 transition-colors duration-100 group">
                       {/* Product Code */}
-                      <td className="px-5 py-4 font-mono font-bold text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                      <td className="px-5 py-4 font-mono font-semibold text-gray-600 dark:text-gray-400 whitespace-nowrap">
                         {p.productCode || p.code}
                       </td>
                       {/* Brand Name */}
-                      <td className="px-5 py-4 font-extrabold text-gray-950 dark:text-white whitespace-nowrap">
+                      <td className="px-5 py-4 font-semibold text-gray-950 dark:text-white whitespace-nowrap">
                         {p.brandName || p.name}
                       </td>
                       {/* Generic Name */}
@@ -559,7 +559,7 @@ const Products = () => {
                       </td>
                       {/* Division */}
                       <td className="px-5 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold bg-brand-primary/10 text-brand-primary">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-brand-primary/10 text-brand-primary">
                           {p.divisionName || p.category}
                         </span>
                       </td>
@@ -569,16 +569,16 @@ const Products = () => {
                       </td>
                       {/* Pack Size */}
                       <td className="px-5 py-4 whitespace-nowrap">
-                        <span className="font-mono text-[10px] font-extrabold text-gray-705 dark:text-gray-300 bg-gray-105 dark:bg-gray-800 px-2 py-0.5 rounded">
+                        <span className="font-mono text-xs font-semibold text-gray-705 dark:text-gray-300 bg-gray-105 dark:bg-brand-navy px-2 py-0.5 rounded">
                           {p.packSize} {p.unitTypeName || p.packSizeUnit}
                         </span>
                       </td>
                       {/* TP */}
-                      <td className="px-5 py-4 font-extrabold text-gray-950 dark:text-white whitespace-nowrap">
+                      <td className="px-5 py-4 font-semibold text-gray-950 dark:text-white whitespace-nowrap">
                         Rs {(p.tp || p.packPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       {/* MRP */}
-                      <td className="px-5 py-4 text-gray-700 dark:text-gray-355 font-bold whitespace-nowrap">
+                      <td className="px-5 py-4 text-gray-700 dark:text-gray-355 font-semibold whitespace-nowrap">
                         Rs {(p.mrp || p.tp || p.packPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       {/* Status */}
@@ -590,19 +590,19 @@ const Products = () => {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => openView(p)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold text-blue-650 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800/50 hover:bg-blue-105 dark:hover:bg-blue-900/50 hover:border-blue-200 dark:hover:border-blue-700 hover:shadow-sm transition-all duration-150"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-650 dark:text-gray-400 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-brand-navyLine hover:bg-gray-105 dark:hover:bg-white/5 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all duration-150"
                           >
                             <FiEye className="w-3.5 h-3.5" /> View
                           </button>
                           <button
                             onClick={() => openEdit(p)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50 hover:bg-amber-105 dark:hover:bg-amber-900/50 hover:border-amber-200 dark:hover:border-amber-700 hover:shadow-sm transition-all duration-150"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50 hover:bg-amber-105 dark:hover:bg-amber-900/50 hover:border-amber-200 dark:hover:border-amber-700 hover:shadow-sm transition-all duration-150"
                           >
                             <FiEdit2 className="w-3.5 h-3.5" /> Edit
                           </button>
                           <button
                             onClick={() => setToDelete(p)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold text-feedback-error bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 hover:bg-red-105 dark:hover:bg-red-955/50 hover:border-red-200 dark:hover:border-red-700 hover:shadow-sm transition-all duration-150"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-feedback-error bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 hover:bg-red-105 dark:hover:bg-red-955/50 hover:border-red-200 dark:hover:border-red-700 hover:shadow-sm transition-all duration-150"
                           >
                             <FiTrash2 className="w-3.5 h-3.5" /> Delete
                           </button>

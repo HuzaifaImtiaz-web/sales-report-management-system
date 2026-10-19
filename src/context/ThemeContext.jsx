@@ -30,6 +30,8 @@ export const ThemeProvider = ({ children }) => {
     } else {
       root.classList.remove('dark');
     }
+    // Native form controls (inputs, date pickers, scrollbars) follow the app's theme, not the device's.
+    root.style.colorScheme = resolved;
     localStorage.setItem('app-theme-mode', mode);
     localStorage.setItem('app-theme', resolved);
   }, [mode]);
@@ -40,8 +42,8 @@ export const ThemeProvider = ({ children }) => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (e) => {
       const root = window.document.documentElement;
-      if (e.matches) { root.classList.add('dark'); setThemeState('dark'); }
-      else { root.classList.remove('dark'); setThemeState('light'); }
+      if (e.matches) { root.classList.add('dark'); root.style.colorScheme = 'dark'; setThemeState('dark'); }
+      else { root.classList.remove('dark'); root.style.colorScheme = 'light'; setThemeState('light'); }
     };
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);

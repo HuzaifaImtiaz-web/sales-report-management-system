@@ -4,7 +4,7 @@ import logoImg from '../../assets/logos/Himmel-Logo.png';
 const CompanyLogo = ({
   className = 'h-10 w-auto',
   withCard = false,
-  cardClassName = 'p-2 bg-white rounded-xl shadow-sm border border-gray-100 dark:border-gray-700/50',
+  cardClassName = 'p-2 bg-white rounded-xl shadow-sm border border-gray-200 dark:border-brand-navyLine/50',
   ...props
 }) => {
   const imgElement = (

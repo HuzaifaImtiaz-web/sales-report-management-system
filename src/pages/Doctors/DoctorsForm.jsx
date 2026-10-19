@@ -22,20 +22,20 @@ const DEFAULT_SPECIALTIES = [
 
 const Field = ({ label, required, error, children }) => (
   <div>
-    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-550 dark:text-gray-400 mb-1.5">
+    <label className="block text-xs font-semibold text-gray-550 dark:text-gray-400 mb-1.5">
       {label} {required && <span className="text-feedback-error">*</span>}
     </label>
     {children}
-    {error && <p className="text-[10px] text-feedback-error font-semibold mt-1">{error}</p>}
+    {error && <p className="text-xs text-feedback-error font-semibold mt-1">{error}</p>}
   </div>
 );
 
 const inputCls = (err, disabled) =>
-  `w-full px-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-55 dark:bg-gray-800/50 border rounded-lg outline-none
+  `w-full px-3 py-2.5 text-xs font-medium text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border rounded-lg outline-none
    transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-555
    focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40
-   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-100 dark:border-gray-750'}
-   ${disabled ? 'opacity-70 cursor-default bg-gray-100/50 dark:bg-gray-800/30' : ''}`;
+   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-brand-navyLine'}
+   ${disabled ? 'opacity-70 cursor-default bg-gray-100/50 dark:bg-brand-navy/30' : ''}`;
 
 export default function DoctorsForm({ mode, item, onSave, onCancel }) {
   const isView = mode === 'view';
@@ -262,7 +262,7 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
       <Field label="Status" required>
         {isView ? (
           <div className="pt-1">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold border ${
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
               form.status === 'Active'
                 ? 'bg-green-50 dark:bg-green-900/30 border-green-150 text-feedback-success'
                 : 'bg-red-50 dark:bg-red-900/30 border-red-150 text-feedback-error'
@@ -281,20 +281,20 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
       </Field>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-brand-navyLine">
         {isView ? (
           <>
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-55 transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 transition-colors"
             >
               Back
             </button>
             <button
               type="button"
               onClick={() => navigate(`/doctors/${form.id}/edit`)}
-              className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
+              className="px-5 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
             >
               <FiEdit2 className="w-3.5 h-3.5" /> Edit
             </button>
@@ -304,14 +304,14 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-55 transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="px-5 py-2 text-xs font-bold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
+              className="px-5 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5"
             >
               <FiCheck className="w-3.5 h-3.5" />
               {isEdit ? 'Update' : 'Save'}

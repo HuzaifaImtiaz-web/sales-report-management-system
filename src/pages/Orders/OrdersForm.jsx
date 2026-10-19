@@ -6,26 +6,26 @@ import StatusBadge from './StatusBadge';
 
 const Field = ({ label, required, error, children }) => (
   <div>
-    <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1.5">
+    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
       {label} {required && <span className="text-feedback-error">*</span>}
     </label>
     {children}
-    {error && <p className="text-[10px] text-feedback-error font-semibold mt-1">{error}</p>}
+    {error && <p className="text-xs text-feedback-error font-semibold mt-1">{error}</p>}
   </div>
 );
 
 const ReadOnlyValue = ({ value }) => (
-  <div className="px-3 py-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60 rounded-lg text-xs font-medium text-gray-800 dark:text-gray-200">
+  <div className="px-3 py-2 border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy/60 rounded-lg text-xs font-medium text-gray-800 dark:text-gray-200">
     {value || '—'}
   </div>
 );
 
 const inputCls = (err, disabled) =>
-  `w-full px-3 py-2.5 text-xs font-medium text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-800 border rounded-lg outline-none
+  `w-full px-3 py-2.5 text-xs font-medium text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy border rounded-lg outline-none
    transition-all duration-150 placeholder:text-gray-400 dark:placeholder:text-gray-500
    focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40
-   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-950/20' : 'border-gray-200 dark:border-gray-700'}
-   ${disabled ? 'opacity-75 cursor-not-allowed bg-gray-100 dark:bg-gray-850' : ''}`;
+   ${err ? 'border-feedback-error bg-red-50 dark:bg-red-950/20' : 'border-gray-200 dark:border-brand-navyLine'}
+   ${disabled ? 'opacity-75 cursor-not-allowed bg-gray-100 dark:bg-brand-navy' : ''}`;
 
 export default function OrdersForm({
   mode,
@@ -226,11 +226,11 @@ export default function OrdersForm({
   return (
     <div className="space-y-6">
       {/* Workflow Status Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 dark:bg-brand-navy/50 rounded-xl border border-gray-200 dark:border-brand-navyLine gap-3">
         <div className="flex items-center gap-3">
           <StatusBadge status={form.status} />
           <div>
-            <span className="text-xs font-mono font-bold text-gray-900 dark:text-white">{form.poNumber || 'New Order'}</span>
+            <span className="text-xs font-mono font-semibold text-gray-900 dark:text-white">{form.poNumber || 'New Order'}</span>
             <p className="text-[11px] text-gray-500 font-medium">
               {form.status === 'Pending' && 'Order entered and pending processing in Sales module.'}
               {form.status === 'Completed' && 'Order completed and finalized.'}
@@ -242,7 +242,7 @@ export default function OrdersForm({
 
       {item?.cancelReason && (
         <div className="p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 rounded-xl text-xs text-rose-700 dark:text-rose-300 space-y-1">
-          <strong className="font-bold flex items-center gap-1">
+          <strong className="font-semibold flex items-center gap-1">
             <FiAlertCircle className="w-4 h-4" /> Cancellation Reason:
           </strong>
           <p>{item.cancelReason}</p>
@@ -289,19 +289,19 @@ export default function OrdersForm({
               <select
                 value={form.institutionId}
                 onChange={(e) => updateForm({ ...form, institutionId: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold cursor-pointer"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-brand-navyLine bg-white dark:bg-brand-navy text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold cursor-pointer"
               >
-                <option value="" className="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200">Select Institution</option>
+                <option value="" className="bg-white dark:bg-brand-navyCard text-gray-800 dark:text-gray-200">Select Institution</option>
                 {institutions
                   .filter(i => i.status === 'Active' || form.institutionId === String(i.id))
                   .map(i => (
-                    <option key={i.id} value={i.id} className="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200">{i.name}</option>
+                    <option key={i.id} value={i.id} className="bg-white dark:bg-brand-navyCard text-gray-800 dark:text-gray-200">{i.name}</option>
                   ))}
               </select>
               {form.institutionId && !institutions.some(i => String(i.id) === String(form.institutionId)) && (
-                <div className="text-[10px] text-amber-600 font-semibold flex items-center gap-1 mt-1">
+                <div className="text-xs text-amber-600 font-semibold flex items-center gap-1 mt-1">
                   Institution not found.{' '}
-                  <button type="button" onClick={() => navigate('/institutions/new')} className="underline text-brand-primary font-bold">
+                  <button type="button" onClick={() => navigate('/institutions/new')} className="underline text-brand-primary font-semibold">
                     Create New Institution
                   </button>
                 </div>
@@ -318,19 +318,19 @@ export default function OrdersForm({
               <select
                 value={form.doctorId}
                 onChange={(e) => updateForm({ ...form, doctorId: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold cursor-pointer"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-brand-navyLine bg-white dark:bg-brand-navy text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold cursor-pointer"
               >
-                <option value="" className="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200">Select Doctor</option>
+                <option value="" className="bg-white dark:bg-brand-navyCard text-gray-800 dark:text-gray-200">Select Doctor</option>
                 {doctors
                   .filter(d => d.status === 'Active' || form.doctorId === String(d.id))
                   .map(d => (
-                    <option key={d.id} value={d.id} className="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200">{d.name}</option>
+                    <option key={d.id} value={d.id} className="bg-white dark:bg-brand-navyCard text-gray-800 dark:text-gray-200">{d.name}</option>
                   ))}
               </select>
               {form.doctorId && !doctors.some(d => String(d.id) === String(form.doctorId)) && (
-                <div className="text-[10px] text-amber-600 font-semibold flex items-center gap-1 mt-1">
+                <div className="text-xs text-amber-600 font-semibold flex items-center gap-1 mt-1">
                   Doctor not found.{' '}
-                  <button type="button" onClick={() => navigate('/doctors/new')} className="underline text-brand-primary font-bold">
+                  <button type="button" onClick={() => navigate('/doctors/new')} className="underline text-brand-primary font-semibold">
                     Create New Doctor
                   </button>
                 </div>
@@ -349,19 +349,19 @@ export default function OrdersForm({
               <select
                 value={form.areaId}
                 onChange={(e) => updateForm({ ...form, areaId: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold cursor-pointer"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-brand-navyLine bg-white dark:bg-brand-navy text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold cursor-pointer"
               >
-                <option value="" className="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200">Select Area</option>
+                <option value="" className="bg-white dark:bg-brand-navyCard text-gray-800 dark:text-gray-200">Select Area</option>
                 {areas
                   .filter(a => a.status === 'Active' || form.areaId === String(a.id))
                   .map(a => (
-                    <option key={a.id} value={a.id} className="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200">{a.name}</option>
+                    <option key={a.id} value={a.id} className="bg-white dark:bg-brand-navyCard text-gray-800 dark:text-gray-200">{a.name}</option>
                   ))}
               </select>
               {form.areaId && !areas.some(a => String(a.id) === String(form.areaId)) && (
-                <div className="text-[10px] text-amber-600 font-semibold flex items-center gap-1 mt-1">
+                <div className="text-xs text-amber-600 font-semibold flex items-center gap-1 mt-1">
                   Area not found.{' '}
-                  <button type="button" onClick={() => navigate('/areas/new')} className="underline text-brand-primary font-bold">
+                  <button type="button" onClick={() => navigate('/areas/new')} className="underline text-brand-primary font-semibold">
                     Create New Area
                   </button>
                 </div>
@@ -380,17 +380,17 @@ export default function OrdersForm({
                 onChange={(e) => updateForm({ ...form, teamMemberId: e.target.value })}
                 className={inputCls(errors.teamMemberId, false) + ' cursor-pointer'}
               >
-                <option value="" className="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200">Select Team Member</option>
+                <option value="" className="bg-white dark:bg-brand-navyCard text-gray-800 dark:text-gray-200">Select Team Member</option>
                 {teamMembers
                   .filter(t => t.status === 'Active' || form.teamMemberId === String(t.id))
                   .map(t => (
-                    <option key={t.id} value={t.id} className="bg-white dark:bg-slate-900 text-gray-800 dark:text-gray-200">{t.name} - {t.role || 'Sales Rep'}</option>
+                    <option key={t.id} value={t.id} className="bg-white dark:bg-brand-navyCard text-gray-800 dark:text-gray-200">{t.name} - {t.role || 'Sales Rep'}</option>
                   ))}
               </select>
               {form.teamMemberId && !teamMembers.some(t => String(t.id) === String(form.teamMemberId)) && (
-                <div className="text-[10px] text-amber-600 font-semibold flex items-center gap-1 mt-1">
+                <div className="text-xs text-amber-600 font-semibold flex items-center gap-1 mt-1">
                   Team Member not found.{' '}
-                  <button type="button" onClick={() => navigate('/team-members/new')} className="underline text-brand-primary font-bold">
+                  <button type="button" onClick={() => navigate('/team-members/new')} className="underline text-brand-primary font-semibold">
                     Create New Team Member
                   </button>
                 </div>
@@ -413,15 +413,15 @@ export default function OrdersForm({
 
       {/* Order Line Items */}
       <div className="space-y-4 pt-2">
-        <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-800">
-          <h3 className="text-xs font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider">
+        <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-brand-navyLine">
+          <h3 className="text-xs font-semibold text-gray-800 dark:text-gray-200">
             Order Line Items (Product & Price Override)
           </h3>
           {!isReadOnly && (
             <button
               type="button"
               onClick={addRow}
-              className="px-3 py-1.5 bg-brand-primary text-white text-[10px] font-bold rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow transition-all"
+              className="px-3 py-1.5 bg-brand-primary text-white text-xs font-semibold rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow transition-all"
             >
               + Add Product
             </button>
@@ -434,10 +434,10 @@ export default function OrdersForm({
             const defaultTp = masterP.tp !== undefined ? masterP.tp : (masterP.packPrice || 0);
 
             return (
-              <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-gray-50 dark:bg-gray-800/40 p-3 rounded-xl border border-gray-200/60 dark:border-gray-700/60">
+              <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-gray-50 dark:bg-brand-navy/40 p-3 rounded-xl border border-gray-200/60 dark:border-brand-navyLine/60">
                 {/* Product Selection */}
                 <div className="md:col-span-4">
-                  <label className="block text-[9px] text-gray-400 font-bold uppercase mb-1">Product</label>
+                  <label className="block text-[11px] text-gray-500 font-semibold mb-1">Product</label>
                   {isReadOnly ? (
                     <div className="text-xs font-semibold text-gray-800 dark:text-gray-200">
                       {masterP.brandName || masterP.name || `Product #${it.productId}`}
@@ -446,7 +446,7 @@ export default function OrdersForm({
                     <select
                       value={it.productId}
                       onChange={(e) => handleProductChange(idx, e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded text-xs font-semibold cursor-pointer"
+                      className="w-full px-2 py-1.5 border border-gray-200 dark:border-brand-navyLine bg-white dark:bg-brand-navy rounded text-xs font-semibold cursor-pointer"
                     >
                       {products
                         .filter((p) => p.status === 'Active' || it.productId === p.id)
@@ -466,7 +466,7 @@ export default function OrdersForm({
 
                 {/* Default TP (Read-only Reference) */}
                 <div className="md:col-span-2 text-center">
-                  <label className="block text-[9px] text-gray-400 font-bold uppercase mb-1">Default TP</label>
+                  <label className="block text-[11px] text-gray-500 font-semibold mb-1">Default TP</label>
                   <div className="text-xs font-mono font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 py-1.5 px-2 rounded">
                     Rs {Number(defaultTp).toFixed(2)}
                   </div>
@@ -474,9 +474,9 @@ export default function OrdersForm({
 
                 {/* Selling Price (Editable Override) */}
                 <div className="md:col-span-2">
-                  <label className="block text-[9px] text-gray-400 font-bold uppercase mb-1">Selling Price</label>
+                  <label className="block text-[11px] text-gray-500 font-semibold mb-1">Selling Price</label>
                   {isReadOnly ? (
-                    <div className="text-xs font-mono font-bold text-gray-800 dark:text-gray-200 text-center">
+                    <div className="text-xs font-mono font-semibold text-gray-800 dark:text-gray-200 text-center">
                       Rs {Number(it.rate).toFixed(2)}
                     </div>
                   ) : (
@@ -486,16 +486,16 @@ export default function OrdersForm({
                       min="0"
                       value={it.rate}
                       onChange={(e) => handleRateChange(idx, e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded text-xs text-center font-bold font-mono focus:ring-2 focus:ring-brand-primary/20"
+                      className="w-full px-2 py-1.5 border border-gray-200 dark:border-brand-navyLine bg-white dark:bg-brand-navy rounded text-xs text-center font-semibold font-mono focus:ring-2 focus:ring-brand-primary/20"
                     />
                   )}
                 </div>
 
                 {/* Quantity */}
                 <div className="md:col-span-2">
-                  <label className="block text-[9px] text-gray-400 font-bold uppercase mb-1">Quantity</label>
+                  <label className="block text-[11px] text-gray-500 font-semibold mb-1">Quantity</label>
                   {isReadOnly ? (
-                    <div className="text-xs font-bold text-gray-800 dark:text-gray-200 text-center">
+                    <div className="text-xs font-semibold text-gray-800 dark:text-gray-200 text-center">
                       {it.quantity}
                     </div>
                   ) : (
@@ -504,13 +504,13 @@ export default function OrdersForm({
                       min="1"
                       value={it.quantity}
                       onChange={(e) => handleQtyChange(idx, e.target.value)}
-                      className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded text-xs text-center font-bold"
+                      className="w-full px-2 py-1.5 border border-gray-200 dark:border-brand-navyLine bg-white dark:bg-brand-navy rounded text-xs text-center font-semibold"
                     />
                   )}
                 </div>
 
                 {/* Subtotal */}
-                <div className="md:col-span-1 text-right font-extrabold text-brand-primary text-xs">
+                <div className="md:col-span-1 text-right font-semibold text-brand-primary text-xs">
                   Rs {(it.quantity * it.rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </div>
 
@@ -535,22 +535,22 @@ export default function OrdersForm({
 
         {/* Grand Total Summary */}
         <div className="flex justify-between items-center p-4 bg-brand-primary/5 dark:bg-brand-primary/10 rounded-xl border border-brand-primary/20">
-          <span className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
             Total Purchase Amount:
           </span>
-          <span className="text-lg font-black text-brand-primary">
+          <span className="text-lg font-semibold text-brand-primary">
             Rs {grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </span>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-brand-navyLine">
         {mode !== 'add' && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
           >
             {mode === 'edit' ? 'Cancel' : 'Back to Sales'}
           </button>
@@ -560,7 +560,7 @@ export default function OrdersForm({
           <button
             type="button"
             onClick={handleSaveOrder}
-            className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+            className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
           >
             <FiSave className="w-3.5 h-3.5" />
             {mode === 'edit' ? 'Save Changes' : 'Save Order'}

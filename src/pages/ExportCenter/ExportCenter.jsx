@@ -276,7 +276,7 @@ const ExportCenter = () => {
         {/* Page Title & Overview */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
               Enterprise Export Center
             </h1>
             <p className="text-xs text-gray-500 dark:text-slate-400 font-medium mt-1">
@@ -286,7 +286,7 @@ const ExportCenter = () => {
           <button
             onClick={handleExport}
             disabled={isExporting || previewLoading}
-            className="px-5 py-2.5 bg-brand-primary hover:bg-[#8F161A] text-white text-xs font-bold rounded-xl transition-all shadow-md inline-flex items-center gap-2 cursor-pointer uppercase tracking-wider disabled:opacity-50"
+            className="px-5 py-2.5 bg-brand-primary hover:bg-[#8F161A] text-white text-xs font-semibold rounded-xl transition-all shadow-md inline-flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <FiDownload className={`w-4 h-4 ${isExporting ? 'animate-bounce' : ''}`} />
             {isExporting ? 'Generating Report...' : `Export to ${exportFormat.toUpperCase()}`}
@@ -296,10 +296,10 @@ const ExportCenter = () => {
         {/* 1. REPORT TYPE & FORMAT SELECTION BAR */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Report Type Selector */}
-          <div className="lg:col-span-2 bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-3">
+          <div className="lg:col-span-2 bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl p-5 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 border-b border-gray-200 dark:border-brand-navyLine pb-3">
               <FiLayers className="w-4 h-4 text-brand-primary" />
-              <h2 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+              <h2 className="text-xs font-semibold text-gray-800 dark:text-white">
                 Select Business Module / Report
               </h2>
             </div>
@@ -313,8 +313,8 @@ const ExportCenter = () => {
                     onClick={() => setReportType(rt.id)}
                     className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-brand-primary bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
-                        : 'border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-slate-900/50 text-gray-600 dark:text-slate-300 hover:border-gray-300 dark:hover:border-gray-700'
+                        ? 'border-brand-primary bg-brand-primary/10 text-brand-primary font-semibold shadow-sm'
+                        : 'border-gray-200 dark:border-brand-navyLine bg-gray-50/50 dark:bg-brand-navyCard text-gray-600 dark:text-slate-300 hover:border-gray-300 dark:hover:border-gray-700'
                     }`}
                   >
                     <Icon className="w-5 h-5 mb-1.5" />
@@ -326,11 +326,11 @@ const ExportCenter = () => {
           </div>
 
           {/* Format Selector */}
-          <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
+          <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-3 mb-4">
+              <div className="flex items-center gap-2 border-b border-gray-200 dark:border-brand-navyLine pb-3 mb-4">
                 <FiSettings className="w-4 h-4 text-brand-primary" />
-                <h2 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+                <h2 className="text-xs font-semibold text-gray-800 dark:text-white">
                   Export Document Format
                 </h2>
               </div>
@@ -343,15 +343,15 @@ const ExportCenter = () => {
                       onClick={() => setExportFormat(fmt.id)}
                       className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-brand-primary bg-brand-primary/10 text-brand-primary font-bold shadow-sm'
-                          : 'border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-slate-900/50 text-gray-600 dark:text-slate-300 hover:border-gray-300'
+                          ? 'border-brand-primary bg-brand-primary/10 text-brand-primary font-semibold shadow-sm'
+                          : 'border-gray-200 dark:border-brand-navyLine bg-gray-50/50 dark:bg-brand-navyCard text-gray-600 dark:text-slate-300 hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${fmt.bg}`}>
                           <FiFileText className={`w-5 h-5 ${fmt.color}`} />
                         </div>
-                        <span className="text-xs font-bold">{fmt.label}</span>
+                        <span className="text-xs font-semibold">{fmt.label}</span>
                       </div>
                       {isSelected && <FiCheckCircle className="w-4 h-4 text-brand-primary" />}
                     </button>
@@ -359,31 +359,31 @@ const ExportCenter = () => {
                 })}
               </div>
             </div>
-            <div className="pt-4 border-t border-gray-100 dark:border-gray-800 text-[10px] text-gray-400 text-center font-medium">
+            <div className="pt-4 border-t border-gray-200 dark:border-brand-navyLine text-xs text-gray-500 text-center font-medium">
               Format includes headers, logo branding, summary totals, and formatting.
             </div>
           </div>
         </div>
 
         {/* 2. ENTERPRISE FILTERS BAR */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-brand-navyLine pb-3">
             <div className="flex items-center gap-2">
               <FiFilter className="w-4 h-4 text-brand-primary" />
-              <h2 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+              <h2 className="text-xs font-semibold text-gray-800 dark:text-white">
                 Applied Export Filters
               </h2>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={handleResetFilters}
-                className="px-3 py-1.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                className="px-3 py-1.5 border border-gray-200 dark:border-brand-navyLine hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-600 dark:text-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
               >
                 Reset
               </button>
               <button
                 onClick={handleApplyFilters}
-                className="px-4 py-1.5 bg-brand-primary hover:bg-[#8F161A] text-white rounded-lg text-xs font-bold transition-colors cursor-pointer uppercase tracking-wider"
+                className="px-4 py-1.5 bg-brand-primary hover:bg-[#8F161A] text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
               >
                 Apply Filters
               </button>
@@ -393,48 +393,48 @@ const ExportCenter = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-xs font-semibold">
             {/* Search */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Search Text</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Search Text</label>
               <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-3.5 h-3.5" />
                 <input
                   type="text"
                   placeholder="Keyword..."
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
                 />
               </div>
             </div>
 
             {/* Start Date */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Start Date</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Start Date</label>
               <input
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
               />
             </div>
 
             {/* End Date */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">End Date</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">End Date</label>
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
               />
             </div>
 
             {/* Doctor */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Doctor</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Doctor</label>
               <select
                 value={filters.doctor}
                 onChange={(e) => handleFilterChange('doctor', e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
               >
                 <option value="">All Doctors</option>
                 {doctorsList.map((d) => (
@@ -445,11 +445,11 @@ const ExportCenter = () => {
 
             {/* Institution */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Institution</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Institution</label>
               <select
                 value={filters.institution}
                 onChange={(e) => handleFilterChange('institution', e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
               >
                 <option value="">All Institutions</option>
                 {institutionsList.map((i) => (
@@ -460,11 +460,11 @@ const ExportCenter = () => {
 
             {/* Area */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Area</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Area</label>
               <select
                 value={filters.area}
                 onChange={(e) => handleFilterChange('area', e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
               >
                 <option value="">All Areas</option>
                 {areasList.map((a) => (
@@ -475,11 +475,11 @@ const ExportCenter = () => {
 
             {/* Team Member */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Team Member</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Team Member</label>
               <select
                 value={filters.teamMember}
                 onChange={(e) => handleFilterChange('teamMember', e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
               >
                 <option value="">All Team Members</option>
                 {teamMembersList.map((t) => (
@@ -490,11 +490,11 @@ const ExportCenter = () => {
 
             {/* Product */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Product</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Product</label>
               <select
                 value={filters.product}
                 onChange={(e) => handleFilterChange('product', e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
               >
                 <option value="">All Products</option>
                 {productsList.map((p) => (
@@ -505,11 +505,11 @@ const ExportCenter = () => {
 
             {/* Status */}
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Status</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1">Status</label>
               <select
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-white outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-gray-800 dark:text-white outline-none"
               >
                 <option value="All">All Statuses</option>
                 <option value="Active">Active</option>
@@ -521,19 +521,19 @@ const ExportCenter = () => {
         </div>
 
         {/* 3. LIVE DATA PREVIEW TABLE */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-slate-900/50 flex justify-between items-center">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-200 dark:border-brand-navyLine bg-gray-50/50 dark:bg-brand-navyCard flex justify-between items-center">
             <div>
-              <h3 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-gray-800 dark:text-white">
                 Live Data Preview ({previewData?.summary?.totalRecords || rowsList.length} Records)
               </h3>
-              <p className="text-[10px] text-gray-400 font-medium">
+              <p className="text-xs text-gray-500 font-medium">
                 Exact filtered dataset that will be compiled into the exported report file.
               </p>
             </div>
             <button
               onClick={fetchPreview}
-              className="p-1.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-600 dark:text-slate-300 transition-colors cursor-pointer"
+              className="p-1.5 border border-gray-200 dark:border-brand-navyLine hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-600 dark:text-slate-300 transition-colors cursor-pointer"
               title="Refresh Preview"
             >
               <FiRefreshCw className={`w-3.5 h-3.5 ${previewLoading ? 'animate-spin' : ''}`} />
@@ -543,7 +543,7 @@ const ExportCenter = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-slate-900 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <tr className="border-b border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-xs font-semibold text-gray-500">
                   {previewData?.columns?.map((col) => (
                     <th key={col.key} className="px-5 py-4">
                       {col.header}
@@ -554,13 +554,13 @@ const ExportCenter = () => {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium">
                 {previewLoading ? (
                   <tr>
-                    <td colSpan={previewData?.columns?.length || 5} className="text-center py-10 text-gray-400 font-semibold uppercase tracking-wider">
+                    <td colSpan={previewData?.columns?.length || 5} className="text-center py-10 text-gray-500 font-semibold">
                       Compiling live preview dataset...
                     </td>
                   </tr>
                 ) : paginatedRows.length === 0 ? (
                   <tr>
-                    <td colSpan={previewData?.columns?.length || 5} className="text-center py-10 text-gray-400 font-semibold uppercase tracking-wider">
+                    <td colSpan={previewData?.columns?.length || 5} className="text-center py-10 text-gray-500 font-semibold">
                       No records match current export filters.
                     </td>
                   </tr>
@@ -590,7 +590,7 @@ const ExportCenter = () => {
           </div>
 
           {previewData && rowsList.length > 0 && (
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+            <div className="p-4 border-t border-gray-200 dark:border-brand-navyLine">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPreviewPages}
@@ -606,17 +606,17 @@ const ExportCenter = () => {
         </div>
 
         {/* 4. EXPORT HISTORY LOG TABLE */}
-        <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3">
+        <div className="bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-2xl shadow-sm p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-brand-navyLine pb-3">
             <div className="flex items-center gap-2">
               <FiFolder className="w-4 h-4 text-brand-primary" />
-              <h2 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-wider">
+              <h2 className="text-xs font-semibold text-gray-800 dark:text-white">
                 Recent Generated Export Files
               </h2>
             </div>
             <button
               onClick={loadExportHistory}
-              className="text-xs font-bold text-brand-primary hover:underline uppercase tracking-wider"
+              className="text-xs font-semibold text-brand-primary hover:underline"
             >
               Refresh History
             </button>
@@ -625,7 +625,7 @@ const ExportCenter = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-slate-900 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <tr className="border-b border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navyCard text-xs font-semibold text-gray-500">
                   <th className="px-4 py-3">File Name</th>
                   <th className="px-4 py-3">Format</th>
                   <th className="px-4 py-3">File Size</th>
@@ -636,35 +636,35 @@ const ExportCenter = () => {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs font-medium">
                 {historyLoading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-6 text-gray-400 uppercase tracking-wider">
+                    <td colSpan={5} className="text-center py-6 text-gray-500">
                       Loading export history...
                     </td>
                   </tr>
                 ) : paginatedHistory.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-6 text-gray-400 uppercase tracking-wider">
+                    <td colSpan={5} className="text-center py-6 text-gray-500">
                       No exports yet.
                     </td>
                   </tr>
                 ) : (
                   paginatedHistory.map((h) => (
                     <tr key={h.id || h.fileName} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="px-4 py-3 font-bold text-gray-800 dark:text-white">{h.fileName}</td>
+                      <td className="px-4 py-3 font-semibold text-gray-800 dark:text-white">{h.fileName}</td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
+                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
                           {h.format}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500 font-semibold">{h.formattedSize}</td>
                       <td className="px-4 py-3 text-gray-500 font-semibold whitespace-nowrap">
                         {h.createdDate}
-                        {h.performedBy && <span className="block text-[10px] text-gray-400">by {h.performedBy}</span>}
+                        {h.performedBy && <span className="block text-xs text-gray-500">by {h.performedBy}</span>}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => handleDownloadAgain(h)}
                           disabled={isExporting || !h.reportType}
-                          className="px-3 py-1.5 bg-brand-primary hover:bg-[#8F161A] disabled:opacity-60 text-white text-[10px] font-bold uppercase rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
+                          className="px-3 py-1.5 bg-brand-primary hover:bg-[#8F161A] disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
                         >
                           <FiDownload className="w-3 h-3" />
                           Download Again

@@ -16,24 +16,24 @@ const ACTIONS = [
   },
   {
     icon: FiPackage,
-    iconBg: 'bg-blue-50 dark:bg-blue-950/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30',
-    iconColor: 'text-blue-500',
+    iconBg: 'bg-gray-50 dark:bg-white/5 group-hover:bg-gray-100 dark:group-hover:bg-white/5',
+    iconColor: 'text-gray-500',
     label: 'Add Product',
     desc: 'Register a new pharmaceutical product',
     path: '/products'
   },
   {
     icon: FiUserPlus,
-    iconBg: 'bg-purple-50 dark:bg-purple-950/20 group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30',
-    iconColor: 'text-purple-500',
+    iconBg: 'bg-gray-50 dark:bg-white/5 group-hover:bg-gray-100 dark:group-hover:bg-white/5',
+    iconColor: 'text-gray-500',
     label: 'Add Doctor',
     desc: 'Add a doctor to your network',
     path: '/doctors'
   },
   {
     icon: FiHome,
-    iconBg: 'bg-teal-50 dark:bg-teal-950/20 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/30',
-    iconColor: 'text-teal-500',
+    iconBg: 'bg-gray-50 dark:bg-white/5 group-hover:bg-gray-100 dark:group-hover:bg-white/5',
+    iconColor: 'text-gray-500',
     label: 'Institutions',
     desc: 'Manage medical centers & clinics',
     path: '/institutions'
@@ -67,7 +67,7 @@ const ACTIONS = [
 const QuickActions = () => {
   return (
     <div className="space-y-3">
-      <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide">Quick Actions</h3>
+      <h3 className="text-xs font-semibold text-gray-900 dark:text-white">Quick Actions</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {ACTIONS.map((action) => (
           <QuickActionCard key={action.label} {...action} />
