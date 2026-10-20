@@ -589,6 +589,10 @@ test('PowerPoint export is the Sales Review deck, built from the real numbers', 
   const text = (await Promise.all(slides.map((n) => zip.file(n).async('string')))).join(' ');
   assert.match(text, /1–30 September 2026/, 'period on the slides');
   assert.match(text, /Lahore Gulberg/, 'area filter shown');
+  assert.match(text, /Prepared by Maria Manager · Manager/, 'cover names who made the deck, from their sign-in');
+  assert.ok((text.match(/Prepared by Maria Manager/g) || []).length >= slides.length - 1, 'and every slide footer does too');
+  const core = await zip.file('docProps/core.xml').async('string');
+  assert.match(core, /<dc:creator>Maria Manager<\/dc:creator>/, 'file author = the person who made it');
   assert.match(text, /Rs 45,000/, 'sales = the completed order; the cancelled one is not a sale');
   // Target for September = 1000 units/year × 30/365 of the year × 60% for Lahore × Rs 4,500
   const expected = Math.round((45000 / ((1000 * 30) / 365 * 0.6 * 4500)) * 100);

@@ -37,13 +37,15 @@ const initials = (name) => String(name || '?').split(/\s+/).filter(Boolean).map(
 const plain = (runs) => runs.map((r) => r.text).join('');
 
 class Builder {
-  constructor(data, { user, timeZone }) {
+  constructor(data, { preparedBy, timeZone }) {
     this.data = data;
-    this.user = user || 'System';
+    // Who made the deck, from their own sign-in (full name, role).
+    this.preparedBy = clip((preparedBy && preparedBy.name) || 'System', 40);
+    this.preparedRole = (preparedBy && preparedBy.role) || '';
     this.timeZone = timeZone || 'UTC';
     this.pptx = new PptxGenJS();
     this.pptx.layout = 'LAYOUT_WIDE';
-    this.pptx.author = 'Himmel Sales Management';
+    this.pptx.author = this.preparedBy;
     this.pptx.company = 'Himmel Pharmaceuticals Pvt Ltd';
     this.pptx.title = `Sales Review ${data.period.label}`;
     this.page = 0;
@@ -114,8 +116,17 @@ class Builder {
   footer(slide, { dark = false, note = '' } = {}) {
     const color = dark ? C.navyMuted : C.muted;
     const text = `Himmel Sales Review · ${this.data.period.label}${note ? ` · ${note}` : ''}`;
-    this.text(slide, text, { x: 64, y: 670, w: 1000, h: 20, size: 14, color });
+    this.text(slide, text, { x: 64, y: 670, w: 720, h: 20, size: 14, color });
+    this.preparedFooter(slide, { x: 790, w: 300, color });
     this.text(slide, String(this.page).padStart(2, '0'), { x: 1116, y: 670, w: 100, h: 20, size: 14, bold: true, color: dark ? C.gold : C.crimson, align: 'right' });
+  }
+
+  preparedFooter(slide, { x, w, color }) {
+    this.text(slide, `Prepared by ${this.preparedBy}`, { x, y: 670, w, h: 20, size: 14, color, align: 'right' });
+  }
+
+  get preparedLine() {
+    return this.preparedRole ? `${this.preparedBy} · ${this.preparedRole}` : this.preparedBy;
   }
 
   // ---------- slides ----------
@@ -143,11 +154,11 @@ class Builder {
       chipX += w + 12;
     }
     const created = new Date().toLocaleDateString('en-GB', { timeZone: this.timeZone, day: 'numeric', month: 'long', year: 'numeric' });
-    this.text(slide, `Prepared by ${clip(this.user, 40)}`, { x: 80, y: 608, w: 700, h: 24, size: 16, bold: true, color: C.white });
+    this.text(slide, `Prepared by ${this.preparedLine}`, { x: 80, y: 608, w: 700, h: 24, size: 16, bold: true, color: C.white });
     this.text(slide, `Created ${created} · Himmel Sales Management`, { x: 80, y: 634, w: 700, h: 24, size: 16, color: C.white });
 
     slide.addNotes([
-      `Sales Review for ${period.label}.`,
+      `Sales Review for ${period.label}, prepared by ${this.preparedLine}.`,
       `Scope: ${scope.labels.join(', ')}.`,
       'All figures come from the Himmel Sales Management system. Sales count approved and completed orders.',
     ].join('\n'));
@@ -196,7 +207,8 @@ class Builder {
         this.text(slide, card.sub, { x: x + 32, y: y + 196, w: 285, h: 48, size: 16, bold: card.subColor !== C.grey, color: card.subColor || C.grey });
       }
     });
-    this.text(slide, `Himmel Sales Review · ${this.data.period.label}`, { x: 526, y: 670, w: 560, h: 20, size: 14, color: C.muted });
+    this.text(slide, `Himmel Sales Review · ${this.data.period.label}`, { x: 526, y: 670, w: 330, h: 20, size: 14, color: C.muted });
+    this.preparedFooter(slide, { x: 820, w: 280, color: C.muted });
     this.text(slide, String(this.page).padStart(2, '0'), { x: 1124, y: 670, w: 100, h: 20, size: 14, bold: true, color: C.crimson, align: 'right' });
 
     slide.addNotes([
@@ -471,7 +483,7 @@ class Builder {
       this.text(slide, label, { x: x + 22, y: statY + 14, w: 320, h: 22, size: 15, color: C.grey });
       this.text(slide, value, { x: x + 22, y: statY + 38, w: 320, h: 34, size: 26, bold: true, valign: 'middle' });
     });
-    this.footer(slide, { note: 'average and largest order: approved and completed orders only' });
+    this.footer(slide, { note: 'average/largest: approved and completed only' });
 
     slide.addNotes([
       `${kpis.orders} orders in this period.`,
@@ -513,7 +525,7 @@ class Builder {
       });
       const last = pageIndex === pages - 1;
       const capped = last && orders.length > pages * DETAIL_ROWS_PER_SLIDE;
-      this.footer(slide, { note: capped ? `first ${pages * DETAIL_ROWS_PER_SLIDE} of ${orders.length} orders; the Excel export has the full list` : last ? `${orders.length} orders` : 'continued on the next slide' });
+      this.footer(slide, { note: capped ? `first ${pages * DETAIL_ROWS_PER_SLIDE} of ${orders.length} orders (full list in Excel)` : last ? `${orders.length} orders` : 'continued on the next slide' });
       slide.addNotes(`Orders ${pageIndex * DETAIL_ROWS_PER_SLIDE + 1}–${pageIndex * DETAIL_ROWS_PER_SLIDE + slice.length} of ${orders.length}, newest first.`);
     }
   }
@@ -528,6 +540,8 @@ class Builder {
     this.text(slide, 'NEXT STEPS', { x: 80, y: 64, w: 500, h: 22, size: 15, bold: true, color: C.gold, charSpacing: 2 });
     this.text(slide, 'Thank you', { x: 80, y: 96, w: 560, h: 100, size: 80, bold: true, color: C.white, valign: 'middle' });
     this.text(slide, 'Questions and discussion', { x: 80, y: 204, w: 560, h: 34, size: 24, color: C.navyMuted });
+    this.text(slide, 'Prepared by', { x: 80, y: 272, w: 500, h: 22, size: 15, color: C.navyMuted });
+    this.text(slide, this.preparedLine, { x: 80, y: 296, w: 520, h: 30, size: 20, bold: true, color: C.white });
     this.logoCard(slide, { x: 80, y: 590, h: 40, pad: 14 });
 
     if (insights.focus.length) {

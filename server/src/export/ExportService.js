@@ -65,7 +65,7 @@ class ExportService {
   /**
    * Returns { buffer, fileName, mimeType, format, totalRecords, totalAmount }.
    */
-  async generate({ reportType, format, filters = {}, user = 'System' }) {
+  async generate({ reportType, format, filters = {}, user = 'System', preparedBy = null }) {
     const fmt = resolveFormat(format);
     const safeType = String(reportType || 'Export').replace(/[^a-zA-Z0-9]/g, '_').slice(0, 60) || 'Export';
     const isMaster = safeType.toLowerCase().includes('master');
@@ -78,7 +78,7 @@ class ExportService {
     // PowerPoint is always the Sales Review deck: any period, optionally one area or team member.
     if (fmt.ext === 'pptx') {
       const review = await new SalesReviewDataService(this.db, { timeZone: this.timeZone }).build(cleanFilters);
-      const deck = await generateSalesReviewDeck(review, { user, timeZone: this.timeZone });
+      const deck = await generateSalesReviewDeck(review, { preparedBy: preparedBy || { name: user }, timeZone: this.timeZone });
       return {
         buffer: Buffer.isBuffer(deck) ? deck : Buffer.from(deck),
         fileName: `Himmel_Sales_Review_${review.period.start}_to_${review.period.end}.pptx`,

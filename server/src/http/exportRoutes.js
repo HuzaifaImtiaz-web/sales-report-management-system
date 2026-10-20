@@ -35,7 +35,9 @@ function createExportRouter({ db, authenticateRequest, sendError }) {
       if (!reportType || typeof reportType !== 'string') throw new AppError('Choose a report to export.');
 
       const file = await new ExportService(db, { timeZone }).generate({
-        reportType, format, filters, user: user.username
+        reportType, format, filters, user: user.username,
+        // Shown on the PowerPoint deck: who made it, from their own sign-in.
+        preparedBy: { name: user.fullName || user.username, role: user.role }
       });
       if (file.buffer.length > MAX_FILE_BYTES) {
         throw new AppError('This export is too large to download as one file. Narrow the filters (for example a shorter date range) and try again.', 413);
