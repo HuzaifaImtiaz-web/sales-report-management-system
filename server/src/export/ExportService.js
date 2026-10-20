@@ -2,7 +2,8 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const logger = require('../logger');
 const ExportDataService = require('../services/ExportDataService');
-const PptReportService = require('./PptReportService');
+const SalesReviewDataService = require('../services/SalesReviewDataService');
+const { generateSalesReviewDeck } = require('./SalesReviewDeck');
 
 const FORMATS = {
   excel: { ext: 'xlsx', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
@@ -52,6 +53,7 @@ function pdfToBuffer(build) {
  */
 class ExportService {
   constructor(db, { timeZone } = {}) {
+    this.db = db;
     this.exportData = new ExportDataService(db);
     this.timeZone = validTimeZone(timeZone);
   }
@@ -73,20 +75,34 @@ class ExportService {
 
     logger.info(`Starting export: ${reportType} -> ${fmt.ext.toUpperCase()}`);
 
+    // PowerPoint is always the Sales Review deck: any period, optionally one area or team member.
+    if (fmt.ext === 'pptx') {
+      const review = await new SalesReviewDataService(this.db, { timeZone: this.timeZone }).build(cleanFilters);
+      const deck = await generateSalesReviewDeck(review, { user, timeZone: this.timeZone });
+      return {
+        buffer: Buffer.isBuffer(deck) ? deck : Buffer.from(deck),
+        fileName: `Himmel_Sales_Review_${review.period.start}_to_${review.period.end}.pptx`,
+        mimeType: fmt.mimeType,
+        format: fmt.ext,
+        isMaster: false,
+        totalRecords: review.kpis.orders,
+        totalAmount: review.kpis.sales
+      };
+    }
+
+
     let buffer;
     let summary;
     if (isMaster) {
       const masterData = await this.exportData.fetchMasterData(cleanFilters);
       summary = masterData.summary;
       if (fmt.ext === 'xlsx') buffer = await this.generateMasterExcel(masterData, cleanFilters, user);
-      else if (fmt.ext === 'pdf') buffer = await this.generateMasterPDF(masterData, cleanFilters, user);
-      else buffer = await PptReportService.generateMasterReport({ masterData, user, timeZone: this.timeZone });
+      else buffer = await this.generateMasterPDF(masterData, cleanFilters, user);
     } else {
       const data = await this.exportData.fetchData(reportType, cleanFilters);
       summary = data.summary;
       if (fmt.ext === 'xlsx') buffer = await this.generateExcel(data, cleanFilters, user);
-      else if (fmt.ext === 'pdf') buffer = await this.generatePDF(data, cleanFilters, user);
-      else buffer = await PptReportService.generateReport({ reportType, data, user, timeZone: this.timeZone });
+      else buffer = await this.generatePDF(data, cleanFilters, user);
     }
 
     return {

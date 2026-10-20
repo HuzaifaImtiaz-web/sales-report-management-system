@@ -773,16 +773,32 @@ const Reports = () => {
   // Palette: crimson first, then navy-grey, golden yellow and lighter tints.
   const COLORS = ['#A91D22', '#64748B', '#FFC72C', '#D9777A', '#9CA3AF', '#8B1418', '#CBD5E1'];
 
-  // Export handlers
-  const handleExport = (type) => {
+  // Downloads built on the server with the filters applied on this page: Excel and PDF list the
+  // orders, PowerPoint is the Sales Review deck for the same dates, area and team member.
+  const handleExport = async (type) => {
     setExporting(type);
-    setTimeout(() => {
-      setExporting(null);
-      setToast({
-        message: `Report exported as ${type.toUpperCase()} file successfully.`,
-        type: 'success'
+    try {
+      const res = await window.api.export.generate({
+        reportType: 'Orders',
+        format: type === 'ppt' ? 'pptx' : type,
+        filters: {
+          search: activeFilters.search,
+          startDate: activeFilters.startDate,
+          endDate: activeFilters.endDate,
+          doctorId: activeFilters.doctorId,
+          area: activeFilters.area,
+          teamMemberId: activeFilters.teamMemberId,
+          status: activeFilters.status
+        }
       });
-    }, 1200);
+      setToast(res && res.success
+        ? { message: `Downloaded ${res.data.fileName}`, type: 'success' }
+        : { message: (res && res.error) || 'The export could not be created.', type: 'error' });
+    } catch (err) {
+      setToast({ message: err.message || 'The export could not be created.', type: 'error' });
+    } finally {
+      setExporting(null);
+    }
   };
 
   if (initialLoading) {

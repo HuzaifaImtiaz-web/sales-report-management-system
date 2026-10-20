@@ -2,6 +2,17 @@
 // The preview screen shows it directly; server/src/export/ExportService.js turns it into files.
 // SQLite's LIKE ignored case, so the search filters use ILIKE.
 
+// Filters arrive as ids from the screens (Reports, Export Center) or as names from older callers.
+function idOrName(alias, value, params) {
+  const raw = String(value).trim();
+  if (/^\d+$/.test(raw)) {
+    params.push(Number(raw));
+    return ` AND ${alias}.id = ?`;
+  }
+  params.push(raw);
+  return ` AND ${alias}.name = ?`;
+}
+
 class ExportDataService {
   constructor(db) {
     this.db = db;
@@ -263,21 +274,17 @@ class ExportDataService {
           const term = `%${filters.search}%`;
           params.push(term, term, term);
         }
-        if (filters.doctor) {
-          sql += ' AND d.name = ?';
-          params.push(filters.doctor);
+        if (filters.doctor || filters.doctorId) {
+          sql += idOrName('d', filters.doctor || filters.doctorId, params);
         }
-        if (filters.institution) {
-          sql += ' AND i.name = ?';
-          params.push(filters.institution);
+        if (filters.institution || filters.institutionId) {
+          sql += idOrName('i', filters.institution || filters.institutionId, params);
         }
-        if (filters.area) {
-          sql += ' AND a.name = ?';
-          params.push(filters.area);
+        if (filters.area || filters.areaId) {
+          sql += idOrName('a', filters.area || filters.areaId, params);
         }
-        if (filters.teamMember) {
-          sql += ' AND tm.name = ?';
-          params.push(filters.teamMember);
+        if (filters.teamMember || filters.teamMemberId) {
+          sql += idOrName('tm', filters.teamMember || filters.teamMemberId, params);
         }
         if (filters.status && filters.status !== 'All') {
           sql += ' AND o.status = ?';
@@ -327,13 +334,11 @@ class ExportDataService {
           const term = `%${filters.search}%`;
           params.push(term, term, term);
         }
-        if (filters.area) {
-          sql += ' AND a.name = ?';
-          params.push(filters.area);
+        if (filters.area || filters.areaId) {
+          sql += idOrName('a', filters.area || filters.areaId, params);
         }
-        if (filters.teamMember) {
-          sql += ' AND tm.name = ?';
-          params.push(filters.teamMember);
+        if (filters.teamMember || filters.teamMemberId) {
+          sql += idOrName('tm', filters.teamMember || filters.teamMemberId, params);
         }
         sql += ' ORDER BY o.id DESC';
 

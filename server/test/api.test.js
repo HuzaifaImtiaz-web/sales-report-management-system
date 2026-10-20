@@ -548,7 +548,7 @@ test('export files are built on the server in every format', async () => {
     const res = await state.manager.post('/api/export', { reportType: c.reportType, format: c.format, filters: {}, timeZone: 'Asia/Karachi' });
     assert.equal(res.status, 200, `${c.reportType} ${c.format}: ${res.status}`);
     assert.match(res.headers.get('content-type'), c.type);
-    assert.match(res.headers.get('content-disposition'), new RegExp(`^attachment; filename="Himmel_[A-Za-z_]+_\\d{4}-\\d{2}-\\d{2}\\.${c.ext}"$`));
+    assert.match(res.headers.get('content-disposition'), new RegExp(`^attachment; filename="Himmel_[A-Za-z_]+_\\d{4}-\\d{2}-\\d{2}(_to_\\d{4}-\\d{2}-\\d{2})?\\.${c.ext}"$`));
     const bytes = Buffer.from(await res.arrayBuffer());
     assert.equal(bytes.subarray(0, c.magic.length).toString('latin1'), c.magic, `${c.reportType} ${c.format}`);
   }
@@ -567,6 +567,43 @@ test('export files are built on the server in every format', async () => {
 
   const history = await state.manager.ok('export:getHistory');
   assert.ok(history.some((h) => h.action === 'Export XLSX' && h.performedBy === 'maria'));
+});
+
+test('PowerPoint export is the Sales Review deck, built from the real numbers', async () => {
+  const JSZip = require('jszip');
+  const res = await state.manager.post('/api/export', {
+    reportType: 'Orders', format: 'pptx', timeZone: 'Asia/Karachi',
+    filters: { startDate: '2026-09-01', endDate: '2026-09-30', area: String(state.areaId) }
+  });
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-disposition'), /filename="Himmel_Sales_Review_2026-09-01_to_2026-09-30\.pptx"/);
+
+  const zip = await JSZip.loadAsync(Buffer.from(await res.arrayBuffer()));
+  const names = Object.keys(zip.files);
+  const slides = names.filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n));
+  const notes = names.filter((n) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(n));
+  assert.ok(slides.length >= 8, `deck has ${slides.length} slides`);
+  assert.equal(notes.length, slides.length, 'every slide has speaker notes');
+  assert.ok(names.some((n) => /^ppt\/charts\/chart\d+\.xml$/.test(n)), 'charts are real, editable PowerPoint charts');
+
+  const text = (await Promise.all(slides.map((n) => zip.file(n).async('string')))).join(' ');
+  assert.match(text, /1–30 September 2026/, 'period on the slides');
+  assert.match(text, /Lahore Gulberg/, 'area filter shown');
+  assert.match(text, /Rs 45,000/, 'sales = the completed order; the cancelled one is not a sale');
+  // Target for September = 1000 units/year × 30/365 of the year × 60% for Lahore × Rs 4,500
+  const expected = Math.round((45000 / ((1000 * 30) / 365 * 0.6 * 4500)) * 100);
+  assert.match(text, new RegExp(`${expected}% of the period`), 'target % from the yearly target');
+  assert.doesNotMatch(text, /Dataset demonstrates|compliance standards/, 'no canned sentences');
+
+  const unknownArea = await state.manager.post('/api/export', { reportType: 'Orders', format: 'pptx', filters: { area: '999999' } });
+  assert.equal(unknownArea.status, 400);
+  assert.match((await unknownArea.json()).error, /area chosen for the report was not found/);
+
+  const empty = await state.manager.post('/api/export', { reportType: 'Orders', format: 'pptx', filters: { startDate: '2020-01-01', endDate: '2020-01-31' } });
+  assert.equal(empty.status, 200, 'a period without orders still gives a (short) deck');
+  const emptyZip = await JSZip.loadAsync(Buffer.from(await empty.arrayBuffer()));
+  const emptyText = (await Promise.all(Object.keys(emptyZip.files).filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n)).map((n) => emptyZip.file(n).async('string')))).join(' ');
+  assert.match(emptyText, /No sales were recorded in this period/);
 });
 
 test('settings: company-wide for admins, personal values per user', async () => {

@@ -29,7 +29,7 @@ const REPORT_TYPES = [
 const EXPORT_FORMATS = [
   { id: 'excel', label: 'Excel (.xlsx)', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
   { id: 'pdf', label: 'PDF (.pdf)', color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/30' },
-  { id: 'pptx', label: 'PowerPoint (.pptx)', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30' }
+  { id: 'pptx', label: 'PowerPoint: Sales Review deck', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30' }
 ];
 
 const ExportCenter = () => {
@@ -357,6 +357,12 @@ const ExportCenter = () => {
                     </button>
                   );
                 })}
+                {exportFormat === 'pptx' && (
+                  <p className="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-white/5 border border-line dark:border-brand-navyLine rounded-lg p-3 leading-relaxed">
+                    Creates the Sales Review presentation (charts, targets, areas, team and all orders, with speaker notes) for the chosen
+                    dates, area and team member. With no dates chosen it covers this month. The report type above does not change it.
+                  </p>
+                )}
               </div>
             </div>
             <div className="pt-4 border-t border-gray-200 dark:border-brand-navyLine text-xs text-gray-500 text-center font-medium">
