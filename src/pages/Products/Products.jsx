@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import { useAuth } from '../../context/AuthContext';
 import { productService } from '../../services/productService';
 import Pagination from '../../components/common/Pagination';
 import FilterPresetBar from '../../components/common/FilterPresetBar';
@@ -77,6 +78,11 @@ const EmptyState = ({ onAdd }) => (
 
 const Products = () => {
   const navigate = useNavigate();
+  // Buttons follow the role's permissions (the server enforces the same rules).
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('products.create');
+  const canEdit = hasPermission('products.edit');
+  const canDelete = hasPermission('products.delete');
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
@@ -101,6 +107,9 @@ const Products = () => {
   const fetchProducts = () => {
     productService.getAllProducts().then((data) => {
       setProducts(data || []);
+      setLoading(false);
+    }).catch((err) => {
+      setToast({ message: err.message || 'The list could not be loaded. Check your connection and refresh the page.', type: 'error' });
       setLoading(false);
     });
   };
@@ -244,12 +253,18 @@ const Products = () => {
   const openView = (p) => navigate(`/products/${p.id}`);
 
   const handleDelete = () => {
-    if (toDelete) {
-      productService.deleteProduct(toDelete.id).then((newProducts) => {
-        setProducts(newProducts || []);
-        setToDelete(null);
-      });
-    }
+    if (!toDelete) return;
+    const item = toDelete;
+    productService.deleteProduct(item.id)
+      .then((newList) => {
+        setProducts(newList || []);
+        setToast({ message: `Product "${item.brandName || item.name}" deleted.`, type: 'success' });
+      })
+      .catch((err) => {
+        // The server explains why, e.g. the record is still used by orders.
+        setToast({ message: err.message || 'This product could not be deleted.', type: 'error' });
+      })
+      .finally(() => setToDelete(null));
   };
 
   const handleClearAll = () => {
@@ -321,12 +336,14 @@ const Products = () => {
                 {discontinuedCount} Discontinued
               </span>
             )}
+            {canCreate && (
             <button
               onClick={openAdd}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow-md transition-all duration-150"
             >
               <FiPlus className="w-3.5 h-3.5" /> Add Product
             </button>
+            )}
           </div>
         </div>
 
@@ -594,18 +611,22 @@ const Products = () => {
                           >
                             <FiEye className="w-3.5 h-3.5" /> View
                           </button>
+                          {canEdit && (
                           <button
                             onClick={() => openEdit(p)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50 hover:bg-amber-105 dark:hover:bg-amber-900/50 hover:border-amber-200 dark:hover:border-amber-700 hover:shadow-sm transition-all duration-150"
                           >
                             <FiEdit2 className="w-3.5 h-3.5" /> Edit
                           </button>
+                          )}
+                          {canDelete && (
                           <button
                             onClick={() => setToDelete(p)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-feedback-error bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 hover:bg-red-105 dark:hover:bg-red-955/50 hover:border-red-200 dark:hover:border-red-700 hover:shadow-sm transition-all duration-150"
                           >
                             <FiTrash2 className="w-3.5 h-3.5" /> Delete
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>

@@ -5,6 +5,7 @@ import {
   FiMapPin, FiBriefcase, FiX, FiDownload
 } from 'react-icons/fi';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import { useAuth } from '../../context/AuthContext';
 import Toast from '../../components/common/Toast';
 import ConfirmDialog from '../../components/common/dialogs/ConfirmDialog';
 import StatusSelector from '../../components/common/StatusSelector';
@@ -45,6 +46,11 @@ const EmptyState = ({ onAdd }) => (
 
 export default function Doctors() {
   const navigate = useNavigate();
+  // Buttons follow the role's permissions (the server enforces the same rules).
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('doctors.create');
+  const canEdit = hasPermission('doctors.edit');
+  const canDelete = hasPermission('doctors.delete');
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [doctors, setDoctors] = useState([]);
@@ -64,6 +70,9 @@ export default function Doctors() {
   const fetchDoctors = () => {
     doctorService.getAllDoctors().then((data) => {
       setDoctors(data || []);
+      setLoading(false);
+    }).catch((err) => {
+      setToast({ message: err.message || 'The list could not be loaded. Check your connection and refresh the page.', type: 'error' });
       setLoading(false);
     });
   };
@@ -179,12 +188,14 @@ export default function Doctors() {
                 {inactiveCount} Inactive
               </span>
             )}
+            {canCreate && (
             <button
               onClick={() => navigate('/doctors/new')}
               className="px-4 py-2 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm flex items-center gap-1.5 transition-colors"
             >
               <FiPlus className="w-3.5 h-3.5" /> Add Doctor
             </button>
+            )}
           </div>
         </div>
 
@@ -313,6 +324,7 @@ export default function Doctors() {
                           >
                             <FiEye className="w-3.5 h-3.5" />
                           </button>
+                          {canEdit && (
                           <button
                             onClick={() => navigate(`/doctors/${d.id}/edit`)}
                             className="p-1.5 text-gray-500 hover:text-brand-primary rounded-lg hover:bg-brand-primary/10 transition-colors"
@@ -320,6 +332,8 @@ export default function Doctors() {
                           >
                             <FiEdit2 className="w-3.5 h-3.5" />
                           </button>
+                          )}
+                          {canDelete && (
                           <button
                             onClick={() => setToDelete(d)}
                             className="p-1.5 text-gray-500 hover:text-feedback-error rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -327,6 +341,7 @@ export default function Doctors() {
                           >
                             <FiTrash2 className="w-3.5 h-3.5" />
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>

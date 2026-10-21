@@ -695,7 +695,7 @@ const DashboardPlaceholder = () => {
             </button>
 
             <button 
-              onClick={() => navigate('/products')}
+              onClick={() => navigate('/products/new')}
               className="flex flex-col items-center justify-center p-4 border border-gray-200 dark:border-brand-navyLine rounded-xl hover:border-brand-primary hover:bg-gray-50/15 dark:hover:bg-brand-primary/5 transition-all text-center gap-2 group"
             >
               <div className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-full text-gray-500 transition-transform">
@@ -705,7 +705,7 @@ const DashboardPlaceholder = () => {
             </button>
 
             <button 
-              onClick={() => navigate('/doctors')}
+              onClick={() => navigate('/doctors/new')}
               className="flex flex-col items-center justify-center p-4 border border-gray-200 dark:border-brand-navyLine rounded-xl hover:border-brand-primary hover:bg-gray-50/15 dark:hover:bg-brand-primary/5 transition-all text-center gap-2 group"
             >
               <div className="p-2.5 bg-rose-50 dark:bg-rose-950/30 rounded-full text-rose-500 transition-transform">
@@ -715,7 +715,7 @@ const DashboardPlaceholder = () => {
             </button>
 
             <button 
-              onClick={() => navigate('/institutions')}
+              onClick={() => navigate('/institutions/new')}
               className="flex flex-col items-center justify-center p-4 border border-gray-200 dark:border-brand-navyLine rounded-xl hover:border-brand-primary hover:bg-gray-50/15 dark:hover:bg-brand-primary/5 transition-all text-center gap-2 group"
             >
               <div className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-full text-gray-500 transition-transform">

@@ -56,7 +56,7 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
       if (data && data.length > 0) {
         setAreasList(data);
       }
-    });
+    }).catch((err) => console.error('Could not load a list for this form:', err));
   }, []);
 
   useEffect(() => {
@@ -84,7 +84,7 @@ export default function TeamMembersForm({ mode, item, onSave, onCancel }) {
       name: newAreaName,
       status: 'Active'
     }).then(() => {
-      areaService.getAllAreas().then(res => setAreasList(res || []));
+      areaService.getAllAreas().then(res => setAreasList(res || [])).catch((err) => console.error('Could not load a list for this form:', err));
     }).catch(() => {});
   };
 

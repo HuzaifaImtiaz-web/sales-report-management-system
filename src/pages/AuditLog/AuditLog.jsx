@@ -6,6 +6,7 @@ import {
 import auditService, { calculateDiff } from '../../services/auditService';
 import AuditLogDetailsModal from './AuditLogDetailsModal';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import Toast from '../../components/common/Toast';
 
 const MODULE_OPTIONS = [
   'All', 'Authentication', 'Products', 'Doctors', 'Institutions',
@@ -71,7 +72,11 @@ export default function AuditLog() {
     setPage(1);
   };
 
+  const [toast, setToast] = useState(null);
+  const [exporting, setExporting] = useState(false);
+
   const handleExport = async () => {
+    setExporting(true);
     try {
       const res = await window.api.export.generate({
         reportType: 'Audit Trail',
@@ -79,12 +84,14 @@ export default function AuditLog() {
         filters: { search, startDate, endDate, status: moduleFilter }
       });
       if (res && res.success) {
-        alert(`Audit Trail downloaded: ${res.data.fileName}`);
+        setToast({ message: `Downloaded ${res.data.fileName}`, type: 'success' });
       } else {
-        alert(res?.error || 'Export failed.');
+        setToast({ message: res?.error || 'The export could not be created.', type: 'error' });
       }
     } catch (err) {
-      alert(err.message || 'Export error');
+      setToast({ message: err.message || 'The export could not be created.', type: 'error' });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -117,6 +124,7 @@ export default function AuditLog() {
 
   return (
     <DashboardLayout pageTitle="Audit Trail">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="space-y-6 animate-fadeIn">
         {/* Top Banner & Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-brand-navy p-6 rounded-2xl border border-gray-200 dark:border-brand-navyLine shadow-xs">
@@ -141,9 +149,10 @@ export default function AuditLog() {
 
             <button
               onClick={handleExport}
+              disabled={exporting}
               className="px-4 py-2.5 bg-brand-primary text-white text-xs font-semibold rounded-xl hover:bg-brand-primaryDark shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer"
             >
-              <FiDownload className="w-4 h-4" /> Export Excel / PDF
+              <FiDownload className="w-4 h-4" /> {exporting ? 'Exporting…' : 'Export Excel'}
             </button>
           </div>
         </div>

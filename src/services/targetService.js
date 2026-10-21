@@ -62,5 +62,13 @@ export const targetService = {
     const res = await window.api.targets.getActiveBusinessYears();
     if (res.success) return res.data;
     throw new Error(res.error || 'Failed to fetch business years');
+  },
+
+  // Creates the year in the database (1 July – 30 June); targets copied from the year before or set to 0.
+  createBusinessYear: async (yearName, copyPreviousTargets) => {
+    const res = await window.api.targets.createBusinessYear({ yearName, copyPreviousTargets: Boolean(copyPreviousTargets) });
+    if (!res.success) throw new Error(res.error || 'Failed to create the business year');
+    window.dispatchEvent(new CustomEvent('himmel-db-change'));
+    return res.data;
   }
 };

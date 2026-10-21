@@ -51,6 +51,9 @@ export default function OrdersFormPage() {
         setCurrentItem(orderData);
       }
       setLoading(false);
+    }).catch((err) => {
+      setToast({ message: err.message || 'This record could not be loaded. Check your connection and try again.', type: 'error' });
+      setLoading(false);
     });
   }, [id]);
 

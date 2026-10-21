@@ -40,7 +40,7 @@ export default function GroupsForm({ mode, item, onSave, onCancel }) {
   useEffect(() => {
     groupService.getAllDivisions().then((data) => {
       setDivisions(data || []);
-    });
+    }).catch((err) => console.error('Could not load a list for this form:', err));
   }, []);
 
   useEffect(() => {

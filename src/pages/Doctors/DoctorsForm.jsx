@@ -61,12 +61,12 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
       if (data && data.length > 0) {
         setAreasList(data);
       }
-    });
+    }).catch((err) => console.error('Could not load a list for this form:', err));
     institutionService.getAllInstitutions().then((data) => {
       if (data && data.length > 0) {
         setInstitutionsList(data);
       }
-    });
+    }).catch((err) => console.error('Could not load a list for this form:', err));
   }, []);
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export default function DoctorsForm({ mode, item, onSave, onCancel }) {
       name: newAreaName,
       status: 'Active'
     }).then(() => {
-      areaService.getAllAreas().then(res => setAreasList(res || []));
+      areaService.getAllAreas().then(res => setAreasList(res || [])).catch((err) => console.error('Could not load a list for this form:', err));
     }).catch(() => {});
   };
 

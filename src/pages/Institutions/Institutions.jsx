@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import Toast from '../../components/common/Toast';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import { useAuth } from '../../context/AuthContext';
 import { institutionService } from '../../services/institutionService';
 import Pagination from '../../components/common/Pagination';
 import StatusSelector from '../../components/common/StatusSelector';
@@ -61,12 +63,23 @@ const DeleteDialog = ({ institution, onCancel, onConfirm }) => (
 
 const Institutions = () => {
   const navigate = useNavigate();
+  // Buttons follow the role's permissions (the server enforces the same rules).
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('institutions.create');
+  const canEdit = hasPermission('institutions.edit');
+  const canDelete = hasPermission('institutions.delete');
   const [searchParams] = useSearchParams();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [toDelete, setToDelete] = useState(null);
+  const location = useLocation();
+  const [toast, setToast] = useState(location.state?.toast || null);
+  useEffect(() => {
+    if (location.state?.toast) setToast(location.state.toast);
+  }, [location.state]);
+
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -80,6 +93,9 @@ const Institutions = () => {
   useEffect(() => {
     institutionService.getAllInstitutions().then((data) => {
       setList(data || []);
+      setLoading(false);
+    }).catch((err) => {
+      setToast({ message: err.message || 'The list could not be loaded. Check your connection and refresh the page.', type: 'error' });
       setLoading(false);
     });
   }, []);
@@ -126,12 +142,18 @@ const Institutions = () => {
   const openView = (item) => navigate(`/institutions/${item.id}`);
 
   const handleDelete = () => {
-    if (toDelete) {
-      institutionService.deleteInstitution(toDelete.id).then((newInstitutions) => {
-        setList(newInstitutions);
-        setToDelete(null);
-      });
-    }
+    if (!toDelete) return;
+    const item = toDelete;
+    institutionService.deleteInstitution(item.id)
+      .then((newList) => {
+        setList(newList);
+        setToast({ message: `Institution "${item.name}" deleted.`, type: 'success' });
+      })
+      .catch((err) => {
+        // The server explains why, e.g. the record is still used by orders.
+        setToast({ message: err.message || 'This institution could not be deleted.', type: 'error' });
+      })
+      .finally(() => setToDelete(null));
   };
 
   const activeCount = list.filter((item) => item.status === 'Active').length;
@@ -139,6 +161,7 @@ const Institutions = () => {
 
   return (
     <DashboardLayout pageTitle="Institutions">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="space-y-6 animate-fade-in">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -170,6 +193,7 @@ const Institutions = () => {
                 {inactiveCount} Inactive
               </span>
             )}
+            {canCreate && (
             <button
               onClick={openAdd}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-brand-primary text-white text-xs font-semibold rounded-lg hover:bg-brand-primaryDark transition-all"
@@ -177,6 +201,7 @@ const Institutions = () => {
               <FiPlus className="w-4 h-4" />
               Add Institution
             </button>
+            )}
           </div>
         </div>
 
@@ -241,18 +266,22 @@ const Institutions = () => {
                           >
                             View
                           </button>
+                          {canEdit && (
                           <button
                             onClick={() => openEdit(item)}
                             className="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 hover:bg-amber-105 rounded-lg text-xs font-semibold transition-colors"
                           >
                             Edit
                           </button>
+                          )}
+                          {canDelete && (
                           <button
                             onClick={() => setToDelete(item)}
                             className="px-2.5 py-1.5 bg-red-50 dark:bg-red-900/20 text-feedback-error hover:bg-red-105 rounded-lg text-xs font-semibold transition-colors"
                           >
                             Delete
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>

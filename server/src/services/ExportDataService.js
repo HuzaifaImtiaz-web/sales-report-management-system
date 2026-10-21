@@ -13,6 +13,17 @@ function idOrName(alias, value, params) {
   return ` AND ${alias}.name = ?`;
 }
 
+// Orders (alias o) that contain the product, given by id or exact name.
+function orderHasProduct(value, params) {
+  const raw = String(value).trim();
+  if (/^\d+$/.test(raw)) {
+    params.push(Number(raw));
+    return ' AND EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.id AND oi.product_id = ?)';
+  }
+  params.push(raw);
+  return ' AND EXISTS (SELECT 1 FROM order_items oi JOIN products pr ON pr.id = oi.product_id WHERE oi.order_id = o.id AND pr.name = ?)';
+}
+
 class ExportDataService {
   constructor(db) {
     this.db = db;
@@ -286,6 +297,13 @@ class ExportDataService {
         if (filters.teamMember || filters.teamMemberId) {
           sql += idOrName('tm', filters.teamMember || filters.teamMemberId, params);
         }
+        if (filters.product || filters.productId) {
+          sql += orderHasProduct(filters.product || filters.productId, params);
+        }
+        if (filters.orderNumber) {
+          sql += ' AND o.order_number = ?';
+          params.push(String(filters.orderNumber));
+        }
         if (filters.status && filters.status !== 'All') {
           sql += ' AND o.status = ?';
           params.push(filters.status);
@@ -340,6 +358,9 @@ class ExportDataService {
         if (filters.teamMember || filters.teamMemberId) {
           sql += idOrName('tm', filters.teamMember || filters.teamMemberId, params);
         }
+        if (filters.product || filters.productId) {
+          sql += orderHasProduct(filters.product || filters.productId, params);
+        }
         sql += ' ORDER BY o.id DESC';
 
         columns = [
@@ -373,6 +394,9 @@ class ExportDataService {
           sql += ' AND (p.brand_name ILIKE ? OR byr.year_name ILIKE ?)';
           const term = `%${filters.search}%`;
           params.push(term, term);
+        }
+        if (filters.product || filters.productId) {
+          sql += idOrName('p', filters.product || filters.productId, params);
         }
         sql += ' ORDER BY byr.year_name DESC, product_name ASC';
 

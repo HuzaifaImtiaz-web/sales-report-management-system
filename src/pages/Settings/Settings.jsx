@@ -5,6 +5,7 @@ import Toast from '../../components/common/Toast';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { settingsService } from '../../services/settingsService';
+import { targetService } from '../../services/targetService';
 import { CreateBusinessYearModal } from '../Targets/Targets';
 import ConfirmDialog from '../../components/common/dialogs/ConfirmDialog';
 import EnterprisePasswordInput from '../../components/common/EnterprisePasswordInput';
@@ -25,7 +26,10 @@ import { APP_VERSION } from '../../utils/version';
 const Settings = () => {
   const navigate = useNavigate();
   const { mode, setThemeMode } = useTheme();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
+  // The server accepts company-wide changes from administrators only.
+  const isAdmin = user?.role === 'Admin';
+  const canExport = hasPermission('reports.export');
 
   // Page States
   const [loading, setLoading] = useState(true);
@@ -334,11 +338,13 @@ const Settings = () => {
         const company = await settingsService.getCompanyInfo();
         setCompanyInfo(company);
 
-        const by = await settingsService.getBusinessYear();
-        setBusinessYear(by);
-
-        const years = await settingsService.getExistingYears();
+        // Business years come from the database (the ones orders and targets use); show the current one.
+        const years = await targetService.getBusinessYears();
         setExistingYears(years);
+        const d = new Date();
+        const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const current = years.find((y) => y.startDate <= today && today <= y.endDate) || years[0];
+        if (current) setBusinessYear(current);
 
         const prefs = await settingsService.getExportPreferences();
         setExportPreferences(prefs);
@@ -366,6 +372,7 @@ const Settings = () => {
 
   const handleCompanySave = async (e) => {
     e.preventDefault();
+    if (!isAdmin) return;
     try {
       await settingsService.saveCompanyInfo(companyInfo);
       setToast({ message: 'Company information updated successfully.', type: 'success' });
@@ -400,7 +407,6 @@ const Settings = () => {
   };
 
   const handleConfirmLogoChange = async (newLogo) => {
-    setShowLogoPrompt(false);
     if (newLogo && newLogo.trim() !== '') {
       const updatedCompany = { ...companyInfo, logo: newLogo.trim() };
       try {
@@ -422,34 +428,27 @@ const Settings = () => {
     }
   };
 
-  const handleCreateBusinessYear = async (newYearVal, copyPrevious) => {
-    const startYear = newYearVal.split('-')[0];
-    const endYear = newYearVal.split('-')[1];
-
-    const newYear = {
-      value: newYearVal,
-      startDate: `${startYear}-07-01`,
-      endDate: `${endYear}-06-30`
-    };
-
+  // Creates the year in the database (the window closes first so the result message is visible).
+  const handleCreateBusinessYear = async (newYearObj, copyPrevious) => {
+    setIsYearModalOpen(false);
     try {
-      await settingsService.saveBusinessYear(newYear);
-      const updatedYears = await settingsService.getExistingYears();
-      setExistingYears(updatedYears);
-      setBusinessYear(newYear);
-      setIsYearModalOpen(false);
+      const created = await targetService.createBusinessYear(newYearObj.value, copyPrevious);
+      const years = await targetService.getBusinessYears();
+      setExistingYears(years);
+      setBusinessYear(years.find((y) => y.value === created.value) || created);
       setToast({
-        message: `Business Year ${newYearVal} created successfully ${copyPrevious ? '(copied previous targets)' : ''}.`,
+        message: `Business year ${created.value} created: ${created.targets} product target${created.targets === 1 ? '' : 's'} ${created.copiedFrom ? `copied from ${created.copiedFrom}` : 'set to 0'}.`,
         type: 'success'
       });
     } catch (err) {
-      setToast({ message: err.message || 'Failed to create business year', type: 'error' });
+      setToast({ message: err.message || 'The business year could not be created.', type: 'error' });
     }
   };
 
+  // Shows the chosen year's dates (orders and targets follow the dates themselves).
   const handleSwitchBusinessYear = (yearValue) => {
-    setTargetYearSwitch(yearValue);
-    setShowYearSwitchConfirm(true);
+    const year = existingYears.find((y) => y.value === yearValue);
+    if (year) setBusinessYear(year);
   };
 
   const handleConfirmSwitchBusinessYear = async () => {
@@ -527,7 +526,7 @@ const Settings = () => {
     { id: 'security', label: 'Account & security', hint: 'Password, recovery' },
     { id: 'system', label: 'Backups & system', hint: 'Backups, diagnostics' },
     { id: 'about', label: 'About', hint: 'Version and support' },
-  ];
+  ].filter((s) => s.id !== 'system' || isAdmin || canExport);
   const [section, setSection] = useState('company');
   const sectionCls = (id) => (section === id ? '' : 'hidden');
 
@@ -594,6 +593,7 @@ const Settings = () => {
                   <div className="w-16 h-16 rounded-xl border border-gray-200 dark:border-brand-navyLine bg-gray-50 dark:bg-brand-navy overflow-hidden flex items-center justify-center relative group">
                     <img src={companyInfo.logo} alt="Company Logo" className="object-contain w-full h-full bg-white p-1" />
                   </div>
+                  {isAdmin && (
                   <div>
                     <button
                       type="button"
@@ -605,6 +605,7 @@ const Settings = () => {
                     </button>
                     <p className="text-[11px] text-gray-500 dark:text-gray-500 mt-1">Upload a PNG, JPG or WebP image (1 MB at most).</p>
                   </div>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -613,6 +614,7 @@ const Settings = () => {
                     <input
                       type="text"
                       value={companyInfo.name}
+                      readOnly={!isAdmin}
                       onChange={(e) => setCompanyInfo({ ...companyInfo, name: e.target.value })}
                       className="w-full px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
                     />
@@ -626,6 +628,7 @@ const Settings = () => {
                         <input
                           type="email"
                           value={companyInfo.email}
+                          readOnly={!isAdmin}
                           onChange={(e) => setCompanyInfo({ ...companyInfo, email: e.target.value })}
                           className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
                         />
@@ -638,6 +641,7 @@ const Settings = () => {
                         <input
                           type="text"
                           value={companyInfo.phone}
+                          readOnly={!isAdmin}
                           onChange={(e) => setCompanyInfo({ ...companyInfo, phone: e.target.value })}
                           className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary"
                         />
@@ -652,6 +656,7 @@ const Settings = () => {
                       <textarea
                         rows={2}
                         value={companyInfo.address}
+                        readOnly={!isAdmin}
                         onChange={(e) => setCompanyInfo({ ...companyInfo, address: e.target.value })}
                         className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-brand-navy/50 border border-gray-200 dark:border-brand-navyLine rounded-lg outline-none focus:ring-1 focus:ring-brand-primary resize-none"
                       />
@@ -659,6 +664,7 @@ const Settings = () => {
                   </div>
                 </div>
 
+                {isAdmin ? (
                 <div className="pt-2 flex justify-end">
                   <button
                     type="submit"
@@ -667,6 +673,9 @@ const Settings = () => {
                     Save Changes
                   </button>
                 </div>
+                ) : (
+                  <p className="pt-2 text-xs text-gray-500 dark:text-gray-400">Only an administrator can change the company details.</p>
+                )}
               </form>
             </div>
 
@@ -680,7 +689,7 @@ const Settings = () => {
 
                 <div className="bg-gray-50/50 dark:bg-brand-navy/25 p-4 rounded-xl border border-gray-200 dark:border-brand-navyLine space-y-3.5">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Active Business Year</span>
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Business year</span>
                     <select
                       value={businessYear.value}
                       onChange={(e) => handleSwitchBusinessYear(e.target.value)}
@@ -711,6 +720,7 @@ const Settings = () => {
                 </p>
               </div>
 
+              {user?.role === 'Admin' && (
               <div className="pt-4 flex justify-end">
                 <button
                   onClick={() => setIsYearModalOpen(true)}
@@ -720,6 +730,7 @@ const Settings = () => {
                   Create New Business Year
                 </button>
               </div>
+              )}
             </div>
 
             {/* 3. Appearance */}
@@ -879,7 +890,7 @@ const Settings = () => {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className={`grid grid-cols-1 ${isAdmin ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6`}>
                 {/* Card 1: Change Username */}
                 <form onSubmit={handleUpdateUsername} className="p-4 bg-gray-50/50 dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-xl space-y-3 flex flex-col justify-between">
                   <div className="space-y-3">
@@ -917,6 +928,8 @@ const Settings = () => {
                   </button>
                 </form>
 
+                {/* Cards 2 and 3: administrators only (the server refuses everyone else) */}
+                {isAdmin && (<>
                 {/* Card 2: Update Recovery Password */}
                 <form onSubmit={handleUpdateRecoveryPassword} className="p-4 bg-gray-50/50 dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-xl space-y-3 flex flex-col justify-between">
                   <div className="space-y-3">
@@ -1003,10 +1016,12 @@ const Settings = () => {
                     Update Recovery PIN
                   </button>
                 </form>
+                </>)}
               </div>
             </div>
 
-            {/* 7. Data Management */}
+            {/* 7. Data Management (opens the Export Center) */}
+            {canExport && (
             <div className={`bg-white dark:bg-brand-navyCard border border-gray-200 dark:border-brand-navyLine rounded-enterprise shadow-soft p-5 ${sectionCls('system')}`}>
               <div className="flex items-center gap-2 pb-2 border-b border-gray-200 dark:border-gray-855 mb-4">
                 <FiDatabase className="w-4 h-4 text-brand-primary" />
@@ -1031,6 +1046,7 @@ const Settings = () => {
                 </div>
               </div>
             </div>
+            )}
 
             {/* 8. Production Settings & Diagnostics (Admin Only) */}
             {user?.role === 'Admin' && (

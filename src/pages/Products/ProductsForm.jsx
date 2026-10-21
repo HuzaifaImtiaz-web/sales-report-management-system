@@ -72,7 +72,7 @@ export default function ProductsForm({ mode, item, onSave, onCancel }) {
   useEffect(() => {
     groupService.getAllGroups().then((data) => {
       setAllGroups(data || []);
-    });
+    }).catch((err) => console.error('Could not load a list for this form:', err));
   }, []);
 
   useEffect(() => {

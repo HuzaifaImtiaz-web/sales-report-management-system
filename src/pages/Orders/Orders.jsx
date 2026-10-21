@@ -114,6 +114,9 @@ const Orders = () => {
       setAreas(areasData);
       setTeamMembers(teamData);
       setLoading(false);
+    }).catch((err) => {
+      setToast({ message: err.message || 'The data could not be loaded. Check your connection and refresh the page.', type: 'error' });
+      setLoading(false);
     });
   }, []);
 

@@ -81,6 +81,27 @@ test('cross-site requests are rejected', () => {
   assert.equal(originCheck(configured, { origin: 'https://other.example.com' }), 403);
 });
 
+test('the request flood guard counts per address and says when to retry', () => {
+  const limiter = security.requestLimiter({ max: 2, windowMs: 60000 });
+  const send = (ip) => {
+    const res = mockRes();
+    let passed = false;
+    limiter({ ip }, res, () => { passed = true; });
+    return passed ? 'pass' : res;
+  };
+  assert.equal(send('1.1.1.1'), 'pass');
+  assert.equal(send('1.1.1.1'), 'pass');
+  const blocked = send('1.1.1.1');
+  assert.equal(blocked.statusCode, 429);
+  assert.ok(Number(blocked.headers['retry-after']) > 0);
+  assert.equal(send('2.2.2.2'), 'pass', 'another address has its own budget');
+
+  // An office shares one address: the default leaves room for a whole team.
+  const config = require('../src/config');
+  assert.ok(config.requestLimit.max >= 3000);
+  assert.equal(config.requestLimit.windowMs, 5 * 60 * 1000);
+});
+
 test('vercel.json sends the same security headers as the server', () => {
   const vercelFile = path.join(__dirname, '..', '..', 'vercel.json');
   const vercel = JSON.parse(fs.readFileSync(vercelFile, 'utf8'));

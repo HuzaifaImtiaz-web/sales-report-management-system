@@ -8,6 +8,7 @@ import { teamMemberService } from '../../services/teamMemberService';
 import { orderService } from '../../services/orderService';
 import Pagination from '../../components/common/Pagination';
 import Toast from '../../components/common/Toast';
+import { useAuth } from '../../context/AuthContext';
 import {
   FiSearch, FiEye, FiDownload, FiCalendar, FiUser,
   FiMapPin, FiBriefcase, FiShoppingBag, FiTag,
@@ -463,6 +464,8 @@ const SkeletonRows = () => {
 
 /* ─── Main Reports Component ────────────────────────────────────── */
 const Reports = () => {
+  const { hasPermission } = useAuth();
+  const canExport = hasPermission('reports.export');
   const [products, setProducts] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [areas, setAreas] = useState([]);
@@ -483,6 +486,9 @@ const Reports = () => {
       setAreas(areasData);
       setTeamMembers(teamData);
       setReportsData(ordersData);
+      setInitialLoading(false);
+    }).catch((err) => {
+      setToast({ message: err.message || 'The data could not be loaded. Check your connection and refresh the page.', type: 'error' });
       setInitialLoading(false);
     });
   }, []);
@@ -509,21 +515,21 @@ const Reports = () => {
     if (value.trim().length > 0) {
       const q = value.toLowerCase();
       
-      const matchDocs = doctors.filter(d => d.name.toLowerCase().includes(q)).map(d => ({
+      const matchDocs = doctors.filter(d => String(d.name || '').toLowerCase().includes(q)).map(d => ({
         label: d.name,
         type: 'Doctor',
         field: 'doctorId',
         value: d.id
       }));
 
-      const matchTMs = teamMembers.filter(tm => tm.name.toLowerCase().includes(q)).map(tm => ({
+      const matchTMs = teamMembers.filter(tm => String(tm.name || '').toLowerCase().includes(q)).map(tm => ({
         label: tm.name,
         type: 'Team Member',
         field: 'teamMemberId',
         value: tm.id
       }));
 
-      const matchProds = products.filter(p => p.name.toLowerCase().includes(q)).map(p => ({
+      const matchProds = products.filter(p => String(p.name || '').toLowerCase().includes(q)).map(p => ({
         label: p.name,
         type: 'Product',
         field: 'productId',
@@ -635,12 +641,12 @@ const Reports = () => {
       .filter((po) => {
         const matchSearch =
           !q ||
-          po.poNumber.toLowerCase().includes(q) ||
-          po.summary.doctorName.toLowerCase().includes(q) ||
-          po.area.toLowerCase().includes(q) ||
-          po.summary.teamMemberName.toLowerCase().includes(q) ||
+          String(po.poNumber || '').toLowerCase().includes(q) ||
+          String(po.summary.doctorName || '').toLowerCase().includes(q) ||
+          String(po.area || '').toLowerCase().includes(q) ||
+          String(po.summary.teamMemberName || '').toLowerCase().includes(q) ||
           po.summary.itemsDetailed.some(item => 
-            item.productName.toLowerCase().includes(q)
+            String(item.productName || '').toLowerCase().includes(q)
           );
 
         // Date Range
@@ -775,19 +781,21 @@ const Reports = () => {
 
   // Downloads built on the server with the filters applied on this page: Excel and PDF list the
   // orders, PowerPoint is the Sales Review deck for the same dates, area and team member.
-  const handleExport = async (type) => {
+  // `onlyFilters` replaces the page filters, e.g. one order from its row.
+  const handleExport = async (type, onlyFilters = null) => {
     setExporting(type);
     try {
       const res = await window.api.export.generate({
         reportType: 'Orders',
         format: type === 'ppt' ? 'pptx' : type,
-        filters: {
+        filters: onlyFilters || {
           search: activeFilters.search,
           startDate: activeFilters.startDate,
           endDate: activeFilters.endDate,
           doctorId: activeFilters.doctorId,
           area: activeFilters.area,
           teamMemberId: activeFilters.teamMemberId,
+          productId: activeFilters.productId,
           status: activeFilters.status
         }
       });
@@ -822,7 +830,8 @@ const Reports = () => {
             <p className="text-xs text-gray-500 dark:text-gray-550 font-medium mt-1">View, filter, analyze, and export sales reports.</p>
           </div>
           
-          {/* Export Options */}
+          {/* Export Options (roles allowed to export) */}
+          {canExport && (
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to={`/export?search=${encodeURIComponent(activeFilters.search)}&startDate=${encodeURIComponent(activeFilters.startDate)}&endDate=${encodeURIComponent(activeFilters.endDate)}&doctor=${encodeURIComponent(activeFilters.doctorId)}&area=${encodeURIComponent(activeFilters.area)}&teamMember=${encodeURIComponent(activeFilters.teamMemberId)}&product=${encodeURIComponent(activeFilters.productId)}&status=${encodeURIComponent(activeFilters.status)}`}
@@ -856,6 +865,7 @@ const Reports = () => {
               {exporting === 'ppt' ? 'Exporting...' : 'Export PPT'}
             </button>
           </div>
+          )}
         </div>
 
         {/* ── Multiple Filter Panel ── */}
@@ -1269,12 +1279,16 @@ const Reports = () => {
                           >
                             <FiEye className="w-3 h-3" /> View
                           </button>
+                          {canExport && (
                           <button
-                            onClick={() => handleExport('pdf')}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-150"
+                            onClick={() => handleExport('pdf', { orderNumber: po.poNumber })}
+                            disabled={exporting !== null}
+                            title={`Download order ${po.poNumber} as PDF`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-400 bg-white dark:bg-brand-navy border border-gray-200 dark:border-brand-navyLine hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-150 disabled:opacity-50"
                           >
                             <FiDownload className="w-3 h-3" /> Export
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>

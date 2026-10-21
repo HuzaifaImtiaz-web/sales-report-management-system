@@ -92,6 +92,19 @@ export default function FilterPresetBar({
         ))}
       </select>
 
+      {/* Only presets the user saved can be deleted (the built-in ones stay). */}
+      {savedPresets.some((p) => p.id === selectedPresetId) && (
+        <button
+          type="button"
+          onClick={(e) => handleDeletePreset(selectedPresetId, e)}
+          className="p-1.5 border border-gray-200 dark:border-brand-navyLine text-gray-500 hover:text-feedback-error hover:border-feedback-error/40 rounded-lg transition-colors shrink-0"
+          title="Delete this saved preset"
+          aria-label="Delete this saved preset"
+        >
+          <FiTrash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
+
       <button
         type="button"
         onClick={() => setShowSaveModal(true)}

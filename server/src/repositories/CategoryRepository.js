@@ -64,6 +64,11 @@ class CategoryRepository {
   }
 
   async delete(id) {
+    const used = await this.db.get('SELECT COUNT(*) AS n FROM products WHERE group_id = ?', [id]);
+    const count = Number(used && used.n) || 0;
+    if (count > 0) {
+      throw new Error(`This group cannot be deleted because ${count} product${count === 1 ? ' belongs' : 's belong'} to it. Move ${count === 1 ? 'it' : 'them'} to another group first.`);
+    }
     const res = await this.db.run('DELETE FROM groups WHERE id = ?', [id]);
     return res.changes > 0;
   }

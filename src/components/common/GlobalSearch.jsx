@@ -6,6 +6,9 @@ import {
 } from 'react-icons/fi';
 import { searchService } from '../../services/searchService';
 
+// The shortcut hint matches the keyboard: Cmd on Apple devices, Ctrl everywhere else.
+const SHORTCUT_HINT = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || '') ? '⌘K' : 'Ctrl K';
+
 export default function GlobalSearch() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -18,7 +21,7 @@ export default function GlobalSearch() {
   // Keyboard shortcut listener (Ctrl+K or /)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 'k') {
         e.preventDefault();
         inputRef.current?.focus();
         setIsOpen(true);
@@ -99,6 +102,8 @@ export default function GlobalSearch() {
         />
         {query ? (
           <button
+            type="button"
+            aria-label="Clear search"
             onClick={() => { setQuery(''); setResults(null); }}
             className="absolute right-2 p-1 text-gray-500 hover:text-gray-600 dark:hover:text-gray-200"
           >
@@ -106,7 +111,7 @@ export default function GlobalSearch() {
           </button>
         ) : (
           <span className="absolute right-2.5 px-1.5 py-0.5 text-[11px] font-semibold text-gray-500 bg-gray-200/60 dark:bg-gray-700/60 rounded border border-gray-300/50 dark:border-gray-600/50 pointer-events-none">
-            ⌘K
+            {SHORTCUT_HINT}
           </span>
         )}
       </div>

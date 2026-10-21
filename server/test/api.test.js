@@ -324,6 +324,15 @@ test('master data: create, read, update with validation and audit', async () => 
   const product2 = await state.manager.ok('products:save', [{ brandName: 'HyperNorm 10mg', productCode: 'PROD-CARD2', tp: 2400, mrp: 2650 }]);
   state.product2Id = product2.id;
 
+  // Deleting a group that still has products: a clear reason, not "unexpected server error".
+  const usedGroup = (await state.admin.ok('categories:getAll')).find((g) => g.name === 'Cardiovascular');
+  const groupInUse = await state.admin.call('categories:delete', [usedGroup.id]);
+  assert.equal(groupInUse.status, 400);
+  assert.match(groupInUse.error, /cannot be deleted because 1 product belongs to it/);
+  const emptyGroup = await state.manager.ok('categories:save', [{ name: 'Empty Group', divisionId: usedGroup.divisionId }]);
+  assert.equal((await state.manager.call('categories:delete', [emptyGroup.id])).status, 403, 'only administrators delete');
+  assert.equal(await state.admin.ok('categories:delete', [emptyGroup.id]), true);
+
   const dupCode = await state.manager.call('products:save', [{ brandName: 'Other', productCode: 'PROD-CARD1', tp: 1, mrp: 1 }]);
   assert.equal(dupCode.error, 'Product Code must be unique.');
 
@@ -385,6 +394,32 @@ test('targets: distribution validated in JavaScript and by the database trigger'
   assert.match(bad.error, /must equal 100%/);
 
   assert.equal((await state.rep.call('targets:save', [{ ...target }])).status, 403);
+});
+
+test('business years: administrators create them in the database, with targets copied or set to 0', async () => {
+  const before = await state.admin.ok('targets:getActiveBusinessYears');
+  const current = before.find((y) => y.value === '2026-2027');
+  assert.ok(current && current.startDate && current.endDate, 'years carry their dates');
+  const currentTargets = (await state.admin.ok('targets:getAll')).filter((t) => t.businessYearId === current.id);
+
+  const copied = await state.admin.ok('targets:createBusinessYear', [{ yearName: '2027-2028', copyPreviousTargets: true }]);
+  assert.equal(copied.startDate, '2027-07-01');
+  assert.equal(copied.endDate, '2028-06-30');
+  assert.equal(copied.copiedFrom, '2026-2027');
+  assert.equal(copied.targets, currentTargets.length);
+  const copiedTargets = (await state.admin.ok('targets:getAll')).filter((t) => t.businessYearId === copied.id);
+  assert.deepEqual(copiedTargets.map((t) => t.annualTargetQty).sort(), currentTargets.map((t) => t.annualTargetQty).sort(), 'quantities copied');
+
+  const empty = await state.admin.ok('targets:createBusinessYear', [{ yearName: '2028-2029', copyPreviousTargets: false }]);
+  assert.equal(empty.targets, copiedTargets.length, 'the year before\'s products, quantity 0');
+  assert.ok((await state.admin.ok('targets:getAll')).filter((t) => t.businessYearId === empty.id).every((t) => Number(t.annualTargetQty) === 0));
+
+  assert.match((await state.admin.call('targets:createBusinessYear', [{ yearName: '2027-2028' }])).error, /already exists/);
+  assert.match((await state.admin.call('targets:createBusinessYear', [{ yearName: '2027-2029' }])).error, /two following years/);
+  assert.match((await state.admin.call('targets:createBusinessYear', [{ yearName: 'next year' }])).error, /two following years/);
+  assert.equal((await state.manager.call('targets:createBusinessYear', [{ yearName: '2030-2031' }])).status, 403);
+  const years = await state.admin.ok('targets:getActiveBusinessYears');
+  assert.ok(['2027-2028', '2028-2029'].every((v) => years.some((y) => y.value === v)));
 });
 
 test('orders: reps enter them, managers cancel, only admins complete and delete', async () => {
@@ -530,6 +565,18 @@ test('export center data for every report type', async () => {
 
   const repExport = await state.rep.call('export:getPreviewData', [{ reportType: 'Products' }]);
   assert.equal(repExport.status, 403);
+
+  // Product filter (id or name) on orders and targets; one order on its own from its Reports row.
+  const orderNumbers = async (filters) => (await state.manager.ok('export:getPreviewData', [{ reportType: 'Orders', filters }])).rows.map((r) => r.order_number);
+  assert.deepEqual(await orderNumbers({}), ['PO-2026-002', 'PO-2026-001']);
+  assert.deepEqual(await orderNumbers({ productId: String(state.productId) }), ['PO-2026-001']);
+  assert.deepEqual(await orderNumbers({ product: 'HyperNorm 10mg' }), ['PO-2026-002']);
+  assert.deepEqual(await orderNumbers({ orderNumber: 'PO-2026-001' }), ['PO-2026-001']);
+  assert.deepEqual(await orderNumbers({ orderNumber: 'PO-2026-00' }), [], 'the whole order number, not part of it');
+  const targetRows = async (filters) => (await state.manager.ok('export:getPreviewData', [{ reportType: 'Targets', filters }])).rows;
+  const cardioTargets = await targetRows({ productId: state.productId });
+  assert.ok(cardioTargets.length > 0 && cardioTargets.every((t) => t.product_name === 'CardioVas 50mg'));
+  assert.equal((await targetRows({ product: 'HyperNorm 10mg' })).length, 0);
   for (const removed of ['export:getMasterData', 'export:logExport', 'backup:export', 'backup:restore']) {
     assert.equal((await state.admin.call(removed, [{}])).status, 404, `${removed} is no longer an RPC channel`);
   }

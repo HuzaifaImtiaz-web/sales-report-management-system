@@ -145,6 +145,7 @@ class ExportService {
     if (filters.endDate) filterParts.push(`End: ${filters.endDate}`);
     if (filters.search) filterParts.push(`Search: "${filters.search}"`);
     if (filters.area) filterParts.push(`Area: ${filters.area}`);
+    if (filters.orderNumber) filterParts.push(`Order: ${filters.orderNumber}`);
     if (filters.status) filterParts.push(`Status: ${filters.status}`);
     if (filterParts.length > 0) filterText = `Filters: ${filterParts.join(' | ')}`;
 
@@ -258,6 +259,7 @@ class ExportService {
         filterStr += `  |  Total Value: Rs ${data.summary.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
       }
       if (filters.search) filterStr += `  |  Search: "${filters.search}"`;
+      if (filters.orderNumber) filterStr += `  |  Order: ${filters.orderNumber}`;
       if (filters.status) filterStr += `  |  Status: ${filters.status}`;
       doc.fillColor('#334155').fontSize(9).font('Helvetica-Bold').text(filterStr, 40, 80);
 

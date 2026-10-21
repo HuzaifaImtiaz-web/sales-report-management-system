@@ -90,6 +90,14 @@ const config = {
   // Needed so rate limiting sees the real client IP. Set to 0 when the server is exposed directly.
   trustProxy: process.env.TRUST_PROXY === undefined ? 1 : Number(process.env.TRUST_PROXY),
 
+  // Coarse flood guard: API requests per internet address in 5 minutes. A whole office usually
+  // shares one address and each page load makes several requests, so the budget is generous;
+  // sign-in and recovery have their own strict limits.
+  requestLimit: {
+    max: positiveNumber(process.env.API_REQUESTS_PER_5_MINUTES, 3000),
+    windowMs: 5 * 60 * 1000
+  },
+
   // Normal requests are small (a company logo is the largest). A restore uploads the whole
   // database; the browser gzips it, and this limit applies to the unzipped JSON.
   normalBodySize: process.env.MAX_REQUEST_SIZE || '3mb',

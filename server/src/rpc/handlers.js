@@ -152,6 +152,14 @@ const handlers = {
   'targets:getActiveBusinessYears': {
     handler: (ctx) => ctx.s.targets.getActiveBusinessYears()
   },
+  'targets:createBusinessYear': {
+    roles: ADMIN,
+    handler: async (ctx, { yearName, copyPreviousTargets } = {}) => {
+      const year = await ctx.s.targets.createBusinessYear({ yearName, copyPreviousTargets: Boolean(copyPreviousTargets) });
+      await ctx.audit({ module: 'Targets', entityType: 'BusinessYear', entityId: year.id, action: 'Create', newValue: year });
+      return year;
+    }
+  },
 
   // --- Orders (every role can enter and process orders, as the Sales Entry screen allows today) ---
   'orders:getAll': {

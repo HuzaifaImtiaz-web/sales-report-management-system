@@ -1,40 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiCheck, FiEdit2, FiPlus, FiTrash2, FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
 import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
-
-const INITIAL_PRODUCTS = [
-  { id: 1,  code: 'PRD-0001', name: 'Amoxicillin 500mg',      unit: 'Box',    rate: 450,   status: 'Active' },
-  { id: 2,  code: 'PRD-0002', name: 'Paracetamol 650mg',      unit: 'Strip',  rate: 120,   status: 'Active' },
-  { id: 3,  code: 'PRD-0003', name: 'Metformin 850mg',        unit: 'Box',    rate: 380,   status: 'Active' },
-  { id: 4,  code: 'PRD-0004', name: 'Lipitor 10mg',           unit: 'Strip',  rate: 950,   status: 'Active' },
-  { id: 5,  code: 'PRD-0005', name: 'Ibuprofen 400mg',        unit: 'Strip',  rate: 90,    status: 'Inactive' },
-  { id: 6,  code: 'PRD-0006', name: 'Omeprazole 20mg',        unit: 'Box',    rate: 520,   status: 'Active' },
-  { id: 7,  code: 'PRD-0007', name: 'Augmentin 625mg',        unit: 'Box',    rate: 1100,  status: 'Active' },
-  { id: 8,  code: 'PRD-0008', name: 'Azithromycin 250mg',     unit: 'Strip',  rate: 670,   status: 'Active' },
-  { id: 9,  code: 'PRD-0009', name: 'Ventolin Inhaler',       unit: 'Piece',  rate: 850,   status: 'Inactive' },
-  { id: 10, code: 'PRD-0010', name: 'Crestor 10mg',           unit: 'Strip',  rate: 1350,  status: 'Active' },
-];
-
-const INITIAL_AREAS = [
-  { id: 1, code: 'AREA-0001', name: 'Lahore Central', city: 'Lahore', region: 'Punjab', status: 'Active' },
-  { id: 2, code: 'AREA-0002', name: 'Karachi South', city: 'Karachi', region: 'Sindh', status: 'Active' },
-  { id: 3, code: 'AREA-0003', name: 'Islamabad F-10', city: 'Islamabad', region: 'Islamabad Capital Territory', status: 'Active' },
-  { id: 4, code: 'AREA-0004', name: 'Rawalpindi Cantt', city: 'Rawalpindi', region: 'Punjab', status: 'Inactive' },
-  { id: 5, code: 'AREA-0005', name: 'Faisalabad City', city: 'Faisalabad', region: 'Punjab', status: 'Active' },
-  { id: 6, code: 'AREA-0006', name: 'Multan Cantonment', city: 'Multan', region: 'Punjab', status: 'Active' },
-  { id: 7, code: 'AREA-0007', name: 'Peshawar University', city: 'Peshawar', region: 'KPK', status: 'Inactive' }
-];
-
-const INITIAL_TEAM = [
-  { id: 1, code: 'EMP-0001', name: 'Ahmed Shah', designation: 'Medical Representative', area: 'Lahore Central', status: 'Active' },
-  { id: 2, code: 'EMP-0002', name: 'Zainab Fatima', designation: 'Territory Manager', area: 'Karachi South', status: 'Active' },
-  { id: 3, code: 'EMP-0003', name: 'Usman Ali', designation: 'Area Sales Manager', area: 'Islamabad F-10', status: 'Active' },
-  { id: 4, code: 'EMP-0004', name: 'Mariam Khan', designation: 'Medical Representative', area: 'Rawalpindi Cantt', status: 'Inactive' },
-  { id: 5, code: 'EMP-0005', name: 'Bilal Siddiqui', designation: 'Medical Representative', area: 'Faisalabad City', status: 'Active' },
-  { id: 6, code: 'EMP-0006', name: 'Ayesha Malik', designation: 'Medical Representative', area: 'Multan Cantonment', status: 'Active' },
-  { id: 7, code: 'EMP-0007', name: 'Haris Rehman', designation: 'Territory Manager', area: 'Peshawar University', status: 'Inactive' }
-];
 
 const Field = ({ label, required, error, children }) => (
   <div>
@@ -68,48 +35,14 @@ export default function TargetsForm({
   const navigate = useNavigate();
   const { setIsDirty, setOnSave } = useUnsavedChanges();
 
-  // Load lists from local storage or defaults
-  const products = useMemo(() => {
-    const list = productsList.length > 0 ? productsList : INITIAL_PRODUCTS;
-    const normalized = list.map(p => {
-      if (p.code && !p.packSizeQty) {
-        let qty = 10;
-        let unitType = 'Tablets';
-        if (p.name.toLowerCase().includes('amoxicillin')) { qty = 10; unitType = 'Vials'; }
-        else if (p.name.toLowerCase().includes('paracetamol')) { qty = 20; unitType = 'Tablets'; }
-        else if (p.name.toLowerCase().includes('metformin')) { qty = 30; unitType = 'Capsules'; }
-        else if (p.name.toLowerCase().includes('omeprazole')) { qty = 10; unitType = 'Capsules'; }
-        else if (p.name.toLowerCase().includes('augmentin')) { qty = 14; unitType = 'Tablets'; }
-        else if (p.name.toLowerCase().includes('azithromycin')) { qty = 6; unitType = 'Tablets'; }
-        else if (p.name.toLowerCase().includes('ventolin')) { qty = 1; unitType = 'Inhalers'; }
-        else if (p.name.toLowerCase().includes('crestor')) { qty = 10; unitType = 'Tablets'; }
-        
-        return {
-          ...p,
-          packSizeQty: qty,
-          packSizeUnit: unitType,
-          packSize: `${qty} ${unitType}`,
-          packPrice: p.rate || 500,
-          perUnitPrice: Number(((p.rate || 500) / qty).toFixed(2))
-        };
-      }
-      return p;
-    });
-    return normalized.filter(p => p.status === 'Active');
-  }, [productsList]);
-
-  const areasList = useMemo(() => {
-    const list = areasProp.length > 0 ? areasProp : INITIAL_AREAS;
-    return list.filter(a => a.status === 'Active');
-  }, [areasProp]);
-
-  const teamMembers = useMemo(() => {
-    const list = teamMembersProp.length > 0 ? teamMembersProp : INITIAL_TEAM;
-    return list.filter(t => t.status === 'Active');
-  }, [teamMembersProp]);
+  // Only real records from the database. A list that is empty or failed to load must never be filled
+  // with sample data: a target could then be saved against the wrong product or an unknown team member.
+  const products = useMemo(() => productsList.filter((p) => p.status === 'Active'), [productsList]);
+  const areasList = useMemo(() => areasProp.filter((a) => a.status === 'Active'), [areasProp]);
+  const teamMembers = useMemo(() => teamMembersProp.filter((t) => t.status === 'Active'), [teamMembersProp]);
 
   // Form State
-  const [businessYear, setBusinessYear] = useState('2025-2026');
+  const [businessYear, setBusinessYear] = useState('');
   const [productId, setProductId] = useState('');
   const [annualTarget, setAnnualTarget] = useState('');
   const [areasDistribution, setAreasDistributionState] = useState([
@@ -117,6 +50,26 @@ export default function TargetsForm({
   ]);
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState({});
+  const errorsRef = useRef(null);
+
+  // A new target starts in the business year that contains today (else the latest one), so the year
+  // shown in the list is the year that gets saved.
+  useEffect(() => {
+    if (item || !businessYearsList || businessYearsList.length === 0) return;
+    if (businessYearsList.some((y) => y.value === businessYear)) return;
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const current = businessYearsList.find((y) => y.startDate <= today && today <= y.endDate) || businessYearsList[0];
+    setBusinessYear(current.value);
+  }, [businessYearsList, item, businessYear]);
+
+  // Show the list of problems after a save attempt: the page scrolls inside the main area, so
+  // scrolling the window would leave it out of sight.
+  useEffect(() => {
+    if (Object.keys(errors).length && errorsRef.current) {
+      errorsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [errors]);
 
   const setAreasDistribution = (val) => {
     setAreasDistributionState(val);
@@ -142,7 +95,7 @@ export default function TargetsForm({
   // Load target item if editing/viewing
   useEffect(() => {
     if (item) {
-      setBusinessYear(item.businessYear || '2025-2026');
+      setBusinessYear(item.businessYear || '');
       setProductId(item.productId || '');
       setAnnualTarget(item.annualTarget || '');
       setAreasDistributionState(item.areasDistribution || []);
@@ -156,7 +109,6 @@ export default function TargetsForm({
         const e = validateForm();
         if (Object.keys(e).length) {
           setErrors(e);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
         setErrors({});
@@ -349,7 +301,6 @@ export default function TargetsForm({
     const e = validateForm();
     if (Object.keys(e).length) {
       setErrors(e);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     setErrors({});
@@ -367,7 +318,7 @@ export default function TargetsForm({
     <div className="space-y-6">
       {/* Validation Alert Card */}
       {Object.keys(errors).length > 0 && (
-        <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-feedback-error rounded-xl text-xs text-feedback-error space-y-1.5 animate-fade-in">
+        <div ref={errorsRef} role="alert" className="scroll-mt-4 p-4 bg-red-50 dark:bg-red-950/20 border border-feedback-error rounded-xl text-xs text-feedback-error space-y-1.5 animate-fade-in">
           <p className="font-semibold flex items-center gap-1.5 text-sm"><FiAlertCircle className="w-4.5 h-4.5" /> Validation Errors Found:</p>
           <ul className="list-disc pl-5 space-y-1 font-semibold">
             {errors.productId && <li>{errors.productId}</li>}
@@ -594,7 +545,7 @@ export default function TargetsForm({
                     <div className="col-span-5">Team Member</div>
                     <div className="col-span-3 text-center">Target %</div>
                     <div className="col-span-3 text-right">Target Quantity</div>
-                    {!isView && <th className="col-span-1 text-center"></th>}
+                    {!isView && <div className="col-span-1 text-center"></div>}
                   </div>
                   {row.teamMembers.map((tm, tmIdx) => {
                     const tmQty = Math.round(areaQty * (Number(tm.percentage) || 0) / 100);

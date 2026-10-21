@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Toast from '../../components/common/Toast';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import { useAuth } from '../../context/AuthContext';
 import { groupService } from '../../services/groupService';
 import Pagination from '../../components/common/Pagination';
 import {
@@ -81,12 +83,23 @@ const DeleteDialog = ({ group, onCancel, onConfirm }) => (
 
 const Groups = () => {
   const navigate = useNavigate();
+  // Buttons follow the role's permissions (the server enforces the same rules).
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('groups.create');
+  const canEdit = hasPermission('groups.edit');
+  const canDelete = hasPermission('groups.delete');
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [divisionFilter, setDivisionFilter] = useState('');
   const [toDelete, setToDelete] = useState(null);
+  const location = useLocation();
+  const [toast, setToast] = useState(location.state?.toast || null);
+  useEffect(() => {
+    if (location.state?.toast) setToast(location.state.toast);
+  }, [location.state]);
+
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,6 +108,9 @@ const Groups = () => {
   useEffect(() => {
     groupService.getAllGroups().then((data) => {
       setGroups(data || []);
+      setLoading(false);
+    }).catch((err) => {
+      setToast({ message: err.message || 'The list could not be loaded. Check your connection and refresh the page.', type: 'error' });
       setLoading(false);
     });
   }, []);
@@ -133,12 +149,18 @@ const Groups = () => {
   const openView = (g) => navigate(`/groups/${g.id}`);
 
   const handleDelete = () => {
-    if (toDelete) {
-      groupService.deleteGroup(toDelete.id).then((newGroups) => {
-        setGroups(newGroups);
-        setToDelete(null);
-      });
-    }
+    if (!toDelete) return;
+    const item = toDelete;
+    groupService.deleteGroup(item.id)
+      .then((newList) => {
+        setGroups(newList);
+        setToast({ message: `Group "${item.name}" deleted.`, type: 'success' });
+      })
+      .catch((err) => {
+        // The server explains why, e.g. the record is still used by orders.
+        setToast({ message: err.message || 'This group could not be deleted.', type: 'error' });
+      })
+      .finally(() => setToDelete(null));
   };
 
   const handleClear = () => {
@@ -153,6 +175,7 @@ const Groups = () => {
 
   return (
     <DashboardLayout pageTitle="Product Groups">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -171,12 +194,14 @@ const Groups = () => {
                 {inactiveCount} Inactive
               </span>
             )}
+            {canCreate && (
             <button
               onClick={openAdd}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow-md transition-all duration-150"
             >
               <FiPlus className="w-3.5 h-3.5" /> Add Group
             </button>
+            )}
           </div>
         </div>
 
@@ -282,18 +307,22 @@ const Groups = () => {
                           >
                             <FiEye className="w-3 h-3" /> View
                           </button>
+                          {canEdit && (
                           <button
                             onClick={() => openEdit(g)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50 hover:bg-amber-105 transition-all duration-150"
                           >
                             <FiEdit2 className="w-3 h-3" /> Edit
                           </button>
+                          )}
+                          {canDelete && (
                           <button
                             onClick={() => setToDelete(g)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-feedback-error bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 hover:bg-red-105 transition-all duration-150"
                           >
                             <FiTrash2 className="w-3 h-3" /> Delete
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>

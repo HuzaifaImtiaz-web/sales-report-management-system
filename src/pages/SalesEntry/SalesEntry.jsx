@@ -530,16 +530,15 @@ export default function SalesEntry() {
             </div>
           )}
 
-          {/* Pagination */}
-          {filteredSales.length > 0 && (
-            <div className="p-4 border-t border-gray-200 dark:border-brand-navyLine">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          )}
+          {/* Pagination (needs the record count, otherwise it stays hidden and only the first page is reachable) */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalRecords={filteredSales.length}
+            pageSize={itemsPerPage}
+            onPageSizeChange={setItemsPerPage}
+          />
         </div>
 
         {/* Complete Sale Confirmation Dialog */}

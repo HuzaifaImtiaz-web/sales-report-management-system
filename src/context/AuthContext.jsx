@@ -134,15 +134,24 @@ export const AuthProvider = ({ children }) => {
     window.addEventListener('session-expired', handleSessionExpiredEvent);
 
     // The session cookie is HttpOnly, so the server says who (if anyone) is signed in.
+    // "Nobody" is a successful answer with no user. A failed answer (no connection, server busy)
+    // says nothing about the session: ask again a few times, then show the sign-in page with the reason.
     const checkSession = async () => {
       try {
-        const res = await window.api.auth.getCurrentUser();
+        let res = await window.api.auth.getCurrentUser();
+        for (let attempt = 1; attempt <= 3 && !(res && res.success); attempt++) {
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+          res = await window.api.auth.getCurrentUser();
+        }
         if (res && res.success && res.data) {
           setSecuritySetupPending(await isSecuritySetupPending(res.data.user));
           setUser(res.data.user);
           setIsAuthenticated(true);
           setLoginTime(res.data.loginTimestamp || new Date().toISOString());
         } else {
+          if (res && !res.success) {
+            setSessionExpiredMsg(res.error || 'The server could not be reached. Check your connection and sign in again.');
+          }
           setUser(null);
           setIsAuthenticated(false);
         }

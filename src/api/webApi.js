@@ -197,7 +197,8 @@ export function createWebApi() {
     teamMembers: crud('teamMembers'),
     targets: {
       ...crud('targets'),
-      getActiveBusinessYears: () => invoke('targets:getActiveBusinessYears')
+      getActiveBusinessYears: () => invoke('targets:getActiveBusinessYears'),
+      createBusinessYear: (data) => invoke('targets:createBusinessYear', data)
     },
     orders: {
       ...crud('orders'),

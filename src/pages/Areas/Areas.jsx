@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import { useAuth } from '../../context/AuthContext';
 import { areaService } from '../../services/areaService';
 import Pagination from '../../components/common/Pagination';
 import FilterPresetBar from '../../components/common/FilterPresetBar';
@@ -105,6 +106,11 @@ const DeleteDialog = ({ area, onCancel, onConfirm }) => (
 
 const Areas = () => {
   const navigate = useNavigate();
+  // Buttons follow the role's permissions (the server enforces the same rules).
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('areas.create');
+  const canEdit = hasPermission('areas.edit');
+  const canDelete = hasPermission('areas.delete');
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [areas, setAreas] = useState([]);
@@ -128,6 +134,9 @@ const Areas = () => {
   const fetchAreas = () => {
     areaService.getAllAreas().then((data) => {
       setAreas(data || []);
+      setLoading(false);
+    }).catch((err) => {
+      setToast({ message: err.message || 'The list could not be loaded. Check your connection and refresh the page.', type: 'error' });
       setLoading(false);
     });
   };
@@ -156,10 +165,10 @@ const Areas = () => {
     return areas.filter((a) => {
       const matchQ =
         !q ||
-        a.name.toLowerCase().includes(q) ||
-        a.code.toLowerCase().includes(q) ||
-        a.city.toLowerCase().includes(q) ||
-        a.region.toLowerCase().includes(q);
+        String(a.name || '').toLowerCase().includes(q) ||
+        String(a.code || '').toLowerCase().includes(q) ||
+        String(a.city || '').toLowerCase().includes(q) ||
+        String(a.region || '').toLowerCase().includes(q);
 
       const matchCity = !cityFilter || a.city === cityFilter;
       const matchRegion = !regionFilter || a.region === regionFilter;
@@ -197,12 +206,18 @@ const Areas = () => {
   const openView = (a) => navigate(`/areas/${a.id}`);
 
   const handleDelete = () => {
-    if (toDelete) {
-      areaService.deleteArea(toDelete.id).then((newAreas) => {
-        setAreas(newAreas);
-        setToDelete(null);
-      });
-    }
+    if (!toDelete) return;
+    const item = toDelete;
+    areaService.deleteArea(item.id)
+      .then((newList) => {
+        setAreas(newList);
+        setToast({ message: `Area "${item.name}" deleted.`, type: 'success' });
+      })
+      .catch((err) => {
+        // The server explains why, e.g. the record is still used by orders.
+        setToast({ message: err.message || 'This area could not be deleted.', type: 'error' });
+      })
+      .finally(() => setToDelete(null));
   };
 
   const handleClear = () => {
@@ -249,12 +264,14 @@ const Areas = () => {
                 {inactiveCount} Inactive
               </span>
             )}
+            {canCreate && (
             <button
               onClick={openAdd}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-brand-primary rounded-lg hover:bg-brand-primaryDark shadow-sm hover:shadow-md transition-all duration-150"
             >
               <FiPlus className="w-3.5 h-3.5" /> Add Area
             </button>
+            )}
           </div>
         </div>
 
@@ -374,18 +391,22 @@ const Areas = () => {
                           >
                             <FiEye className="w-3 h-3" /> View
                           </button>
+                          {canEdit && (
                           <button
                             onClick={() => openEdit(a)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50 hover:bg-amber-105 dark:hover:bg-amber-900/50 hover:border-amber-200 dark:hover:border-amber-700 hover:shadow-sm transition-all duration-150"
                           >
                             <FiEdit2 className="w-3 h-3" /> Edit
                           </button>
+                          )}
+                          {canDelete && (
                           <button
                             onClick={() => setToDelete(a)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-feedback-error bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 hover:bg-red-105 transition-all duration-150"
                           >
                             <FiTrash2 className="w-3.5 h-3.5" /> Delete
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>

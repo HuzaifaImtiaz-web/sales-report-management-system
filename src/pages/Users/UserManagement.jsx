@@ -246,9 +246,9 @@ const UserManagement = () => {
 
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
-      u.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.role.toLowerCase().includes(searchQuery.toLowerCase());
+      String(u.fullName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(u.username || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(u.role || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     const isLocked = u.lockedUntil && new Date(u.lockedUntil) > new Date();
 
@@ -419,9 +419,9 @@ const UserManagement = () => {
                           </button>
                           <button
                             onClick={() => setDeleteTargetUser(u)}
-                            disabled={u.username.toLowerCase() === 'admin'}
+                            disabled={String(u.username || '').toLowerCase() === 'admin'}
                             className="p-1.5 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                            title={u.username.toLowerCase() === 'admin' ? 'Primary Admin cannot be deleted' : 'Delete User'}
+                            title={String(u.username || '').toLowerCase() === 'admin' ? 'Primary Admin cannot be deleted' : 'Delete User'}
                           >
                             <FiTrash2 className="w-3.5 h-3.5" />
                           </button>

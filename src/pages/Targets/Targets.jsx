@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import DashboardLayout from '../../layouts/DashboardLayout';
+import { useAuth } from '../../context/AuthContext';
 import { targetService } from '../../services/targetService';
 import { productService } from '../../services/productService';
 import { orderService } from '../../services/orderService';
@@ -173,7 +174,7 @@ export const CreateBusinessYearModal = ({ onClose, onCreate, existingYears }) =>
                 <div>
                   <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">Copy Previous Year's Targets</p>
                   <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5 leading-normal">
-                    Copies all products and their target quantities. You can edit them later.
+                    Copies last year's product targets and area split. You can edit them later.
                   </p>
                 </div>
               </button>
@@ -194,7 +195,7 @@ export const CreateBusinessYearModal = ({ onClose, onCreate, existingYears }) =>
                 <div>
                   <p className="text-xs font-semibold text-gray-855 dark:text-gray-200">Create Empty Targets</p>
                   <p className="text-xs text-gray-500 dark:text-gray-550 mt-0.5 leading-normal">
-                    Copies all products and sets target quantities to 0. Enter targets manually.
+                    Last year's products and area split, with quantities set to 0. Enter the new quantities.
                   </p>
                 </div>
               </button>
@@ -224,6 +225,12 @@ export const CreateBusinessYearModal = ({ onClose, onCreate, existingYears }) =>
 
 export default function Targets() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Buttons follow the role's permissions (the server enforces the same rules).
+  const { hasPermission } = useAuth();
+  const canCreate = hasPermission('targets.create');
+  const canEdit = hasPermission('targets.edit');
+  const canDelete = hasPermission('targets.delete');
 
   const [targets, setTargets] = useState([]);
   const [businessYears, setBusinessYears] = useState([]);
@@ -243,6 +250,9 @@ export default function Targets() {
       setProducts(productsData);
       setOrders(ordersData);
       setLoading(false);
+    }).catch((err) => {
+      setToast({ message: err.message || 'Targets could not be loaded.', type: 'error' });
+      setLoading(false);
     });
   }, []);
 
@@ -261,7 +271,15 @@ export default function Targets() {
   // Modals / dialogs states
   const [toDelete, setToDelete] = useState(null);
   const [createYearModalOpen, setCreateYearModalOpen] = useState(false);
-  const [toast, setToast] = useState(null);
+  // A message from the form (e.g. "Record updated successfully.") arrives with the navigation.
+  const [toast, setToast] = useState(location.state?.toast || null);
+
+  useEffect(() => {
+    if (location.state?.toast) {
+      setToast(location.state.toast);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Unique Divisions & Groups derived from Product Master
   const uniqueDivisions = useMemo(() => {
@@ -339,11 +357,11 @@ export default function Targets() {
     const q = search.toLowerCase().trim();
     return targetsWithStats.filter((t) => {
       const matchSearch = !q ||
-        t.productName.toLowerCase().includes(q) ||
-        t.productCode.toLowerCase().includes(q) ||
-        t.division.toLowerCase().includes(q) ||
-        t.groupName.toLowerCase().includes(q) ||
-        t.businessYear.toLowerCase().includes(q);
+        String(t.productName || '').toLowerCase().includes(q) ||
+        String(t.productCode || '').toLowerCase().includes(q) ||
+        String(t.division || '').toLowerCase().includes(q) ||
+        String(t.groupName || '').toLowerCase().includes(q) ||
+        String(t.businessYear || '').toLowerCase().includes(q);
 
       const matchYear = yearFilter === 'All' || t.businessYear === yearFilter;
       const matchDivision = divisionFilter === 'All' || t.division === divisionFilter;
@@ -367,19 +385,34 @@ export default function Targets() {
 
   const handleDelete = () => {
     if (!toDelete) return;
-    targetService.deleteTarget(toDelete.id).then((newList) => {
-      setTargets(newList);
-      setToDelete(null);
-      setToast({ message: 'Target deleted successfully.', type: 'success' });
-    });
+    const item = toDelete;
+    targetService.deleteTarget(item.id)
+      .then((newList) => {
+        setTargets(newList);
+        setToast({ message: `Target "${item.productName || item.brandName || 'target'}" deleted.`, type: 'success' });
+      })
+      .catch((err) => {
+        // The server explains why, e.g. the record is still used by orders.
+        setToast({ message: err.message || 'This target could not be deleted.', type: 'error' });
+      })
+      .finally(() => setToDelete(null));
   };
 
-  const handleCreateBusinessYear = (newYearObj) => {
-    targetService.saveBusinessYear(newYearObj).then((updatedYears) => {
-      setBusinessYears(updatedYears);
-      setCreateYearModalOpen(false);
-      setToast({ message: `Business year "${newYearObj.value}" added successfully.`, type: 'success' });
-    });
+  // Creates the year in the database; its targets are copied from the year before or start at 0.
+  const handleCreateBusinessYear = async (newYearObj, copyPrevious) => {
+    setCreateYearModalOpen(false);
+    try {
+      const created = await targetService.createBusinessYear(newYearObj.value, copyPrevious);
+      const [years, list] = await Promise.all([targetService.getBusinessYears(), targetService.getAllTargets()]);
+      setBusinessYears(years);
+      setTargets(list);
+      setToast({
+        message: `Business year ${created.value} created: ${created.targets} product target${created.targets === 1 ? '' : 's'} ${created.copiedFrom ? `copied from ${created.copiedFrom}` : 'set to 0'}.`,
+        type: 'success'
+      });
+    } catch (err) {
+      setToast({ message: err.message || 'The business year could not be created.', type: 'error' });
+    }
   };
 
   const getProductName = (productId) => {
@@ -401,12 +434,16 @@ export default function Targets() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {/* Creating business years is for administrators (settings.modify), as on the server. */}
+            {hasPermission('settings.modify') && (
             <button
               onClick={() => setCreateYearModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-50 dark:bg-brand-navy text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-lg border border-gray-200 dark:border-brand-navyLine hover:bg-gray-100 transition-all"
             >
               Manage Years
             </button>
+            )}
+            {canCreate && (
             <button
               onClick={() => navigate('/targets/new')}
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-primary text-white text-xs font-semibold rounded-lg hover:bg-brand-primaryDark shadow-sm transition-all"
@@ -414,6 +451,7 @@ export default function Targets() {
               <FiPlus className="w-4 h-4" />
               New Target
             </button>
+            )}
           </div>
         </div>
 
@@ -591,18 +629,22 @@ export default function Targets() {
                           >
                             <FiEye className="w-3 h-3" /> View
                           </button>
+                          {canEdit && (
                           <button
                             onClick={() => navigate(`/targets/${t.id}/edit`)}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/30 border border-amber-100 dark:border-amber-800/50 hover:bg-amber-105 transition-all duration-155"
                           >
                             <FiEdit2 className="w-3 h-3" /> Edit
                           </button>
+                          )}
+                          {canDelete && (
                           <button
                             onClick={() => setToDelete(t)}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-feedback-error bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 hover:bg-red-105 transition-all duration-155"
                           >
                             <FiTrash2 className="w-3 h-3" /> Delete
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>

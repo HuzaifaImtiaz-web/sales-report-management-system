@@ -3,6 +3,18 @@ class ReportRepository {
     this.db = db;
   }
 
+  // Targets are yearly: reports use the business year asked for, else the one that contains today
+  // (else the latest), never all years added together.
+  async businessYearId(filters = {}) {
+    if (filters && filters.businessYearId) return Number(filters.businessYearId);
+    const row = (await this.db.get(`
+        SELECT id FROM business_years
+        WHERE CURRENT_DATE BETWEEN himmel_date(start_date) AND himmel_date(end_date)
+        ORDER BY himmel_date(start_date) DESC LIMIT 1`))
+      || (await this.db.get('SELECT id FROM business_years ORDER BY himmel_date(start_date) DESC LIMIT 1'));
+    return row ? row.id : null;
+  }
+
   async getDashboardSummaryData(filters = {}) {
     const salesRow = await this.db.get(`
       SELECT COALESCE(SUM(total_amount), 0.0) AS total_sales,
@@ -18,7 +30,8 @@ class ReportRepository {
              COALESCE(SUM(target_value), 0.0) AS total_target_value,
              COALESCE(SUM(actual_value), 0.0) AS total_actual_value
       FROM view_target_achievements
-    `);
+      WHERE business_year_id = ?
+    `, [await this.businessYearId(filters)]);
 
     const achievementPercent = targetRow.total_target_value > 0
       ? Math.round((targetRow.total_actual_value * 100) / targetRow.total_target_value)
@@ -54,9 +67,9 @@ class ReportRepository {
     let sql = `
       SELECT team_member_name, product_name, target_qty, target_value, actual_qty, actual_value, qty_achievement_percent, value_achievement_percent
       FROM view_target_achievements
-      WHERE 1=1
+      WHERE business_year_id = ?
     `;
-    const params = [];
+    const params = [await this.businessYearId(filters)];
     if (filters && filters.teamMemberId) {
       sql += ' AND team_member_id = ?';
       params.push(filters.teamMemberId);

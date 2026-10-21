@@ -187,7 +187,7 @@ function createApp({ db }) {
   const secure = config.cookies.secure;
   const api = express.Router();
   api.use(security.apiHeaders({ secure }));
-  api.use(security.requestLimiter());
+  api.use(security.requestLimiter(config.requestLimit));
   api.use(security.sameOriginOnly({ allowedOrigins: config.allowedOrigins }));
   api.use(security.requireJson);
 

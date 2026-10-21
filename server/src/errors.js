@@ -64,7 +64,8 @@ function toHttpError(err) {
     switch (err.code) {
       case '23505':
         return { status: 409, message: uniqueViolationMessage(err) };
-      case '23503':
+      case '23503': // foreign key violation
+      case '23001': // ON DELETE RESTRICT violation
         return { status: 409, message: 'Cannot complete operation because this record is referenced by active sales, orders, or other entities.' };
       case '23502':
         return { status: 400, message: `A required field is missing${err.column ? ` (${err.column})` : ''}.` };
