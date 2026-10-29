@@ -105,6 +105,10 @@ const config = {
 
   staticDir: readStaticDir(),
 
+  // Shared secret for the daily keep-alive call (GET /api/cron/keepalive). Vercel Cron sends it
+  // automatically when CRON_SECRET is set on the project. Empty: the route is switched off.
+  cronSecret: (process.env.CRON_SECRET || '').trim(),
+
   // First-start administrator account (only used while the users table is empty).
   adminUsername: (process.env.ADMIN_USERNAME || 'admin').trim(),
   adminPassword: process.env.ADMIN_PASSWORD || '',

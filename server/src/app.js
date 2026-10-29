@@ -194,6 +194,28 @@ function createApp({ db }) {
   api.post('/rpc/:channel', express.json({ limit: config.normalBodySize, strict: true }), createRpcHandler(db));
   api.use('/export', createExportRouter({ db, authenticateRequest, sendError }));
   api.use('/backup', createBackupRouter({ db, authenticateRequest, sendError, createContext }));
+
+  // Daily scheduled call (Vercel Cron, see vercel.json). Supabase's free plan pauses a database
+  // after a week without activity, so this writes a small timestamp to keep it awake. Vercel sends
+  // "Authorization: Bearer <CRON_SECRET>"; without that secret configured the route does not exist.
+  api.get('/cron/keepalive', async (req, res) => {
+    if (!config.cronSecret || !sessions.safeEqual(req.get('authorization'), `Bearer ${config.cronSecret}`)) {
+      res.status(404).json({ success: false, error: 'Not found.' });
+      return;
+    }
+    try {
+      const row = await db.get(
+        `INSERT INTO settings (key, value, group_name) VALUES ('keepalive_at', himmel_now_text(), 'system')
+         ON CONFLICT (key) DO UPDATE SET value = excluded.value, updated_at = himmel_now_text()
+         RETURNING value`
+      );
+      logger.info(`Keep-alive written at ${row.value}`);
+      res.json({ success: true, data: { keepaliveAt: row.value } });
+    } catch (err) {
+      sendError(res, err, 'cron:keepalive');
+    }
+  });
+
   api.use((req, res) => res.status(404).json({ success: false, error: 'Not found.' }));
 
   // Used by hosting health checks.

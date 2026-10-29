@@ -111,6 +111,7 @@ before(async () => {
   process.env.ADMIN_PASSWORD = ADMIN_PASSWORD;
   process.env.TRUST_PROXY = '0';
   process.env.STATIC_DIR = staticDir;
+  process.env.CRON_SECRET = 'test-cron-secret';
 
   config = require('../src/config');
   const { start } = require('../src/index');
@@ -135,6 +136,20 @@ test('health endpoint reports the database is reachable without revealing versio
   assert.equal(res.status, 200);
   assert.deepEqual(await res.json(), { status: 'ok' });
   assert.equal(res.headers.get('x-powered-by'), null);
+});
+
+test('daily keep-alive writes to the database only for the scheduler', async () => {
+  const url = `${baseUrl}/api/cron/keepalive`;
+  assert.equal((await fetch(url)).status, 404, 'no secret: looks like any unknown route');
+  assert.equal((await fetch(url, { headers: { Authorization: 'Bearer wrong' } })).status, 404);
+
+  const res = await fetch(url, { headers: { Authorization: 'Bearer test-cron-secret' } });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.success, true);
+  const row = await getDb().get("SELECT value, group_name FROM settings WHERE key = 'keepalive_at'");
+  assert.equal(row.value, body.data.keepaliveAt);
+  assert.equal(row.group_name, 'system');
 });
 
 test('API responses carry security headers and are never cached', async () => {

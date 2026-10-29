@@ -13,6 +13,12 @@
       "includeFiles": "server/{assets/**,node_modules/pdfkit/js/data/**}"
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/keepalive",
+      "schedule": "0 3 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
