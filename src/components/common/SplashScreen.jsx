@@ -1,99 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import CompanyLogo from './CompanyLogo';
+import markImg from '../../assets/logos/Himmel-Mark.png';
 import { useAuth } from '../../context/AuthContext';
-import { APP_VERSION_FULL_LABEL } from '../../utils/version';
+
+// Loading page (approved design "Option C · Watermark, whole mark", 30 Oct 2026): shown while the
+// web app checks who is signed in, and closed as soon as that check answers (no fixed delay).
+const SLOW_AFTER_MS = 6000;
 
 const SplashScreen = ({ onComplete }) => {
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState('Initializing application...');
   const [fadeOut, setFadeOut] = useState(false);
+  const [isSlow, setIsSlow] = useState(false);
   const { isLoading } = useAuth();
 
   useEffect(() => {
-    if (progress < 50) {
-      setStatus('Connecting securely...');
-    } else if (progress < 100) {
-      setStatus('Checking your session...');
-    } else {
-      setStatus('System Ready');
-    }
-  }, [progress]);
-
-  // The bar follows the real work (the session check): it creeps towards 90% while the server
-  // answers, then completes and fades out straight away, so the web app opens without a fixed delay.
-  useEffect(() => {
     if (!isLoading) {
-      setProgress(100);
-      const fade = setTimeout(() => setFadeOut(true), 150);
-      const done = setTimeout(() => onComplete(), 450);
-      return () => {
-        clearTimeout(fade);
-        clearTimeout(done);
-      };
+      setFadeOut(true);
+      const done = setTimeout(() => onComplete(), 300);
+      return () => clearTimeout(done);
     }
-    const timer = setInterval(() => {
-      setProgress((prev) => Math.min(prev + Math.floor(Math.random() * 8) + 4, 90));
-    }, 120);
-    return () => clearInterval(timer);
+    const slow = setTimeout(() => setIsSlow(true), SLOW_AFTER_MS);
+    return () => clearTimeout(slow);
   }, [onComplete, isLoading]);
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex flex-col justify-between bg-gradient-to-br from-white to-gray-50 dark:from-[#0B132B] dark:to-[#111A36] transition-all duration-700 ease-in-out select-none ${
-        fadeOut ? 'opacity-0 scale-102 pointer-events-none' : 'opacity-100'
+      className={`fixed inset-0 z-[9999] flex flex-col bg-white dark:bg-brand-navy text-ink dark:text-white select-none transition-opacity duration-300 ${
+        fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* Abstract background grid */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(169,29,34,0.04),rgba(255,255,255,0))] dark:bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(169,29,34,0.06),rgba(255,255,255,0))] pointer-events-none z-0"></div>
+      <main className="relative flex-1 flex items-center justify-center px-6 overflow-hidden">
+        {/* The round Himmel mark, printed faintly like a watermark on company paper */}
+        <img
+          src={markImg}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute right-5 bottom-5 w-[180px] h-[180px] sm:right-10 sm:bottom-8 sm:w-[300px] sm:h-[300px] opacity-[0.06] dark:opacity-20"
+        />
 
-      {/* Top Spacer */}
-      <div></div>
+        <div className="relative flex flex-col items-center text-center">
+          <CompanyLogo className="h-[50px] sm:h-16 w-auto" />
+          <span className="w-12 h-0.5 bg-brand-primary mt-[22px] mb-3.5" aria-hidden="true" />
+          <p className="text-[13px] font-medium uppercase tracking-[0.22em] text-muted dark:text-gray-400">Sales System</p>
 
-      {/* Main Brand Content */}
-      <div className="flex flex-col items-center max-w-md w-full mx-auto px-8 text-center z-10">
-        <div className="mb-6 transform hover:scale-103 transition-transform duration-300">
-          <div className="inline-block">
-            <CompanyLogo className="h-16 w-auto mx-auto object-contain" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white leading-none mt-5">
-            Himmel
-          </h2>
-          <p className="text-xs font-semibold text-brand-primary mt-1.5">
-            Pharmaceutical
-          </p>
-        </div>
-
-        <h1 className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 mb-10">
-          Sales System
-        </h1>
-
-        {/* Loading Progress Section */}
-        <div className="w-full max-w-xs space-y-4">
-          <div className="relative w-full h-1 bg-gray-100 dark:bg-brand-navy rounded-full overflow-hidden shadow-inner">
-            <div
-              className="h-full bg-gradient-to-r from-brand-primary to-[#C1272D] rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="flex justify-between items-center text-[11px] font-semibold text-gray-500 dark:text-slate-500">
-            <span className="animate-pulse">{status}</span>
-            <span>{Math.round(progress)}%</span>
+          <div role="status" aria-live="polite" className="mt-[34px] flex flex-col items-center gap-3">
+            <div className="relative w-[180px] h-0.5 overflow-hidden bg-[#ECEEF2] dark:bg-[#1E2944]" aria-hidden="true">
+              <div className="absolute inset-y-0 left-0 w-[35%] bg-brand-primary animate-loading-line motion-reduce:animate-none" />
+            </div>
+            <p className="font-['Inter'] text-[13px] text-muted dark:text-gray-400 max-w-[32ch]">
+              {isSlow ? 'Still connecting. This can take a moment on a slow connection.' : 'Opening Himmel Sales System'}
+            </p>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* Bottom Footer Info */}
-      <div className="w-full text-center pb-8 z-10 space-y-1.5">
-        <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-500">
-          {APP_VERSION_FULL_LABEL}
-        </p>
-        <p className="text-[8px] font-semibold text-gray-500/80 dark:text-slate-550/80">
-          © {new Date().getFullYear()} Himmel Pharmaceutical. All rights reserved.
-        </p>
-      </div>
+      <footer className="relative flex flex-col sm:flex-row items-center sm:justify-between gap-0.5 px-5 py-3.5 sm:px-8 sm:py-4 border-t border-line dark:border-brand-navyLine font-['Inter'] text-xs text-muted dark:text-gray-400">
+        <span>Himmel Pharmaceuticals (Pvt) Ltd</span>
+        <span>Secure connection</span>
+      </footer>
     </div>
   );
 };
 
 export default SplashScreen;
-

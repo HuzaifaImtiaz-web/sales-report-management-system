@@ -14,8 +14,13 @@
     <meta name="description" content="Himmel Sales System." />
     <!-- Private business application: keep it out of search engines. -->
     <meta name="robots" content="noindex, nofollow" />
+    <!-- Loading page colours before the app's styles arrive, so dark mode has no white flash. -->
+    <style>
+      html { background: #FFFFFF; }
+      @media (prefers-color-scheme: dark) { html { background: #0B132B; } }
+    </style>
   </head>
-  <body class="bg-white text-gray-900 font-sans antialiased min-h-screen">
+  <body class="text-gray-900 font-sans antialiased min-h-screen">
     <noscript>This application needs JavaScript enabled.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

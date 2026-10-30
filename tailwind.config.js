@@ -46,6 +46,7 @@ export default {
         'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'slide-in-right': 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'drift': 'drift 18s ease-in-out infinite alternate', // sign-in page glow
+        'loading-line': 'loadingLine 1.6s ease-in-out infinite', // loading page
       },
       keyframes: {
         fadeIn: {
@@ -64,6 +65,10 @@ export default {
           '0%': { transform: 'translate(0, 0) scale(1)' },
           '50%': { transform: 'translate(60px, 40px) scale(1.08)' },
           '100%': { transform: 'translate(-30px, 80px) scale(0.95)' },
+        },
+        loadingLine: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(290%)' },
         }
       }
     },
