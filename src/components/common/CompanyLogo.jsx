@@ -1,5 +1,7 @@
 import React from 'react';
 import logoImg from '../../assets/logos/Himmel-Logo.png';
+// Same logo with white lettering, for dark backgrounds (no white box needed behind it).
+import logoDarkImg from '../../assets/logos/Himmel-Logo-dark.png';
 
 const CompanyLogo = ({
   className = 'h-10 w-auto',
@@ -8,12 +10,20 @@ const CompanyLogo = ({
   ...props
 }) => {
   const imgElement = (
-    <img
-      src={logoImg}
-      alt="Himmel Pharmaceutical Logo"
-      className={`object-contain select-none ${className}`}
-      {...props}
-    />
+    <>
+      <img
+        src={logoImg}
+        alt="Himmel Pharmaceutical Logo"
+        className={`object-contain select-none dark:hidden ${className}`}
+        {...props}
+      />
+      <img
+        src={logoDarkImg}
+        alt="Himmel Pharmaceutical Logo"
+        className={`object-contain select-none hidden dark:block ${className}`}
+        {...props}
+      />
+    </>
   );
 
   if (withCard) {

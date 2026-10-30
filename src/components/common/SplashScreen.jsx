@@ -52,8 +52,8 @@ const SplashScreen = ({ onComplete }) => {
       {/* Main Brand Content */}
       <div className="flex flex-col items-center max-w-md w-full mx-auto px-8 text-center z-10">
         <div className="mb-6 transform hover:scale-103 transition-transform duration-300">
-          <div className="p-4 bg-white dark:bg-white rounded-2xl shadow-premium border border-gray-200 dark:border-gray-200 inline-block">
-            <CompanyLogo className="h-16 w-auto mx-auto object-contain drop-shadow-sm" />
+          <div className="inline-block">
+            <CompanyLogo className="h-16 w-auto mx-auto object-contain" />
           </div>
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white leading-none mt-5">
             Himmel

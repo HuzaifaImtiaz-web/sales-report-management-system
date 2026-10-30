@@ -1320,8 +1320,8 @@ const Settings = () => {
               {/* Header with Himmel Logo & Main App Info */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-gray-200 dark:border-brand-navyLine">
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-white rounded-xl shadow-sm border border-gray-200 shrink-0 inline-flex items-center justify-center">
-                    <CompanyLogo className="h-10 w-auto object-contain drop-shadow-sm" />
+                  <div className="shrink-0 inline-flex items-center justify-center">
+                    <CompanyLogo className="h-10 w-auto object-contain" />
                   </div>
                   <div>
                     <h2 className="text-base font-semibold text-gray-900 dark:text-white">

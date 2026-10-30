@@ -120,8 +120,8 @@ const Login = () => {
       <Glow />
 
       <header className="relative flex items-center justify-between px-5 pt-5 sm:px-8 sm:pt-6">
-        <span className="inline-flex items-center bg-white rounded-xl px-3 py-2 shadow-soft ring-1 ring-black/5">
-          <CompanyLogo className="h-7 sm:h-[30px] w-auto" />
+        <span className="inline-flex items-center">
+          <CompanyLogo className="h-8 sm:h-9 w-auto" />
         </span>
         <button
           type="button"

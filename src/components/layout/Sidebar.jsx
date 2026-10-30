@@ -133,11 +133,11 @@ const SidebarContent = ({
       {/* Logo */}
       <div className={`flex-shrink-0 flex items-center h-16 border-b border-line dark:border-brand-navyLine ${isCollapsed ? 'justify-center px-2' : 'px-5'}`}>
         {isCollapsed ? (
-          <span className="w-10 h-10 rounded-lg bg-white border border-line dark:border-transparent inline-flex items-center justify-center overflow-hidden">
+          <span className="w-10 h-10 inline-flex items-center justify-center overflow-hidden">
             <CompanyLogo className="h-8 w-auto max-w-none object-left object-cover" style={{ width: 32, objectPosition: 'left center' }} aria-label="Himmel Pharmaceuticals" />
           </span>
         ) : (
-          <span className="inline-flex items-center rounded-lg dark:bg-white dark:px-2.5 dark:py-1.5">
+          <span className="inline-flex items-center">
             <CompanyLogo className="h-9 w-auto" />
           </span>
         )}
