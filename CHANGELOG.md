@@ -1,5 +1,26 @@
 # Changelog
 
+## [Unreleased] - Security and data fixes
+### Security
+- **Order status (SEC-001)**: saving an order never sets its status; new orders are always Pending
+  and only "Complete" / "Cancel" (with their role rules) change it.
+- **Order ownership and prices (SEC-002)**: sales representatives edit only the pending orders they
+  entered, at the trade price; managers and administrators edit any pending order and may change
+  prices. Every price away from the trade price is logged with the trade price next to it. A
+  username change keeps the user's orders.
+- **Recovery PIN (SEC-003)**: each attempt is counted in one database step before it is checked, so
+  guesses sent at the same moment cannot get past the 5-attempt limit; the message says how many
+  tries are left.
+- **Sign-in (SEC-004)**: one message for every failed sign-in, including a paused account, so it no
+  longer reveals which usernames exist. Sign-in still pauses for 15 minutes after 5 wrong passwords
+  and then works again by itself.
+- **Dependencies (SEC-005)**: `npm audit fix` (body-parser 2.4.0, qs, postcss and others).
+
+### Fixed
+- **Business years (DATA-002)**: when no business year covers today, orders were saved without
+  checking products, quantities or prices. Those checks now always run, and the order date must
+  fall inside an existing business year.
+
 ## [2.0.0] - 2026-10-12 (Web App)
 ### Changed
 - **Web app instead of desktop app**: runs in any browser (computer or phone); hosted on Vercel with

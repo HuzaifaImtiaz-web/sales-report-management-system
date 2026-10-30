@@ -99,7 +99,7 @@ test('old usernames and passwords work, disabled accounts stay disabled', async 
   await call('auth:login', [{ username: 'admin', password: 'Legacy#Admin1' }]);
   await call('auth:login', [{ username: 'Sara', password: 'Legacy#Sara1' }]);
   await assert.rejects(call('auth:login', [{ username: 'olduser', password: 'Legacy#Old1' }]), /disabled/);
-  await assert.rejects(call('auth:login', [{ username: 'admin', password: 'Bootstrap#2026' }]), /Invalid username or password/);
+  await assert.rejects(call('auth:login', [{ username: 'admin', password: 'Bootstrap#2026' }]), /Username or password is incorrect/);
 });
 
 test('row counts, order totals and report figures match the SQLite version', async () => {

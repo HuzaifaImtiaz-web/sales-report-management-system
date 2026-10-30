@@ -22,7 +22,7 @@ import { exportToCSV } from '../../utils/exportUtils';
 export default function SalesEntry() {
   const navigate = useNavigate();
   // Only the actions this role may perform are shown (the server enforces the same rules).
-  const { hasPermission } = useAuth();
+  const { hasPermission, canEditOrder } = useAuth();
   const canComplete = hasPermission('orders.complete');
   const canCancel = hasPermission('orders.cancel');
   const canDelete = hasPermission('orders.delete');
@@ -450,13 +450,23 @@ export default function SalesEntry() {
                             {/* Pending Actions */}
                             {isPending && (
                               <>
-                                <button
-                                  onClick={() => navigate(`/orders/${sale.id}/edit`)}
-                                  className="p-1.5 text-gray-600 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors"
-                                  title="Edit Order"
-                                >
-                                  <FiEdit3 className="w-4 h-4" />
-                                </button>
+                                {canEditOrder(sale) ? (
+                                  <button
+                                    onClick={() => navigate(`/orders/${sale.id}/edit`)}
+                                    className="p-1.5 text-gray-600 hover:bg-gray-50 dark:hover:bg-white/5 rounded-lg transition-colors"
+                                    title="Edit Order"
+                                  >
+                                    <FiEdit3 className="w-4 h-4" />
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => navigate(`/orders/${sale.id}`)}
+                                    className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                                    title="View Order Details"
+                                  >
+                                    <FiEye className="w-4 h-4" />
+                                  </button>
+                                )}
                                 {canComplete && (
                                   <button
                                     onClick={() => setToComplete(sale)}

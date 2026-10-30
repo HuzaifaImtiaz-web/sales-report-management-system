@@ -223,6 +223,10 @@ export const AuthProvider = ({ children }) => {
     return checkHasPermission(user.role, permissionKey);
   };
 
+  // Sales representatives edit only the pending orders they entered (the server enforces this too).
+  const canEditOrder = (order) => Boolean(order) && order.status === 'Pending' &&
+    (hasPermission('orders.editAny') || order.createdBy === user?.username);
+
   const value = {
     user,
     isAuthenticated,
@@ -230,6 +234,7 @@ export const AuthProvider = ({ children }) => {
     login: loginUser,
     logout: logoutUser,
     hasPermission,
+    canEditOrder,
     setUser,
     setIsAuthenticated,
     sessionExpiredMsg,

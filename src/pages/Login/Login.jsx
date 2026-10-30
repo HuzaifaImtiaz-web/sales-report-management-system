@@ -74,10 +74,9 @@ const Login = () => {
         // The security setup wizard (administrators) opens on top of the app from AuthContext.
         navigate('/dashboard', { replace: true });
       } else {
-        // Server messages are written for users (wrong password, locked account, maintenance,
+        // Server messages are written for users (wrong password or paused sign-in, maintenance,
         // too many attempts, connection problems), so show them as they are.
-        const errMsg = res.error || 'Incorrect username or password.';
-        setError(errMsg === 'Invalid username or password.' ? 'Incorrect username or password.' : errMsg);
+        setError(res.error || 'Username or password is incorrect.');
       }
     } catch (err) {
       setError('An unexpected connection error occurred. Please try again.');

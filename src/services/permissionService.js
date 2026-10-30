@@ -18,7 +18,8 @@ const ROLE_PERMISSIONS = {
     // Product Groups
     'groups.view', 'groups.create', 'groups.edit', 'groups.delete',
     // Orders
-    'orders.view', 'orders.create', 'orders.edit', 'orders.approve', 'orders.complete', 'orders.cancel', 'orders.delete',
+    // editAny: any pending order (others edit only their own); changePrice: sell away from the TP
+    'orders.view', 'orders.create', 'orders.edit', 'orders.editAny', 'orders.changePrice', 'orders.approve', 'orders.complete', 'orders.cancel', 'orders.delete',
     // Targets
     'targets.view', 'targets.create', 'targets.edit', 'targets.delete',
     // Reports & Export
@@ -34,7 +35,7 @@ const ROLE_PERMISSIONS = {
     'areas.view', 'areas.create', 'areas.edit',
     'teamMembers.view', 'teamMembers.create', 'teamMembers.edit',
     'groups.view', 'groups.create', 'groups.edit',
-    'orders.view', 'orders.create', 'orders.edit', 'orders.approve', 'orders.cancel',
+    'orders.view', 'orders.create', 'orders.edit', 'orders.editAny', 'orders.changePrice', 'orders.approve', 'orders.cancel',
     'targets.view', 'targets.create', 'targets.edit',
     'reports.view', 'reports.export'
   ],

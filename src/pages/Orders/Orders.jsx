@@ -58,7 +58,7 @@ const DeleteDialog = ({ order, onCancel, onConfirm }) => (
 
 const Orders = () => {
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
+  const { hasPermission, canEditOrder } = useAuth();
   const canComplete = hasPermission('orders.complete');
   const canCancel = hasPermission('orders.cancel');
   const canDelete = hasPermission('orders.delete');
@@ -431,13 +431,15 @@ const Orders = () => {
 
                           {po.status === 'Pending' && (
                             <>
-                              <button
-                                onClick={() => navigate(`/orders/${po.id}/edit`)}
-                                title="Edit Order"
-                                className="px-2.5 py-1 bg-gray-100 dark:bg-brand-navy text-gray-700 dark:text-gray-300 rounded text-xs font-semibold inline-flex items-center gap-1"
-                              >
-                                <FiEdit3 className="w-3 h-3" /> Edit
-                              </button>
+                              {canEditOrder(po) && (
+                                <button
+                                  onClick={() => navigate(`/orders/${po.id}/edit`)}
+                                  title="Edit Order"
+                                  className="px-2.5 py-1 bg-gray-100 dark:bg-brand-navy text-gray-700 dark:text-gray-300 rounded text-xs font-semibold inline-flex items-center gap-1"
+                                >
+                                  <FiEdit3 className="w-3 h-3" /> Edit
+                                </button>
+                              )}
                               {canComplete && (
                                 <button
                                   onClick={() => handleStatusChange(po, 'Completed')}

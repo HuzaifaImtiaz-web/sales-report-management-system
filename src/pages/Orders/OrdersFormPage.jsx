@@ -10,12 +10,14 @@ import { areaService } from '../../services/areaService';
 import { teamMemberService } from '../../services/teamMemberService';
 import Toast from '../../components/common/Toast';
 import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function OrdersFormPage() {
   const { id } = useParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { setIsDirty, confirmNavigation } = useUnsavedChanges();
+  const { canEditOrder } = useAuth();
 
   const [products, setProducts] = useState([]);
   const [doctors, setDoctors] = useState([]);
@@ -27,11 +29,12 @@ export default function OrdersFormPage() {
   const [formKey, setFormKey] = useState(0);
   const [toast, setToast] = useState(null);
 
+  // An edit link for an order this user may not change opens it read-only.
   const mode = useMemo(() => {
-    if (pathname.endsWith('/edit')) return 'edit';
+    if (pathname.endsWith('/edit')) return currentItem && !canEditOrder(currentItem) ? 'view' : 'edit';
     if (id) return 'view';
     return 'add';
-  }, [pathname, id]);
+  }, [pathname, id, currentItem, canEditOrder]);
 
   useEffect(() => {
     Promise.all([

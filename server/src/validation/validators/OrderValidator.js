@@ -38,32 +38,35 @@ class OrderValidator {
       throw new Error('PO Number already exists.');
     }
 
-    // Verify Order Date belongs to active Business Year
+    const orderTime = new Date(orderDate).getTime();
+    if (isNaN(orderTime)) {
+      throw new Error('Invalid Order Date format.');
+    }
+
+    // The order date must fall in the business year that covers today. When no year covers today
+    // (the last one has ended and the next is not created yet), it must fall in one of the existing
+    // years. Either way the product checks below always run.
     const activeYear = await this.db.get(`
       SELECT id, year_name, start_date, end_date FROM business_years
       WHERE CURRENT_DATE BETWEEN himmel_date(start_date) AND himmel_date(end_date)
       LIMIT 1
     `);
-    if (!activeYear) {
-      // Fallback: use any business year as ordering may predate strict year boundaries
-      const fallbackYear = await this.db.get('SELECT id FROM business_years ORDER BY start_date DESC LIMIT 1');
-      if (!fallbackYear) {
+    if (activeYear) {
+      const startTime = new Date(activeYear.start_date).getTime();
+      const endTime = new Date(activeYear.end_date).getTime();
+      if (orderTime < startTime || orderTime > endTime) {
+        throw new Error(`Order Date must belong to active Business Year: ${activeYear.year_name} (${activeYear.start_date} to ${activeYear.end_date}).`);
+      }
+    } else {
+      const years = await this.db.all('SELECT year_name, start_date, end_date FROM business_years ORDER BY start_date');
+      if (years.length === 0) {
         throw new Error('No Business Year exists. Please create one before saving orders.');
       }
-      // Allow the order if a business year exists — don't block on date range
-      return;
-    }
-
-    const orderTime = new Date(orderDate).getTime();
-    const startTime = new Date(activeYear.start_date).getTime();
-    const endTime = new Date(activeYear.end_date).getTime();
-
-    if (isNaN(orderTime)) {
-      throw new Error('Invalid Order Date format.');
-    }
-
-    if (orderTime < startTime || orderTime > endTime) {
-      throw new Error(`Order Date must belong to active Business Year: ${activeYear.year_name} (${activeYear.start_date} to ${activeYear.end_date}).`);
+      const inSomeYear = years.some((y) => orderTime >= new Date(y.start_date).getTime() && orderTime <= new Date(y.end_date).getTime());
+      if (!inSomeYear) {
+        const last = years[years.length - 1];
+        throw new Error(`Order Date is outside every Business Year (the last one, ${last.year_name}, ended on ${last.end_date}). Ask an administrator to create the next Business Year in Settings.`);
+      }
     }
 
     // Validate Items (a plain loop: forEach would not wait for the database lookups)

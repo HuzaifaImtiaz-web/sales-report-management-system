@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { FiTrash2, FiSave, FiAlertCircle, FiCheck, FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useUnsavedChanges } from '../../context/UnsavedChangesContext';
+import { useAuth } from '../../context/AuthContext';
 import StatusBadge from './StatusBadge';
 
 const Field = ({ label, required, error, children }) => (
@@ -79,6 +80,9 @@ export default function OrdersForm({
   const isView = mode === 'view';
   const navigate = useNavigate();
   const { setIsDirty } = useUnsavedChanges();
+  // Only managers and administrators sell away from the trade price (the server enforces this too).
+  const { hasPermission } = useAuth();
+  const canChangePrice = hasPermission('orders.changePrice');
 
   const [form, setForm] = useState({
     id: '',
@@ -545,7 +549,7 @@ export default function OrdersForm({
                 {/* Selling Price (Editable Override) */}
                 <div className="md:col-span-2">
                   <label className="block text-[11px] text-gray-500 font-semibold mb-1">Selling Price</label>
-                  {isReadOnly ? (
+                  {isReadOnly || !canChangePrice ? (
                     <div className="text-xs font-mono font-semibold text-gray-800 dark:text-gray-200 text-center">
                       Rs {Number(it.rate).toFixed(2)}
                     </div>

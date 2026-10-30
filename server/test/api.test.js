@@ -6,6 +6,8 @@ const path = require('path');
 const zlib = require('zlib');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
+// The one message for every failed sign-in (it never reveals whether an account exists).
+const INVALID_LOGIN = 'Username or password is incorrect. After 5 wrong tries, sign-in pauses for 15 minutes.';
 const { PGlite } = require('@electric-sql/pglite');
 const { PGLiteSocketServer } = require('@electric-sql/pglite-socket');
 
@@ -217,10 +219,10 @@ test('only JSON requests from this site are accepted', async () => {
 test('login: wrong password, then the seeded administrator gets an HttpOnly session cookie', async () => {
   const bad = await anonymous().call('auth:login', [{ username: 'admin', password: 'wrong-password' }]);
   assert.equal(bad.success, false);
-  assert.equal(bad.error, 'Invalid username or password.');
+  assert.equal(bad.error, INVALID_LOGIN);
 
   const unknown = await anonymous().call('auth:login', [{ username: 'ghost', password: 'whatever123' }]);
-  assert.equal(unknown.error, 'Invalid username or password.');
+  assert.equal(unknown.error, INVALID_LOGIN);
 
   const client = new Client();
   const res = await client.call('auth:login', [{ username: 'ADMIN', password: ADMIN_PASSWORD }]);
@@ -438,16 +440,24 @@ test('business years: administrators create them in the database, with targets c
 });
 
 test('orders: reps enter them, managers cancel, only admins complete and delete', async () => {
-  const order = await state.rep.ok('orders:save', [{
+  const firstOrder = {
     createdBy: 'admin', // ignored: new orders belong to whoever is signed in
+    status: 'Completed', // ignored: new orders are always Pending
     orderNumber: 'PO-2026-001', orderDate: '2026-09-15', teamMemberId: state.teamMemberId,
     doctorId: state.doctorId, institutionId: state.institutionId, areaId: state.areaId,
     items: [
       { productId: state.productId, quantity: 20, unitPrice: 4500 },
-      { productId: state.product2Id, quantity: 5, unitPrice: 2000 } // price override
+      { productId: state.product2Id, quantity: 5, unitPrice: 2000 } // below the trade price (2400)
     ]
+  };
+  const repOverride = await state.rep.call('orders:save', [firstOrder]);
+  assert.equal(repOverride.status, 403);
+  assert.match(repOverride.error, /Row 2: HyperNorm 10mg must be sold at its trade price \(Rs 2,400\)\. Only managers and administrators can change prices\./);
+
+  const order = await state.rep.ok('orders:save', [{
+    ...firstOrder, items: [firstOrder.items[0], { productId: state.product2Id, quantity: 5, unitPrice: 2400 }]
   }]);
-  assert.equal(order.totalAmount, 20 * 4500 + 5 * 2000);
+  assert.equal(order.totalAmount, 20 * 4500 + 5 * 2400);
   assert.equal(order.status, 'Pending');
   assert.equal(order.createdBy, 'rafay');
   assert.equal(order.items.length, 2);
@@ -476,6 +486,33 @@ test('orders: reps enter them, managers cancel, only admins complete and delete'
     orderNumber: 'PO-2026-002', orderDate: '2026-09-20', teamMemberId: state.teamMemberId, areaId: state.areaId,
     items: [{ productId: state.product2Id, quantity: 3, unitPrice: 2400 }]
   }]);
+
+  // Saving never changes the status: that goes through orders:changeStatus and its role rules.
+  const sneaky = await state.rep.ok('orders:save', [{ ...second, status: 'Completed' }]);
+  assert.equal(sneaky.status, 'Pending');
+
+  // Representatives edit only their own orders; managers edit any pending order and may change
+  // the price, which is logged with the trade price next to it.
+  await state.admin.ok('auth:createUser', [{ username: 'sana', password: 'OtherRep#2026', fullName: 'Sana Rep', role: 'Rep' }]);
+  const otherRep = await login('sana', 'OtherRep#2026');
+  const notOwner = await otherRep.call('orders:save', [{ ...second, remarks: 'mine now' }]);
+  assert.equal(notOwner.status, 403);
+  assert.equal(notOwner.error, 'Sales representatives can edit only the orders they entered.');
+
+  const discounted = await state.manager.ok('orders:save', [{ ...second, items: [{ productId: state.product2Id, quantity: 3, unitPrice: 2200 }] }]);
+  assert.equal(discounted.totalAmount, 6600);
+  assert.equal(discounted.createdBy, 'rafay', 'the order still belongs to the representative');
+  const override = await getDb().get(
+    "SELECT new_value, performed_by FROM audit_logs WHERE action = 'Price Override' AND entity_id = ? ORDER BY id DESC LIMIT 1",
+    [String(second.id)]
+  );
+  assert.equal(override.performed_by, 'maria');
+  assert.deepEqual(JSON.parse(override.new_value).overrides, [
+    { productId: state.product2Id, product: 'HyperNorm 10mg', tradePrice: 2400, unitPrice: 2200, quantity: 3 }
+  ]);
+  // The representative can still edit the order at the price the manager set.
+  const keptPrice = await state.rep.ok('orders:save', [{ ...discounted, remarks: 'delivery on Monday' }]);
+  assert.equal(keptPrice.totalAmount, 6600);
 
   // Permission matrix (src/services/permissionService.js), enforced by the server.
   assert.equal((await state.rep.call('orders:changeStatus', [second.id, 'Cancelled', 'Customer request'])).status, 403);
@@ -697,7 +734,7 @@ test('maintenance mode blocks non-admin logins', async () => {
   const blocked = await anonymous().call('auth:login', [{ username: 'rafay', password: 'RepPass#2026' }]);
   assert.match(blocked.error, /under maintenance/);
   const wrongPassword = await anonymous().call('auth:login', [{ username: 'rafay', password: 'not-the-password' }]);
-  assert.equal(wrongPassword.error, 'Invalid username or password.', 'no account details without the password');
+  assert.equal(wrongPassword.error, INVALID_LOGIN, 'no account details without the password');
   await state.admin.ok('settings:save', ['maintenance_mode', 'false', 'general']);
   state.rep = await login('rafay', 'RepPass#2026');
 });
@@ -735,7 +772,7 @@ test('integrity check and diagnostics', async () => {
   assert.equal(report.audit.orders.total, 2);
   const diag = await state.admin.ok('diagnostics:get');
   assert.equal(diag.databaseAvailable, true);
-  assert.equal(diag.counts.users, 3);
+  assert.equal(diag.counts.users, 4);
 });
 
 test('backups download and restore gzipped, and need the admin password again', async () => {
@@ -809,14 +846,14 @@ test('emergency recovery stays disabled until an admin sets it up, then needs it
   assert.deepEqual(await state.rep.ok('auth:getSecurityStatus'), { isFirstLoginPending: false });
 
   const wrong = await anonymous().call('auth:recoveryVerifyPassword', ['nope']);
-  assert.equal(wrong.error, 'Invalid emergency recovery password.');
+  assert.equal(wrong.error, 'Invalid emergency recovery password. 4 tries left before recovery locks for 30 minutes.');
 
   const rescuer = new Client();
   const verified = await rescuer.ok('auth:recoveryVerifyPassword', ['Rescue#Pass99']);
   assert.ok(verified.csrfToken);
   assert.ok(rescuer.cookies.has(config.cookies.recovery), 'recovery session cookie set');
   const users = await rescuer.ok('auth:recoveryGetUsers', [], { csrf: verified.csrfToken });
-  assert.equal(users.length, 3);
+  assert.equal(users.length, 4);
   assert.equal((await rescuer.call('auth:recoveryGetUsers', [], { csrf: 'forged' })).status, 403);
 
   const pinClient = new Client();
@@ -887,16 +924,22 @@ test('the last active administrator cannot be removed', async () => {
   assert.match(del.error, /cannot be deleted/);
 });
 
-test('account locks after five wrong passwords', async () => {
+test('sign-in pauses for 15 minutes after five wrong passwords, without revealing the account', async () => {
   await state.admin.ok('auth:createUser', [{ username: 'lockme', password: 'Padlock#2026x', fullName: 'Lock Me', role: 'Rep' }]);
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 5; i++) {
     const r = await anonymous().call('auth:login', [{ username: 'lockme', password: 'wrong' }]);
-    assert.equal(r.error, 'Invalid username or password.');
+    assert.equal(r.error, INVALID_LOGIN);
   }
-  const fifth = await anonymous().call('auth:login', [{ username: 'lockme', password: 'wrong' }]);
-  assert.match(fifth.error, /Account locked/);
+  // While paused even the right password gets the same message as an unknown username.
   const correct = await anonymous().call('auth:login', [{ username: 'lockme', password: 'Padlock#2026x' }]);
-  assert.match(correct.error, /temporarily locked/);
+  assert.equal(correct.error, INVALID_LOGIN);
+  const unknown = await anonymous().call('auth:login', [{ username: 'nobody-here', password: 'Padlock#2026x' }]);
+  assert.equal(unknown.error, correct.error);
+
+  // The pause ends by itself after 15 minutes.
+  await getDb().run("UPDATE users SET locked_until = ? WHERE username = 'lockme'", [new Date(Date.now() - 1000).toISOString()]);
+  assert.equal((await anonymous().call('auth:login', [{ username: 'lockme', password: 'Padlock#2026x' }])).success, true);
+  for (let i = 0; i < 5; i++) await anonymous().call('auth:login', [{ username: 'lockme', password: 'wrong' }]);
 
   // An administrator can unlock it (managers cannot).
   assert.equal((await state.manager.call('auth:unlockUser', [{ username: 'lockme' }])).status, 403);
@@ -919,4 +962,48 @@ test('administrators are asked to finish the security setup until it is done', a
   assert.equal((await state.admin.ok('auth:getSecurityStatus')).isFirstLoginPending, false);
   const again = await state.admin.call('auth:completeFirstLoginWizard', [{ newUsername: 'admin', newPassword: 'Another#Chief2026', recoveryPassword: 'Rescue#Pass2027', recoveryPin: '736252' }]);
   assert.match(again.error, /already been completed/);
+});
+
+test('recovery PIN guesses sent at the same moment cannot get past the limit', async () => {
+  const RecoveryService = require('../src/auth/RecoveryService');
+  const recovery = new RecoveryService(getDb());
+  const results = await Promise.allSettled(Array.from({ length: 12 }, () => recovery.verifyRecoveryPin('000000')));
+  const messages = results.map((r) => r.reason.message);
+  const checked = messages.filter((m) => m.startsWith('Invalid recovery PIN.'));
+  assert.equal(checked.length, 5, 'only five guesses are checked');
+  assert.ok(checked.some((m) => m.endsWith('Emergency recovery is now locked for 30 minutes.')));
+  assert.equal(messages.filter((m) => /locked after repeated failed attempts/.test(m)).length, 7);
+  await assert.rejects(recovery.verifyRecoveryPin('736251'), /locked after repeated failed attempts/, 'the right PIN waits too');
+
+  // When the pause is over, the right PIN works and the count starts again.
+  await getDb().run("UPDATE system_security SET value = ? WHERE key = 'recovery_locked_until'", [new Date(Date.now() - 1000).toISOString()]);
+  await assert.rejects(recovery.verifyRecoveryPin('000000'), /Invalid recovery PIN\. 4 tries left/);
+  assert.equal(await recovery.verifyRecoveryPin('736251'), true);
+});
+
+test('order checks never skip when no business year covers today', async () => {
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const year = await getDb().get("SELECT id, end_date FROM business_years WHERE year_name = '2026-2027'");
+  await getDb().run('UPDATE business_years SET end_date = ? WHERE id = ?', [yesterday, year.id]);
+  try {
+    const order = (fields) => state.rep.call('orders:save', [{
+      orderNumber: 'PO-2026-090', orderDate: '2026-09-25', teamMemberId: state.teamMemberId, areaId: state.areaId,
+      items: [{ productId: state.productId, quantity: 2, unitPrice: 4500 }], ...fields
+    }]);
+    assert.match((await order({ items: [{ productId: state.productId, quantity: 0, unitPrice: 4500 }] })).error, /Quantity must be a positive integer/);
+    assert.match((await order({ items: [{ productId: 999999, quantity: 1, unitPrice: 1 }] })).error, /does not exist/);
+    assert.match((await order({ orderDate: new Date().toISOString().slice(0, 10) })).error, /outside every Business Year \(the last one, 2028-2029/);
+    const saved = await order({});
+    assert.equal(saved.success, true, saved.error);
+    state.lateOrder = saved.data;
+  } finally {
+    await getDb().run('UPDATE business_years SET end_date = ? WHERE id = ?', [year.end_date, year.id]);
+  }
+});
+
+test('a representative keeps their orders after changing username', async () => {
+  await state.rep.ok('auth:changeUsername', [{ currentPassword: 'NewRep#2026x', newUsername: 'rafay.k' }]);
+  const edited = await state.rep.ok('orders:save', [{ ...state.lateOrder, remarks: 'after rename' }]);
+  assert.equal(edited.createdBy, 'rafay.k');
+  assert.equal(edited.remarks, 'after rename');
 });

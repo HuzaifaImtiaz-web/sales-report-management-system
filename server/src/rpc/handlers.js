@@ -38,6 +38,10 @@ const MANAGERS = ['Admin', 'Manager'];
 // Who may move an order to each final status (permissionService.js: orders.complete is Admin only,
 // orders.cancel is Admin and Manager). Sales representatives create and edit pending orders.
 const ORDER_STATUS_ROLES = { Completed: ADMIN, Cancelled: MANAGERS };
+// Managers and administrators edit any pending order and may sell below or above the trade price
+// (TP); sales representatives edit only the orders they entered, at the trade price.
+const ORDER_EDIT_ANY_ROLES = MANAGERS;
+const PRICE_CHANGE_ROLES = MANAGERS;
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
 // Per IP address. Only failed sign-ins count, so a whole office behind one internet connection can
@@ -176,6 +180,14 @@ const handlers = {
       const user = username(ctx);
       const oldVal = clean.id ? await s.orders.findById(clean.id) : null;
 
+      if (oldVal && !ORDER_EDIT_ANY_ROLES.includes(role) && oldVal.createdBy !== user) {
+        await ctx.audit({
+          module: 'Orders', entityType: 'Order', entityId: clean.id,
+          action: 'Edit Attempt on Another User\'s Order', oldValue: oldVal, newValue: clean
+        });
+        throw new ForbiddenError('Sales representatives can edit only the orders they entered.');
+      }
+
       try {
         await s.validator.validate('Orders', 'Save Order', () => s.validator.order.validateSave(clean, role));
       } catch (err) {
@@ -189,10 +201,14 @@ const handlers = {
       }
 
       let recalculatedTotal = 0;
-      let hasPriceOverride = false;
+      const priceOverrides = [];
       const itemsList = clean.items || clean.products || [];
+      const canChangePrice = PRICE_CHANGE_ROLES.includes(role);
+      // A price already on this order stays allowed, so an order entered before a TP change can
+      // still be edited by the representative who entered it.
+      const savedPrices = new Set((oldVal ? oldVal.items : []).map((it) => `${it.productId}:${Number(it.unitPrice)}`));
 
-      for (const item of itemsList) {
+      for (const [idx, item] of itemsList.entries()) {
         const qty = Number(item.quantity || item.qty || 1);
         const rate = Number(item.unitPrice !== undefined ? item.unitPrice : (item.rate || 0));
         item.quantity = qty;
@@ -202,15 +218,24 @@ const handlers = {
 
         if (item.productId) {
           const p = await s.products.findById(item.productId);
-          if (p && p.tp !== undefined && Number(p.tp) !== rate) {
-            hasPriceOverride = true;
+          if (p && p.tp !== undefined && p.tp !== null && Number(p.tp) !== rate) {
+            if (!canChangePrice && !savedPrices.has(`${item.productId}:${rate}`)) {
+              throw new ForbiddenError(
+                `Row ${idx + 1}: ${p.brandName || 'this product'} must be sold at its trade price (Rs ${Number(p.tp).toLocaleString('en-US')}). Only managers and administrators can change prices.`
+              );
+            }
+            priceOverrides.push({
+              productId: item.productId, product: p.brandName, tradePrice: Number(p.tp), unitPrice: rate, quantity: qty
+            });
           }
         }
       }
 
       clean.items = itemsList;
       clean.totalAmount = recalculatedTotal;
-      clean.status = clean.status || 'Pending';
+      // Status changes only go through orders:changeStatus (with its role rules); saving never
+      // sets one. New orders start Pending, edits keep the order's current status.
+      clean.status = oldVal ? oldVal.status : 'Pending';
 
       // New orders are always attributed to the signed-in user (the client cannot pick a name).
       const res = clean.id
@@ -222,10 +247,10 @@ const handlers = {
         action: clean.id ? 'Order Edited' : 'Order Created', oldValue: oldVal, newValue: res
       });
 
-      if (hasPriceOverride) {
+      if (priceOverrides.length) {
         await ctx.audit({
           module: 'Orders', entityType: 'Order', entityId: res.id,
-          action: 'Price Override', oldValue: null, newValue: { orderNumber: res.orderNumber, items: res.items }
+          action: 'Price Override', oldValue: null, newValue: { orderNumber: res.orderNumber, overrides: priceOverrides }
         });
       }
 

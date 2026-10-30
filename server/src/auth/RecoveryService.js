@@ -24,22 +24,53 @@ class RecoveryService {
 
   async _assertNotLocked() {
     const lockedUntil = await this.auth.getSecuritySetting('recovery_locked_until');
-    if (lockedUntil && new Date(lockedUntil) > new Date()) {
+    if (!lockedUntil) return;
+    if (new Date(lockedUntil) > new Date()) {
       const minutes = Math.ceil((new Date(lockedUntil) - new Date()) / 60000);
       throw new Error(`Emergency recovery is locked after repeated failed attempts. Please try again in ${minutes} minutes.`);
     }
+    // The pause is over: start counting again.
+    await this.auth.setSecuritySetting('recovery_locked_until', '');
+    await this.auth.setSecuritySetting('recovery_failed_attempts', '0');
   }
 
-  async _recordFailure() {
-    const failed = Number(await this.auth.getSecuritySetting('recovery_failed_attempts')) || 0;
-    if (failed + 1 >= MAX_FAILED_ATTEMPTS) {
-      const lockedUntil = new Date(Date.now() + LOCK_MINUTES * 60 * 1000).toISOString();
-      await this.auth.setSecuritySetting('recovery_locked_until', lockedUntil);
-      await this.auth.setSecuritySetting('recovery_failed_attempts', '0');
-      logger.warn(`Emergency recovery locked for ${LOCK_MINUTES} minutes after ${MAX_FAILED_ATTEMPTS} failed attempts.`);
-    } else {
-      await this.auth.setSecuritySetting('recovery_failed_attempts', String(failed + 1));
+  /**
+   * Counts the attempt before the (slow) password/PIN check, in one database statement, so guesses
+   * sent at the same moment are all counted and only the first MAX_FAILED_ATTEMPTS are checked.
+   * Returns this attempt's number.
+   */
+  async _startAttempt() {
+    await this._assertNotLocked();
+    const row = await this.db.get(`
+      INSERT INTO system_security (key, value, updated_at)
+      VALUES ('recovery_failed_attempts', '1', himmel_now_text())
+      ON CONFLICT (key) DO UPDATE
+        SET value = (COALESCE(NULLIF(system_security.value, ''), '0')::integer + 1)::text,
+            updated_at = excluded.updated_at
+      RETURNING value
+    `);
+    const attempt = Number(row.value);
+    if (attempt > MAX_FAILED_ATTEMPTS) {
+      await this._lock();
+      throw new Error(`Emergency recovery is locked after repeated failed attempts. Please try again in ${LOCK_MINUTES} minutes.`);
     }
+    return attempt;
+  }
+
+  async _lock() {
+    const lockedUntil = new Date(Date.now() + LOCK_MINUTES * 60 * 1000).toISOString();
+    await this.auth.setSecuritySetting('recovery_locked_until', lockedUntil);
+    logger.warn(`Emergency recovery locked for ${LOCK_MINUTES} minutes after ${MAX_FAILED_ATTEMPTS} failed attempts.`);
+  }
+
+  /** The error for a wrong password/PIN, with the number of tries the server still allows. */
+  async _failure(attempt, message) {
+    const left = MAX_FAILED_ATTEMPTS - attempt;
+    if (left <= 0) {
+      await this._lock();
+      return new Error(`${message} Emergency recovery is now locked for ${LOCK_MINUTES} minutes.`);
+    }
+    return new Error(`${message} ${left} ${left === 1 ? 'try' : 'tries'} left before recovery locks for ${LOCK_MINUTES} minutes.`);
   }
 
   async _recordSuccess() {
@@ -50,22 +81,19 @@ class RecoveryService {
     if (!password || typeof password !== 'string') {
       throw new Error('Invalid emergency recovery password.');
     }
-    await this._assertNotLocked();
-
     const storedHash = await this.auth.getSecuritySetting('recovery_password_hash');
-    let isValid;
-    if (storedHash) {
-      isValid = await PasswordService.verifyPassword(password, storedHash);
-    } else if (allowDefault) {
-      isValid = password === DEFAULT_RECOVERY_PASSWORD;
-    } else {
+    if (!storedHash && !allowDefault) {
       throw new Error(NOT_CONFIGURED);
     }
+    const attempt = await this._startAttempt();
+
+    const isValid = storedHash
+      ? await PasswordService.verifyPassword(password, storedHash)
+      : password === DEFAULT_RECOVERY_PASSWORD;
 
     if (!isValid) {
-      await this._recordFailure();
       logger.warn('Failed emergency recovery password verification attempt.');
-      throw new Error('Invalid emergency recovery password.');
+      throw await this._failure(attempt, 'Invalid emergency recovery password.');
     }
 
     await this._recordSuccess();
@@ -77,22 +105,19 @@ class RecoveryService {
     if (!pin || !/^\d{4,8}$/.test(String(pin))) {
       throw new Error('Recovery PIN must be 4 to 8 numeric digits.');
     }
-    await this._assertNotLocked();
-
     const storedHash = await this.auth.getSecuritySetting('recovery_pin_hash');
-    let isValid;
-    if (storedHash) {
-      isValid = await PasswordService.verifyPassword(String(pin), storedHash);
-    } else if (allowDefault) {
-      isValid = String(pin) === DEFAULT_RECOVERY_PIN;
-    } else {
+    if (!storedHash && !allowDefault) {
       throw new Error(NOT_CONFIGURED);
     }
+    const attempt = await this._startAttempt();
+
+    const isValid = storedHash
+      ? await PasswordService.verifyPassword(String(pin), storedHash)
+      : String(pin) === DEFAULT_RECOVERY_PIN;
 
     if (!isValid) {
-      await this._recordFailure();
       logger.warn('Failed recovery PIN verification attempt.');
-      throw new Error('Invalid recovery PIN.');
+      throw await this._failure(attempt, 'Invalid recovery PIN.');
     }
 
     await this._recordSuccess();

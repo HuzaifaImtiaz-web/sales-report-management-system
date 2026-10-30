@@ -4,7 +4,12 @@ const { assertStrongPassword, isStrongPassword } = require('./passwordPolicy');
 const logger = require('../logger');
 
 const ALLOWED_ROLES = ['Admin', 'Manager', 'Rep', 'Sales Representative'];
-const INVALID_LOGIN = 'Invalid username or password.';
+// The only message for a failed sign-in (unknown user, wrong password or a paused account), so it
+// never tells a stranger which usernames exist.
+const LOCK_AFTER_FAILURES = 5;
+const LOCK_MINUTES = 15;
+const INVALID_LOGIN =
+  `Username or password is incorrect. After ${LOCK_AFTER_FAILURES} wrong tries, sign-in pauses for ${LOCK_MINUTES} minutes.`;
 // New emergency recovery PINs: 6 to 8 digits (4-digit PINs set earlier still verify).
 const NEW_PIN = /^\d{6,8}$/;
 
@@ -79,11 +84,11 @@ class AuthService {
     }
 
     if (user.lockedUntil) {
-      const lockedUntilDate = new Date(user.lockedUntil);
-      if (lockedUntilDate > new Date()) {
-        const remainingMinutes = Math.ceil((lockedUntilDate - new Date()) / (60 * 1000));
+      if (new Date(user.lockedUntil) > new Date()) {
+        // Same time and message as a wrong password: a paused account is not revealed.
+        await PasswordService.spendComparisonTime(password);
         logger.warn(`Login failure: Attempt to access locked account: ${cleanUsername}`);
-        throw new Error(`Account is temporarily locked. Please try again in ${remainingMinutes} minutes.`);
+        throw new Error(INVALID_LOGIN);
       }
       await this.users.unlockAccount(user.id);
     }
@@ -93,10 +98,9 @@ class AuthService {
       const failedCount = await this.users.incrementFailedAttempts(user.id);
       logger.warn(`Login failure: Incorrect password for user: ${cleanUsername}. Failed attempts: ${failedCount}`);
 
-      if (failedCount >= 5) {
-        await this.users.lockAccount(user.id, 15);
-        logger.warn(`Account locked: User ${cleanUsername} locked for 15 minutes due to 5 failed attempts.`);
-        throw new Error('Account locked due to too many failed attempts. Please try again in 15 minutes.');
+      if (failedCount >= LOCK_AFTER_FAILURES) {
+        await this.users.lockAccount(user.id, LOCK_MINUTES);
+        logger.warn(`Account locked: User ${cleanUsername} locked for ${LOCK_MINUTES} minutes after ${failedCount} failed attempts.`);
       }
       throw new Error(INVALID_LOGIN);
     }
@@ -296,7 +300,11 @@ class AuthService {
       throw new Error(`Username '${cleanUsername}' is already taken.`);
     }
 
-    await this.users.update(user.id, { username: cleanUsername });
+    await this.db.transaction(async (tx) => {
+      await new UserRepository(tx).update(user.id, { username: cleanUsername });
+      // Orders record who entered them by username; representatives may edit only their own.
+      await tx.run('UPDATE orders SET created_by = ? WHERE created_by = ?', [cleanUsername, user.username]);
+    });
     logger.info(`SUCCESS: Username changed for user ID ${userId} to '${cleanUsername}'`);
     return { success: true, username: cleanUsername };
   }
@@ -369,4 +377,5 @@ class AuthService {
 module.exports = AuthService;
 module.exports.isStrongPassword = isStrongPassword;
 module.exports.NEW_PIN = NEW_PIN;
+module.exports.INVALID_LOGIN = INVALID_LOGIN;
 module.exports.toSessionUser = toSessionUser;
