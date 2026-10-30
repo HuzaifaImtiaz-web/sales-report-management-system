@@ -1,4 +1,4 @@
-# Himmel Pharmaceutical Sales Management System
+# Himmel Sales System
 
 ![Himmel Logo](src/assets/logos/Himmel-Logo.png)
 

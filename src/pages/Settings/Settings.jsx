@@ -1325,7 +1325,7 @@ const Settings = () => {
                   </div>
                   <div>
                     <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                      Himmel Pharmaceutical Sales Management System
+                      Himmel Sales System
                     </h2>
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
                       Enterprise Sales &amp; Distribution Management Platform
@@ -1356,7 +1356,7 @@ const Settings = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-3 border-t border-gray-200 dark:border-brand-navyLine/60 text-xs">
                   <div>
                     <span className="text-[11px] font-semibold text-gray-500 block">Application Name</span>
-                    <p className="font-semibold text-gray-800 dark:text-white mt-0.5">Himmel Pharmaceutical Sales Management System</p>
+                    <p className="font-semibold text-gray-800 dark:text-white mt-0.5">Himmel Sales System</p>
                   </div>
                   <div>
                     <span className="text-[11px] font-semibold text-gray-500 block">Version</span>

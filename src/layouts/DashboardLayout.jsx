@@ -80,7 +80,7 @@ const DashboardLayoutContent = ({ pageTitle = 'Dashboard', children }) => {
   useEffect(() => {
     if (pageTitle) {
       setTitle(pageTitle);
-      document.title = `${pageTitle} · Himmel Sales Management`;
+      document.title = `${pageTitle} · Himmel Sales System`;
     }
   }, [pageTitle, setTitle]);
 

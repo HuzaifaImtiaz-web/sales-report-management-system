@@ -64,7 +64,7 @@ const SplashScreen = ({ onComplete }) => {
         </div>
 
         <h1 className="text-[11px] font-semibold text-gray-500 dark:text-slate-400 mb-10">
-          Sales Management System
+          Sales System
         </h1>
 
         {/* Loading Progress Section */}

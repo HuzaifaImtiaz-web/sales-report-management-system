@@ -104,7 +104,7 @@ const Login = () => {
 
         <div className="relative max-w-[500px] space-y-7">
           <div className="space-y-3.5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em]">Sales Management System</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em]">Himmel Sales System</p>
             <h1 className="text-[38px] leading-tight font-semibold">Every order, target and report in one place.</h1>
             <p className="text-base leading-relaxed">Built for the Himmel sales team: works on any computer or phone, wherever you are.</p>
           </div>
@@ -150,7 +150,7 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="space-y-1.5">
               <h2 className="text-[28px] font-semibold text-ink dark:text-white">Welcome back</h2>
-              <p className="text-[15px] text-muted dark:text-gray-400">Sign in to continue to Himmel Sales.</p>
+              <p className="text-[15px] text-muted dark:text-gray-400">Sign in to continue to Himmel Sales System.</p>
             </div>
 
             {error && (

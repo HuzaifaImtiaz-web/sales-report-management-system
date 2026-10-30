@@ -25,7 +25,7 @@ const GROUPS = [
 // Defaults from the desktop app's seed data (machine-specific folders left out).
 const SETTINGS = {
   company_name: 'Himmel Pharmaceutical',
-  app_name: 'Himmel Sales Management',
+  app_name: 'Himmel Sales System',
   currency: 'PKR',
   fiscal_year_start: 'July 1',
   fiscal_year_end: 'June 30',

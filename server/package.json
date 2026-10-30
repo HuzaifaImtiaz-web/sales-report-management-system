@@ -2,7 +2,7 @@
   "name": "himmel-sales-server",
   "version": "2.0.0",
   "private": true,
-  "description": "API server for the Himmel Pharmaceutical Sales Management web app (shared PostgreSQL database)",
+  "description": "API server for the Himmel Sales System web app (shared PostgreSQL database)",
   "type": "commonjs",
   "main": "src/index.js",
   "engines": {

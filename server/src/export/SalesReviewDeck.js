@@ -155,12 +155,12 @@ class Builder {
     }
     const created = new Date().toLocaleDateString('en-GB', { timeZone: this.timeZone, day: 'numeric', month: 'long', year: 'numeric' });
     this.text(slide, `Prepared by ${this.preparedLine}`, { x: 80, y: 608, w: 700, h: 24, size: 16, bold: true, color: C.white });
-    this.text(slide, `Created ${created} · Himmel Sales Management`, { x: 80, y: 634, w: 700, h: 24, size: 16, color: C.white });
+    this.text(slide, `Created ${created} · Himmel Sales System`, { x: 80, y: 634, w: 700, h: 24, size: 16, color: C.white });
 
     slide.addNotes([
       `Sales Review for ${period.label}, prepared by ${this.preparedLine}.`,
       `Scope: ${scope.labels.join(', ')}.`,
-      'All figures come from the Himmel Sales Management system. Sales count approved and completed orders.',
+      'All figures come from the Himmel Sales System. Sales count approved and completed orders.',
     ].join('\n'));
   }
 

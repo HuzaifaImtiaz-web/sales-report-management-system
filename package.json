@@ -2,7 +2,7 @@
   "name": "himmel-sales-management",
   "private": true,
   "version": "2.0.0",
-  "description": "Himmel Pharmaceutical Sales Management System (web app)",
+  "description": "Himmel Sales System (web app)",
   "author": "Himmel Pharmaceutical Ltd",
   "type": "module",
   "engines": {

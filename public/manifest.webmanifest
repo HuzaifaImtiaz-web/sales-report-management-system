@@ -1,7 +1,7 @@
 {
-  "name": "Himmel Sales Management",
+  "name": "Himmel Sales System",
   "short_name": "Himmel Sales",
-  "description": "Himmel Pharmaceutical Sales Management System",
+  "description": "Himmel Sales System",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
